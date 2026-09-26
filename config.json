@@ -75,12 +75,13 @@
     },
     {
       "id": "r_1790444833297",
-      "name": "Teste",
+      "name": "Manhã Sab",
       "icon": "📋",
+      "limitMin": 525,
       "tasks": [
         {
           "name": "Acordar",
-          "emoji": "🏊",
+          "emoji": "🛏️",
           "start": [
             8,
             0
@@ -91,24 +92,58 @@
           ]
         },
         {
-          "name": "Teste",
-          "emoji": "⭐",
+          "name": "Tomar café",
+          "emoji": "🥣",
           "start": [
             8,
             10
           ],
           "end": [
             8,
-            20
+            30
+          ]
+        },
+        {
+          "name": "Escovar os dentes",
+          "emoji": "🪥",
+          "start": [
+            8,
+            30
+          ],
+          "end": [
+            8,
+            35
+          ]
+        },
+        {
+          "name": "Calçar sapato",
+          "emoji": "👟",
+          "start": [
+            8,
+            35
+          ],
+          "end": [
+            8,
+            40
+          ]
+        },
+        {
+          "name": "Ir pra natação",
+          "emoji": "🏊",
+          "start": [
+            8,
+            40
+          ],
+          "end": [
+            8,
+            45
           ]
         }
       ]
     }
   ],
   "weekSchedule": {
-    "0": [
-      "r_morning"
-    ],
+    "0": [],
     "1": [
       "r_morning"
     ],
