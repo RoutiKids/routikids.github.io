@@ -1052,24 +1052,21 @@
 
     <div id="sync-section">
       <h3>📱↔️📺 Configurar pelo celular, usar na TV</h3>
-      <p class="settings-hint"><strong>No celular:</strong> configure tudo, depois toque em "Criar/Atualizar no GitHub" — abre o GitHub já com o arquivo <code>config.json</code> preenchido, você só confirma o commit (2 toques).</p>
+      <p class="settings-hint"><strong>Passo 1:</strong> toque em "Preparar" — gera o texto abaixo e já verifica se o arquivo é novo ou já existe no GitHub.</p>
+      <p class="settings-hint"><strong>Passo 2:</strong> toque no texto que aparecer, selecione tudo (⋯ → Selecionar tudo) e copie (⋯ → Copiar) — isso é feito à mão, é mais confiável que copiar sozinho.</p>
+      <p class="settings-hint"><strong>Passo 3:</strong> toque em "Ir pro GitHub" — se o arquivo já existir, cole por cima do conteúdo antigo lá.</p>
       <div class="sync-buttons">
-        <button type="button" id="github-prefill-btn" class="util-btn" style="background:var(--coral);">📤 Criar/Atualizar config.json no GitHub</button>
+        <button type="button" id="github-prefill-btn" class="util-btn" style="background:var(--coral);">1️⃣ Preparar</button>
+        <button type="button" id="go-github-btn" class="util-btn" style="background:#9aa5b1; display:none;">3️⃣ Ir pro GitHub</button>
       </div>
+      <textarea id="export-output" readonly placeholder="Toque em 'Preparar' pra gerar o texto aqui..."></textarea>
       <p class="settings-hint" id="repo-path-hint" style="font-size:0.8vw;"></p>
+      <div id="sync-status"></div>
 
       <p class="settings-hint" style="margin-top:1.5vh;"><strong>Na TV:</strong> toque em "Importar de config.json" — busca esse arquivo direto do GitHub e aplica, sem digitar nada.</p>
       <div class="sync-buttons">
         <button type="button" id="import-config-btn" class="util-btn" style="background:var(--mint);">📥 Importar de config.json</button>
       </div>
-
-      <p class="settings-hint" style="margin-top:1.5vh;">Alternativa manual: exporte o texto abaixo e cole você mesmo num arquivo <code>config.json</code>.</p>
-      <div class="sync-buttons">
-        <button type="button" id="export-config-btn" class="util-btn" style="background:var(--sky);">📤 Exportar (texto)</button>
-      </div>
-      <textarea id="export-output" readonly placeholder="Clique em Exportar pra gerar o texto aqui..."></textarea>
-      <button type="button" id="copy-config-btn" class="util-btn" style="background:#9aa5b1; display:none;">📋 Copiar</button>
-      <div id="sync-status"></div>
     </div>
 
     <label class="settings-label" for="settings-child-name">Nome da criança (opcional)</label>
@@ -1130,7 +1127,7 @@
       <button id="settings-cancel" class="settings-btn cancel">Cancelar</button>
       <button id="settings-save" class="settings-btn save">💾 Salvar</button>
     </div>
-    <p style="text-align:right; font-size:0.7vw; color:#9aa5b1; margin-top:1vh;">Versão do código: 2026-09-26 19:36</p>
+    <p style="text-align:right; font-size:0.7vw; color:#9aa5b1; margin-top:1vh;">Versão do código: 2026-09-26 19:51</p>
   </div>
 </div>
 
@@ -2682,27 +2679,6 @@ function getCurrentConfigObject(){
   };
 }
 
-document.getElementById('export-config-btn').addEventListener('click', () => {
-  const ta = document.getElementById('export-output');
-  ta.value = JSON.stringify(getCurrentConfigObject(), null, 2);
-  ta.style.display = 'block';
-  document.getElementById('copy-config-btn').style.display = 'inline-block';
-  document.getElementById('sync-status').textContent = 'Selecione o texto acima (ou toque em "Copiar") e cole num arquivo "config.json" no GitHub, na raiz do mesmo repositório do index.html.';
-});
-
-document.getElementById('copy-config-btn').addEventListener('click', () => {
-  const ta = document.getElementById('export-output');
-  ta.select();
-  const statusEl = document.getElementById('sync-status');
-  try{
-    navigator.clipboard.writeText(ta.value)
-      .then(() => { statusEl.textContent = '✅ Copiado! Agora cole num arquivo "config.json" no GitHub.'; })
-      .catch(() => { statusEl.textContent = 'Não consegui copiar automaticamente — selecione o texto acima e copie manualmente.'; });
-  }catch(e){
-    statusEl.textContent = 'Selecione o texto acima e copie manualmente.';
-  }
-});
-
 // Aplica um objeto de configuração recebido de qualquer fonte (config.json
 // ou link de importação), com validação básica.
 function applyImportedConfig(cfg, statusEl){
@@ -2747,42 +2723,39 @@ const REPO_PATH = 'fabiofialho1/rotina-infantil-na-tv';
 const REPO_BRANCH = 'main';
 document.getElementById('repo-path-hint').textContent = `Repositório configurado: ${REPO_PATH} (branch ${REPO_BRANCH})`;
 
+let pendingGithubUrl = null; // guarda o link certo (novo ou editar) até a pessoa confirmar que já copiou
+
+// Passo 1: gera o texto, mostra na tela pra copiar à mão, e já descobre o
+// link certo do GitHub (novo arquivo ou editar o existente).
 document.getElementById('github-prefill-btn').addEventListener('click', () => {
   const json = JSON.stringify(getCurrentConfigObject(), null, 2);
   const statusEl = document.getElementById('sync-status');
+  const ta = document.getElementById('export-output');
+  const goBtn = document.getElementById('go-github-btn');
 
-  // Copia pra área de transferência JÁ, na hora do toque — navegadores
-  // móveis só permitem isso bem no instante do gesto do usuário, não
-  // depois de uma espera assíncrona (como a checagem abaixo).
-  let copiedOk = false;
-  try{
-    navigator.clipboard.writeText(json);
-    copiedOk = true;
-  }catch(e){}
+  ta.value = json;
+  ta.style.display = 'block';
+  goBtn.style.display = 'none';
+  statusEl.textContent = 'Verificando se o config.json já existe no GitHub...';
 
-  statusEl.textContent = 'Verificando se o config.json já existe...';
-
-  // Confere se o config.json já existe (buscando ele mesmo, publicado no
-  // GitHub Pages) pra decidir entre "criar novo" ou "editar existente" —
-  // o truque de pré-preencher só funciona pra arquivo NOVO.
   fetch('config.json', { cache: 'no-store' })
     .then(r => r.ok)
     .catch(() => false)
     .then(exists => {
       if(!exists){
-        const url = `https://github.com/${REPO_PATH}/new/${REPO_BRANCH}?filename=config.json&value=${encodeURIComponent(json)}`;
-        statusEl.textContent = 'Arquivo ainda não existe — abrindo o GitHub pra criar, já preenchido...';
-        window.location.href = url;
+        pendingGithubUrl = `https://github.com/${REPO_PATH}/new/${REPO_BRANCH}?filename=config.json&value=${encodeURIComponent(json)}`;
+        statusEl.textContent = '✅ Texto pronto acima (arquivo ainda não existe, esse link já vai criar preenchido). Toque em "Ir pro GitHub".';
       } else {
-        const url = `https://github.com/${REPO_PATH}/edit/${REPO_BRANCH}/config.json`;
-        statusEl.textContent = copiedOk
-          ? 'Arquivo já existe — copiei o texto novo pra você. Na tela que vai abrir, toque no conteúdo, selecione tudo (∙∙∙ → Selecionar tudo) e cole por cima.'
-          : 'Arquivo já existe — não consegui copiar automaticamente. Toque em "Exportar (texto)" abaixo, copie manualmente, e depois toque em Salvar de novo.';
-        if(copiedOk){
-          setTimeout(() => { window.location.href = url; }, 1500); // dá tempo de ler o aviso
-        }
+        pendingGithubUrl = `https://github.com/${REPO_PATH}/edit/${REPO_BRANCH}/config.json`;
+        statusEl.textContent = '✅ Texto pronto acima. Toque nele, selecione tudo e copie — depois toque em "Ir pro GitHub" e cole por cima do conteúdo antigo.';
       }
+      goBtn.style.display = 'inline-block';
     });
+});
+
+// Passo 3: só navega quando a pessoa já teve a chance de copiar o texto.
+document.getElementById('go-github-btn').addEventListener('click', () => {
+  if(pendingGithubUrl) window.location.href = pendingGithubUrl;
 });
 
 // Agora que tudo (DOM, funções, tela de configuração) já existe, monta a
