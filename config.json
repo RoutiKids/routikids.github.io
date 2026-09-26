@@ -104,8 +104,8 @@
           ]
         },
         {
-          "name": "Escovar os dentes",
-          "emoji": "🪥",
+          "name": "Trocar de roupa",
+          "emoji": "👕",
           "start": [
             8,
             30
@@ -116,8 +116,8 @@
           ]
         },
         {
-          "name": "Calçar sapato",
-          "emoji": "👟",
+          "name": "Escovar os dentes",
+          "emoji": "🪥",
           "start": [
             8,
             35
@@ -128,8 +128,8 @@
           ]
         },
         {
-          "name": "Ir pra natação",
-          "emoji": "🏊",
+          "name": "Colocar sapatos e ir pra natação",
+          "emoji": "👟",
           "start": [
             8,
             40
