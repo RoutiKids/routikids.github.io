@@ -1,1 +1,132 @@
 
+{
+  "childName": "Gabriel",
+  "onTimeIcon": "🐆",
+  "lateIcon": "🐢",
+  "routines": [
+    {
+      "id": "r_morning",
+      "name": "Manhã",
+      "icon": "🌞",
+      "tasks": [
+        {
+          "name": "Acordar",
+          "emoji": "🛏️",
+          "start": [
+            7,
+            55
+          ],
+          "end": [
+            8,
+            5
+          ],
+          "sound": {
+            "type": "melody"
+          }
+        },
+        {
+          "name": "Tomar café da manhã",
+          "emoji": "🥣",
+          "start": [
+            8,
+            5
+          ],
+          "end": [
+            8,
+            20
+          ]
+        },
+        {
+          "name": "Trocar de roupa",
+          "emoji": "👕",
+          "start": [
+            8,
+            20
+          ],
+          "end": [
+            8,
+            30
+          ]
+        },
+        {
+          "name": "Escovar os dentes",
+          "emoji": "🪥",
+          "start": [
+            8,
+            30
+          ],
+          "end": [
+            8,
+            40
+          ]
+        },
+        {
+          "name": "Calçar sapatos e ir para a Kita",
+          "emoji": "👟",
+          "start": [
+            8,
+            40
+          ],
+          "end": [
+            8,
+            45
+          ]
+        }
+      ]
+    },
+    {
+      "id": "r_1790444833297",
+      "name": "Teste",
+      "icon": "📋",
+      "tasks": [
+        {
+          "name": "Acordar",
+          "emoji": "🏊",
+          "start": [
+            8,
+            0
+          ],
+          "end": [
+            8,
+            10
+          ]
+        },
+        {
+          "name": "Teste",
+          "emoji": "⭐",
+          "start": [
+            8,
+            10
+          ],
+          "end": [
+            8,
+            20
+          ]
+        }
+      ]
+    }
+  ],
+  "weekSchedule": {
+    "0": [
+      "r_morning"
+    ],
+    "1": [
+      "r_morning"
+    ],
+    "2": [
+      "r_morning"
+    ],
+    "3": [
+      "r_morning"
+    ],
+    "4": [
+      "r_morning"
+    ],
+    "5": [
+      "r_morning"
+    ],
+    "6": [
+      "r_1790444833297"
+    ]
+  }
+}
