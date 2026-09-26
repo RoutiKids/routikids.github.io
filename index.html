@@ -1063,6 +1063,18 @@
       <p class="settings-hint" id="repo-path-hint" style="font-size:0.8vw;"></p>
       <div id="sync-status"></div>
 
+      <details style="margin-top:1.5vh;">
+        <summary style="cursor:pointer; font-family:'Baloo 2', sans-serif; font-weight:700; color:var(--navy);">🔧 Avançado (opcional): sincronizar sem copiar/colar</summary>
+        <p class="settings-hint" style="margin-top:1vh;">Preencha os dois campos abaixo pra o botão "Preparar" enviar direto pro GitHub, sem precisar copiar nem colar nada. Fica salvo só neste celular — nunca é incluído no texto exportado.</p>
+        <label class="settings-label" for="gh-repo-input">Usuário/repositório GitHub</label>
+        <input type="text" id="gh-repo-input" class="settings-text-input" placeholder="ex: fabiofialho1/rotina-infantil-na-tv">
+        <label class="settings-label" for="gh-token-input" style="margin-top:0.8vh; display:block;">Token de acesso do GitHub</label>
+        <input type="password" id="gh-token-input" class="settings-text-input" placeholder="cole o token aqui">
+        <p class="settings-hint" style="font-size:0.75vw; margin-top:0.8vh;">
+          <strong>Como gerar:</strong> github.com → sua foto de perfil → Settings → Developer settings → Personal access tokens → Fine-grained tokens → Generate new token. Em "Repository access", escolha "Only select repositories" e selecione só este. Em "Permissions" → "Repository permissions" → "Contents" → escolha "Read and write". Gere e cole o token acima.
+        </p>
+      </details>
+
       <p class="settings-hint" style="margin-top:1.5vh;"><strong>Na TV:</strong> toque em "Importar de config.json" — busca esse arquivo direto do GitHub e aplica, sem digitar nada.</p>
       <div class="sync-buttons">
         <button type="button" id="import-config-btn" class="util-btn" style="background:var(--mint);">📥 Importar de config.json</button>
@@ -1127,7 +1139,7 @@
       <button id="settings-cancel" class="settings-btn cancel">Cancelar</button>
       <button id="settings-save" class="settings-btn save">💾 Salvar</button>
     </div>
-    <p style="text-align:right; font-size:0.7vw; color:#9aa5b1; margin-top:1vh;">Versão do código: 2026-09-26 19:51</p>
+    <p style="text-align:right; font-size:0.7vw; color:#9aa5b1; margin-top:1vh;">Versão do código: 2026-09-26 20:57</p>
   </div>
 </div>
 
@@ -2714,20 +2726,91 @@ document.getElementById('import-config-btn').addEventListener('click', () => {
 });
 document.getElementById('config-btn').addEventListener('click', openSettings);
 
-// ---------- Criar/atualizar config.json no GitHub via link pré-preenchido ----------
-// Usa o recurso nativo do GitHub de pré-preencher um novo arquivo por
-// parâmetros de URL — abre a tela de criação de arquivo já com o nome e o
-// conteúdo prontos, só falta a pessoa confirmar o commit.
-// ATENÇÃO: troque REPO_PATH abaixo pelo seu usuário/repositório do GitHub.
-const REPO_PATH = 'fabiofialho1/rotina-infantil-na-tv';
+// ---------- Criar/atualizar config.json no GitHub ----------
+// Padrão (sem credenciais avançadas): usa o link pré-preenchido do GitHub
+// (recurso nativo de pré-preencher um novo arquivo por parâmetros de URL) —
+// a pessoa copia o texto e confirma o commit à mão.
+// Avançado (com usuário/repositório + token preenchidos): fala direto com a
+// API do GitHub, cria ou atualiza o arquivo num só toque, sem copiar/colar.
+const REPO_PATH_DEFAULT = 'fabiofialho1/rotina-infantil-na-tv'; // usado só se o campo avançado estiver vazio
 const REPO_BRANCH = 'main';
-document.getElementById('repo-path-hint').textContent = `Repositório configurado: ${REPO_PATH} (branch ${REPO_BRANCH})`;
+
+function utf8ToBase64(str){ return btoa(unescape(encodeURIComponent(str))); }
+
+const GH_SYNC_KEY = 'rotinaGithubSync_v1';
+function loadGithubSyncSettings(){
+  try{
+    const raw = localStorage.getItem(GH_SYNC_KEY);
+    if(raw) return JSON.parse(raw);
+  }catch(e){}
+  return { repo: '', token: '' };
+}
+function saveGithubSyncSettings(){
+  try{
+    localStorage.setItem(GH_SYNC_KEY, JSON.stringify({
+      repo: document.getElementById('gh-repo-input').value.trim(),
+      token: document.getElementById('gh-token-input').value.trim()
+    }));
+  }catch(e){}
+}
+(function initGithubSyncFields(){
+  const saved = loadGithubSyncSettings();
+  document.getElementById('gh-repo-input').value = saved.repo || '';
+  document.getElementById('gh-token-input').value = saved.token || '';
+  document.getElementById('gh-repo-input').addEventListener('input', saveGithubSyncSettings);
+  document.getElementById('gh-token-input').addEventListener('input', saveGithubSyncSettings);
+})();
+
+function getRepoPath(){
+  const custom = document.getElementById('gh-repo-input').value.trim();
+  return custom || REPO_PATH_DEFAULT;
+}
+document.getElementById('repo-path-hint').textContent = `Repositório configurado: ${getRepoPath()} (branch ${REPO_BRANCH})`;
 
 let pendingGithubUrl = null; // guarda o link certo (novo ou editar) até a pessoa confirmar que já copiou
 
+// Envia direto pela API do GitHub (cria ou atualiza), usando token — sem
+// abrir nenhuma tela, sem copiar/colar nada.
+function syncViaGithubApi(){
+  const repo = getRepoPath();
+  const token = document.getElementById('gh-token-input').value.trim();
+  const statusEl = document.getElementById('sync-status');
+  const json = JSON.stringify(getCurrentConfigObject(), null, 2);
+  const apiUrl = `https://api.github.com/repos/${repo}/contents/config.json`;
+  const headers = { 'Authorization': `token ${token}`, 'Accept': 'application/vnd.github+json' };
+
+  statusEl.textContent = '🔧 Sincronizando direto com o GitHub...';
+  fetch(apiUrl, { headers, cache: 'no-store' })
+    .then(r => (r.status === 404) ? null : r.json())
+    .then(existing => {
+      const body = { message: 'Atualiza config.json (app Rotina)', content: utf8ToBase64(json), branch: REPO_BRANCH };
+      if(existing && existing.sha) body.sha = existing.sha;
+      return fetch(apiUrl, {
+        method: 'PUT',
+        headers: { ...headers, 'Content-Type': 'application/json' },
+        body: JSON.stringify(body)
+      });
+    })
+    .then(r => {
+      if(!r.ok) return r.json().then(e => { throw new Error(e.message || ('HTTP ' + r.status)); });
+      statusEl.textContent = '✅ Sincronizado com o GitHub com sucesso! Na TV, toque em "Importar de config.json".';
+    })
+    .catch(err => {
+      statusEl.textContent = '❌ Erro ao sincronizar: ' + err.message + '. Confere o repositório/token, ou use o fluxo manual abaixo.';
+    });
+}
+
 // Passo 1: gera o texto, mostra na tela pra copiar à mão, e já descobre o
-// link certo do GitHub (novo arquivo ou editar o existente).
+// link certo do GitHub (novo arquivo ou editar o existente). Se as
+// credenciais avançadas estiverem preenchidas, usa a API direto em vez disso.
 document.getElementById('github-prefill-btn').addEventListener('click', () => {
+  const repo = getRepoPath();
+  const token = document.getElementById('gh-token-input').value.trim();
+  if(token){
+    syncViaGithubApi();
+    return;
+  }
+
   const json = JSON.stringify(getCurrentConfigObject(), null, 2);
   const statusEl = document.getElementById('sync-status');
   const ta = document.getElementById('export-output');
@@ -2743,10 +2826,10 @@ document.getElementById('github-prefill-btn').addEventListener('click', () => {
     .catch(() => false)
     .then(exists => {
       if(!exists){
-        pendingGithubUrl = `https://github.com/${REPO_PATH}/new/${REPO_BRANCH}?filename=config.json&value=${encodeURIComponent(json)}`;
+        pendingGithubUrl = `https://github.com/${repo}/new/${REPO_BRANCH}?filename=config.json&value=${encodeURIComponent(json)}`;
         statusEl.textContent = '✅ Texto pronto acima (arquivo ainda não existe, esse link já vai criar preenchido). Toque em "Ir pro GitHub".';
       } else {
-        pendingGithubUrl = `https://github.com/${REPO_PATH}/edit/${REPO_BRANCH}/config.json`;
+        pendingGithubUrl = `https://github.com/${repo}/edit/${REPO_BRANCH}/config.json`;
         statusEl.textContent = '✅ Texto pronto acima. Toque nele, selecione tudo e copie — depois toque em "Ir pro GitHub" e cole por cima do conteúdo antigo.';
       }
       goBtn.style.display = 'inline-block';
