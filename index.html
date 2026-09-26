@@ -1067,7 +1067,7 @@
         <summary style="cursor:pointer; font-family:'Baloo 2', sans-serif; font-weight:700; color:var(--navy);">🔧 Avançado (opcional): sincronizar sem copiar/colar</summary>
         <p class="settings-hint" style="margin-top:1vh;">Preencha os dois campos abaixo pra o botão "Preparar" enviar direto pro GitHub, sem precisar copiar nem colar nada. Fica salvo só neste celular — nunca é incluído no texto exportado.</p>
         <label class="settings-label" for="gh-repo-input">Usuário/repositório GitHub</label>
-        <input type="text" id="gh-repo-input" class="settings-text-input" placeholder="ex: fabiofialho1/rotina-infantil-na-tv">
+        <input type="text" id="gh-repo-input" class="settings-text-input" placeholder="cole qualquer link do repositório (github.com/... ou .git)">
         <label class="settings-label" for="gh-token-input" style="margin-top:0.8vh; display:block;">Token de acesso do GitHub</label>
         <input type="password" id="gh-token-input" class="settings-text-input" placeholder="cole o token aqui">
         <p class="settings-hint" style="font-size:0.75vw; margin-top:0.8vh;">
@@ -1139,7 +1139,7 @@
       <button id="settings-cancel" class="settings-btn cancel">Cancelar</button>
       <button id="settings-save" class="settings-btn save">💾 Salvar</button>
     </div>
-    <p style="text-align:right; font-size:0.7vw; color:#9aa5b1; margin-top:1vh;">Versão do código: 2026-09-26 20:57</p>
+    <p style="text-align:right; font-size:0.7vw; color:#9aa5b1; margin-top:1vh;">Versão do código: 2026-09-26 21:30</p>
   </div>
 </div>
 
@@ -2745,6 +2745,25 @@ function loadGithubSyncSettings(){
   }catch(e){}
   return { repo: '', token: '' };
 }
+// Aceita qualquer formato de link que a pessoa colar (URL normal do GitHub,
+// link .git, link do GitHub Pages, com ou sem https://) e extrai só o
+// "usuário/repositório", que é o formato que a API realmente precisa.
+function normalizeRepoPath(input){
+  let s = (input || '').trim();
+  if(!s) return '';
+  s = s.replace(/\.git$/i, '');
+  let m;
+  m = s.match(/^git@github\.com:([^\/]+)\/([^\/]+?)\/?$/i);
+  if(m) return `${m[1]}/${m[2]}`;
+  m = s.match(/^(?:https?:\/\/)?([^.\/]+)\.github\.io\/([^\/?#]+)/i); // link do GitHub Pages (usuario.github.io/repo)
+  if(m) return `${m[1]}/${m[2]}`;
+  m = s.match(/^(?:https?:\/\/)?(?:www\.)?github\.com\/([^\/?#]+)\/([^\/?#]+)/i); // link normal do github.com
+  if(m) return `${m[1]}/${m[2]}`;
+  m = s.match(/^([^\/]+)\/([^\/]+?)\/?$/); // já está no formato usuario/repositorio
+  if(m) return `${m[1]}/${m[2]}`;
+  return s; // não reconhecido — devolve como veio
+}
+
 function saveGithubSyncSettings(){
   try{
     localStorage.setItem(GH_SYNC_KEY, JSON.stringify({
@@ -2759,10 +2778,17 @@ function saveGithubSyncSettings(){
   document.getElementById('gh-token-input').value = saved.token || '';
   document.getElementById('gh-repo-input').addEventListener('input', saveGithubSyncSettings);
   document.getElementById('gh-token-input').addEventListener('input', saveGithubSyncSettings);
+  // Ao sair do campo, já limpa/ajusta o texto pro formato certo na tela —
+  // assim a pessoa vê que funcionou, não importa o que colou.
+  document.getElementById('gh-repo-input').addEventListener('blur', (e) => {
+    const cleaned = normalizeRepoPath(e.target.value);
+    e.target.value = cleaned;
+    saveGithubSyncSettings();
+  });
 })();
 
 function getRepoPath(){
-  const custom = document.getElementById('gh-repo-input').value.trim();
+  const custom = normalizeRepoPath(document.getElementById('gh-repo-input').value);
   return custom || REPO_PATH_DEFAULT;
 }
 document.getElementById('repo-path-hint').textContent = `Repositório configurado: ${getRepoPath()} (branch ${REPO_BRANCH})`;
