@@ -2,14 +2,14 @@
 <html lang="pt-BR">
 <head>
 <script>
-// Força sempre buscar a versão mais nova do servidor: se a URL não tiver
-// nosso parâmetro de "cache-busting", redireciona pra ela mesma com um
-// valor único, o que obriga o navegador a ignorar qualquer cópia em cache
-// (da TV ou do GitHub Pages) e baixar o arquivo de verdade mais recente.
+// Always force fetching the newest version from the server: if the URL lacks
+// our cache-busting parameter, redirect to itself with a unique value, which
+// forces the browser to ignore any cached copy (on the TV or GitHub Pages)
+// and download the actual latest file.
 (function(){
-  // Só ativa esse redirecionamento no site publicado de verdade (github.io) —
-  // em qualquer outro lugar (preview do Claude, arquivo aberto localmente,
-  // etc.) fica inofensivo, pra não quebrar essas outras formas de visualizar.
+  // Only enable this redirect on the real published site (github.io) —
+  // anywhere else (Claude preview, file opened locally, etc.) it is harmless,
+  // so it doesn't break those other ways of viewing the page.
   if(location.hostname.endsWith('github.io') && !location.search.includes('_cb=')){
     location.replace(location.pathname + '?_cb=' + Date.now());
   }
@@ -60,7 +60,7 @@
     color:var(--navy);
   }
 
-  /* ---- Botões de utilidade (testar / resetar horário) ---- */
+  /* ---- Utility buttons (test / reset time) ---- */
   #util-buttons{
     position:fixed;
     top:1.5vh;
@@ -88,7 +88,7 @@
   #test-schedule-btn{ background:var(--sky); }
   #reset-schedule-btn{ background:#9aa5b1; }
 
-  /* ---- Rodapé: relógio atual + horário limite (ao lado do botão de som) ---- */
+  /* ---- Footer: current clock + deadline (next to the sound button) ---- */
   #bottom-info{
     position:fixed;
     bottom:2.5vh;
@@ -388,7 +388,7 @@
     100%{ transform:scale(1); }
   }
 
-  /* ---- Celebração / incentivo ---- */
+  /* ---- Celebration / encouragement ---- */
   #celebration-layer{
     position:fixed;
     inset:0;
@@ -453,7 +453,7 @@
     transform:translateX(-50%) translateY(0);
   }
 
-  /* ---- Setas de reordenar (só em tarefas ainda não feitas) ---- */
+  /* ---- Reorder arrows (only on tasks not done yet) ---- */
   .reorder-controls{
     display:flex;
     flex-direction:column;
@@ -482,7 +482,7 @@
     outline-offset:1px;
   }
 
-  /* ---- Botão liga/desliga som ---- */
+  /* ---- Sound on/off button ---- */
   #sound-toggle{
     position:fixed;
     bottom:2.5vh;
@@ -510,7 +510,7 @@
     outline-offset:2px;
   }
 
-  /* ---- Diálogo de confirmação de tarefa ---- */
+  /* ---- Task confirmation dialog ---- */
   #confirm-overlay{
     position:fixed;
     inset:0;
@@ -584,7 +584,7 @@
     color:#6b7a90;
   }
 
-  /* ---- Tela de configuração ---- */
+  /* ---- Settings screen ---- */
   #settings-overlay{
     position:fixed;
     inset:0;
@@ -665,7 +665,7 @@
   }
   #autolink-row input{ width:1.4vw; height:1.4vw; min-width:16px; min-height:16px; }
 
-  /* ---- Rotinas da semana (abas + tabela) ---- */
+  /* ---- Weekly routines (tabs + table) ---- */
   #routines-section{
     background:rgba(29,53,87,0.04);
     border-radius:16px;
@@ -967,10 +967,10 @@
   .settings-btn.cancel{ background:#9aa5b1; }
   .settings-btn.save{ background:var(--mint); }
 
-  /* ---- Telas estreitas (celular, principalmente na vertical) ----
-     Evita que o relógio + horário limite colidam com o botão de som:
-     nesses casos, esse grupo sobe pro canto superior direito, deixando
-     o rodapé só com o botão de som. */
+  /* ---- Narrow screens (phones, mostly in portrait) ----
+     Prevents the clock + deadline from colliding with the sound button:
+     in those cases, that group moves up to the top-right corner, leaving
+     the footer with only the sound button. */
   @media (max-width: 700px), (orientation: portrait){
     #bottom-info{
       top:7vh;
@@ -1156,7 +1156,7 @@
 </div>
 
 <script>
-// ---------- CONFIGURAÇÃO PADRÃO (usada só se não houver nada salvo neste navegador) ----------
+// ---------- DEFAULT CONFIGURATION (used only if nothing is saved in this browser) ----------
 const DEFAULT_MORNING_TASKS = [
   { name: "Acordar",              emoji: "🛏️", start: [7,55],  end:[8,5],  sound: { type: "melody" } },
   { name: "Tomar café da manhã",  emoji: "🥣", start: [8,5],  end:[8,20] },
@@ -1173,15 +1173,15 @@ const DEFAULT_ROUTINES = [
 const DAY_NAMES = ['Dom','Seg','Ter','Qua','Qui','Sex','Sáb'];
 const DEFAULT_WEEK_SCHEDULE = { 0:['r_morning'], 1:['r_morning'], 2:['r_morning'], 3:['r_morning'], 4:['r_morning'], 5:['r_morning'], 6:['r_morning'] };
 
-// ---------- Presets pra tela de configuração ----------
+// ---------- Presets for the settings screen ----------
 const EMOJI_PRESETS = ["🛏️","🥣","👕","🪥","👟","🛁","🧸","💇","🎒","🌙","📚","🧴","🥛","🍎","🧦","🚽","🧹","🖍️","🏊","🎵","🩰","⚽","🤸","🥋","🎹","🚴","🏀","🎭"];
 const ONTIME_ICON_PRESETS = ["🐆","⭐","🦁","🐯","🦅","🚀","🏆","🦄","🐬","🐰"];
 const LATE_ICON_PRESETS = ["🐢","🐌","🦥","🐨","🐘","🐸"];
 const ROUTINE_ICON_PRESETS = ["🌞","🍽️","🌙","🎒","🏫","🛌","⚽","📖","🎨","🧺"];
 
-// ---------- Persistência (localStorage do navegador desta TV) ----------
+// ---------- Persistence (localStorage of this TV's browser) ----------
 const STORAGE_KEY = 'rotinaConfig_v2';
-const OLD_STORAGE_KEY = 'rotinaConfig_v1'; // formato anterior, sem múltiplas rotinas/dias
+const OLD_STORAGE_KEY = 'rotinaConfig_v1'; // previous format, without multiple routines/days
 
 function loadStoredConfig(){
   try{
@@ -1191,7 +1191,7 @@ function loadStoredConfig(){
       if(parsed && Array.isArray(parsed.routines) && parsed.routines.length) return parsed;
     }
   }catch(e){}
-  // Migração de uma configuração salva no formato antigo (uma rotina só, sem dias da semana)
+  // Migrate a configuration saved in the old format (single routine, no weekdays)
   try{
     const oldRaw = localStorage.getItem(OLD_STORAGE_KEY);
     if(oldRaw){
@@ -1225,8 +1225,8 @@ let WEEK_SCHEDULE = stored ? stored.weekSchedule : DEFAULT_WEEK_SCHEDULE;
 
 function toMinutes([h,m]){ return h*60+m; }
 
-// Junta as tarefas de todas as rotinas ativas no dia de hoje (pode ser mais
-// de uma, se "permitir várias por dia" estiver ligado), em ordem cronológica.
+// Merge the tasks of all routines active today (there may be more than
+// one if "allow several per day" is on), in chronological order.
 function buildTasksForDayIndex(dayIdx){
   const activeIds = (WEEK_SCHEDULE[dayIdx] || []).filter(id => ROUTINES.some(r => r.id === id));
   let combined = [];
@@ -1237,12 +1237,12 @@ function buildTasksForDayIndex(dayIdx){
   return combined;
 }
 function buildTodaysTasks(){
-  return buildTasksForDayIndex(new Date().getDay()); // 0=Domingo ... 6=Sábado
+  return buildTasksForDayIndex(new Date().getDay()); // 0=Sunday ... 6=Saturday
 }
 
-// Prévia (só leitura) das tarefas de um dia futuro, pra navegação das setas
-// — os horários vêm prontos em minutos, igual ao array `tasks` de verdade,
-// mas sem pointer/outcome (esses dias ainda não "aconteceram").
+// Read-only preview of a future day's tasks, for arrow navigation
+// — times come ready in minutes, same as the real `tasks` array,
+// but without pointer/outcome (those days haven't "happened" yet).
 function buildPreviewTasksForOffset(dayOffset){
   const dayIdx = (new Date().getDay() + dayOffset) % 7;
   return buildTasksForDayIndex(dayIdx).map(t => ({
@@ -1253,8 +1253,8 @@ function buildPreviewTasksForOffset(dayOffset){
 }
 const WEEKDAY_FULL = ['domingo','segunda','terça','quarta','quinta','sexta','sábado'];
 
-// Só pra mostrar uma prévia na tela de "rotina completa" — não carrega nem
-// altera nada de verdade, só olha o que está programado pro dia seguinte.
+// Only used to show a preview on the "routine complete" screen — it doesn't
+// load or change anything, it just looks at what's scheduled for the next day.
 function previewTomorrow(){
   const tomorrowIdx = (new Date().getDay() + 1) % 7;
   const activeIds = (WEEK_SCHEDULE[tomorrowIdx] || []).filter(id => ROUTINES.some(r => r.id === id));
@@ -1274,17 +1274,17 @@ function previewTomorrow(){
 let TASKS = buildTodaysTasks();
 let loadedDayIndex = new Date().getDay();
 
-// Cada tarefa guarda sua própria duração (baseDurationMin), a rotina de onde
-// veio (routineId) e seu horário planejado original (plannedStartMin).
-// Dentro da MESMA rotina, as tarefas encadeiam sem intervalo (uma começa
-// quando a anterior termina). Ao trocar de rotina (ex: Manhã -> Almoço), o
-// intervalo real configurado é respeitado — só avança pro horário planejado
-// se ele ainda não tiver chegado.
+// Each task stores its own duration (baseDurationMin), the routine it came
+// from (routineId) and its original planned start time (plannedStartMin).
+// Within the SAME routine, tasks chain with no gap (one starts when the
+// previous one ends). When switching routines (e.g. Morning -> Lunch), the
+// actual configured gap is respected — it only advances to the planned time
+// if that time hasn't arrived yet.
 let tasks = [];
 let PLANNED = [];
 let dayStartMin = 0;
 let limitMin = 0;
-let pointer = 0; // índice da tarefa atual; pointer === tasks.length = rotina completa (ou sem rotina hoje)
+let pointer = 0; // index of the current task; pointer === tasks.length = routine complete (or no routine today)
 
 function buildTasksFromConfig(cfg){
   return cfg.map(t => ({
@@ -1292,7 +1292,7 @@ function buildTasksFromConfig(cfg){
     emoji: t.emoji,
     sound: t.sound,
     baseDurationMin: toMinutes(t.end) - toMinutes(t.start),
-    plannedDurationMin: toMinutes(t.end) - toMinutes(t.start), // imutável, não sofre com extensões
+    plannedDurationMin: toMinutes(t.end) - toMinutes(t.start), // immutable, not affected by extensions
     routineId: t.routineId || null,
     plannedStartMin: toMinutes(t.start),
     redMin: 0,
@@ -1302,9 +1302,9 @@ function buildTasksFromConfig(cfg){
   }));
 }
 
-// Acha o bloco de tarefas (mesma rotina) que contém o índice "idx" dentro
-// do array `tasks`, e o horário-limite dessa rotina (fim planejado + o
-// buffer configurado pra ela, ou +10min por padrão).
+// Find the block of tasks (same routine) that contains index "idx" within
+// the `tasks` array, and that routine's deadline (planned end + the buffer
+// configured for it, or +10min by default).
 function routineBlockAt(idx){
   if(idx < 0 || idx >= tasks.length) return null;
   const rid = tasks[idx].routineId;
@@ -1319,13 +1319,13 @@ function routineTargetAndLimit(idx){
   let targetEndMin = tasks[block.startIdx].plannedStartMin;
   for(let i = block.startIdx; i <= block.endIdx; i++) targetEndMin += tasks[i].plannedDurationMin;
   const routine = ROUTINES.find(r => r.id === block.routineId);
-  // Usa o horário-limite pré-configurado da rotina, se houver; senão cai
-  // num padrão razoável (fim planejado + 10min).
+  // Use the routine's preconfigured deadline, if any; otherwise fall back
+  // to a reasonable default (planned end + 10min).
   const limit = (routine && routine.limitMin !== undefined) ? routine.limitMin : (targetEndMin + 10);
   return { targetEndMin, limitMin: limit };
 }
 
-let currentLimitRoutineId = undefined; // controla quando recalcular limitMin (rotina mudou)
+let currentLimitRoutineId = undefined; // tracks when to recompute limitMin (routine changed)
 function refreshLimitForCurrentRoutine(){
   if(pointer >= tasks.length) return;
   const rid = tasks[pointer].routineId;
@@ -1337,9 +1337,9 @@ function refreshLimitForCurrentRoutine(){
 
 function hardLimitMin(){ return limitMin; }
 
-// Calcula o início de "next" logo depois de "prev": encadeia sem intervalo
-// se forem da mesma rotina; se for uma rotina diferente e o horário
-// planejado dela ainda não chegou, espera até esse horário (intervalo real).
+// Compute the start of "next" right after "prev": chain with no gap if
+// they belong to the same routine; if it's a different routine and its
+// planned time hasn't arrived yet, wait until that time (actual gap).
 function nextStartAfter(prevTask, nextTask, cursor){
   if(prevTask && nextTask.routineId !== prevTask.routineId && nextTask.plannedStartMin > cursor){
     return nextTask.plannedStartMin;
@@ -1359,16 +1359,16 @@ function recomputeUpcoming(overrideCursor){
 }
 
 
-// (Re)constrói toda a rotina a partir de uma configuração — usado no carregamento
-// inicial e sempre que a pessoa salva novas configurações na tela de "Configurar".
+// (Re)build the whole routine from a configuration — used on initial load
+// and whenever the user saves new settings on the "Configure" screen.
 function nowInMinutes(){
   const d = new Date();
   return d.getHours()*60 + d.getMinutes() + d.getSeconds()/60;
 }
 
-// Se a página for aberta (ou a rotina recarregada) depois do horário de
-// alguma tarefa já ter passado, avança em silêncio até a tarefa atual de
-// verdade — sem diálogo de confirmação nem som, um por um, retroativamente.
+// If the page is opened (or the routine reloaded) after some task's time
+// has already passed, silently advance to the actual current task —
+// no confirmation dialog or sound, one by one, retroactively.
 function catchUpToNow(){
   const nowMin = nowInMinutes();
   while(pointer < tasks.length && nowMin >= tasks[pointer].endMin){
@@ -1388,13 +1388,13 @@ function initSchedule(cfg){
   closeConfirm();
   recomputeUpcoming();
   catchUpToNow();
-  currentLimitRoutineId = undefined; // força recalcular o limite pra rotina atual
+  currentLimitRoutineId = undefined; // force recomputing the deadline for the current routine
   refreshLimitForCurrentRoutine();
   rebuildTimelineDOM();
   updateHeaderTitle();
 }
 
-// Se a TV ficar ligada passando da meia-noite, troca sozinho pra rotina do novo dia.
+// If the TV stays on past midnight, switch to the new day's routine automatically.
 function checkDayRollover(){
   const idx = new Date().getDay();
   if(idx !== loadedDayIndex){
@@ -1404,13 +1404,13 @@ function checkDayRollover(){
   }
 }
 
-// Recarrega a página sozinha de tempos em tempos, mas só em momentos seguros
-// (rotina do dia ainda não começou, já terminou, ou esperando a próxima) —
-// nunca no meio de uma tarefa ativa, pra não perder nenhum progresso/extensão
-// que só existe na memória desta sessão. Garante que a TV sempre roda a
-// versão mais recente publicada e evita qualquer travamento de uso contínuo.
-const AUTO_REFRESH_MIN_INTERVAL_MS = 20 * 60 * 1000; // no mínimo 20min entre recargas
-const AUTO_REFRESH_STABLE_MS = 15 * 60 * 1000;       // só recarrega depois de 15min "parado" num estado seguro
+// Reload the page automatically from time to time, but only at safe moments
+// (today's routine hasn't started, has finished, or is waiting for the next) —
+// never in the middle of an active task, so no progress/extension that only
+// exists in this session's memory is lost. Ensures the TV always runs the
+// latest published version and avoids any hang from continuous use.
+const AUTO_REFRESH_MIN_INTERVAL_MS = 20 * 60 * 1000; // at least 20min between reloads
+const AUTO_REFRESH_STABLE_MS = 15 * 60 * 1000;       // only reload after 15min "idle" in a safe state
 let safeStateSince = null;
 
 function maybeAutoRefresh(nowMin){
@@ -1449,19 +1449,19 @@ const browseControlsEl = document.getElementById('browse-controls');
 const browsePrevBtn = document.getElementById('browse-prev-btn');
 const browseNextBtn = document.getElementById('browse-next-btn');
 
-// Navegação pelas setas, por ROTINA inteira (não tarefa por tarefa — as
-// tarefas de hoje já aparecem na lista ao lado). browseDay = null (tela
-// padrão) ou um deslocamento de dias a partir de hoje (0 = hoje, 1 =
-// amanhã, ...); browseRoutineIdx = índice do "bloco" de rotina dentro
-// daquele dia (um dia pode ter mais de uma rotina).
+// Arrow navigation, by WHOLE routine (not task by task — today's tasks
+// already show in the side list). browseDay = null (default screen) or
+// a day offset from today (0 = today, 1 = tomorrow, ...);
+// browseRoutineIdx = index of the routine "block" within that day
+// (a day can have more than one routine).
 let browseDay = null;
 let browseRoutineIdx = null;
 
 function tasksForBrowseDay(offset){
   return offset === 0 ? tasks : buildPreviewTasksForOffset(offset);
 }
-// Agrupa a lista de tarefas de um dia em blocos por rotina (tarefas
-// consecutivas da mesma rotina viram um bloco só = uma "página").
+// Group a day's task list into blocks by routine (consecutive tasks
+// of the same routine become a single block = one "page").
 function routineBlocksForDay(offset){
   const list = tasksForBrowseDay(offset);
   const blocks = [];
@@ -1476,9 +1476,9 @@ function routineBlocksForDay(offset){
   });
   return blocks;
 }
-// Acha o próximo (ou anterior) deslocamento de dia, a partir de startOffset,
-// que tenha pelo menos 1 rotina — pula dias sem nada configurado. Só olha
-// até 6 dias à frente (não passa de uma volta completa na semana).
+// Find the next (or previous) day offset, starting at startOffset, that
+// has at least 1 routine — skips days with nothing configured. Only looks
+// up to 6 days ahead (never more than one full lap of the week).
 function findDayWithTasks(startOffset, direction){
   for(let off = startOffset; off >= 0 && off <= 6; off += direction){
     if(tasksForBrowseDay(off).length > 0) return off;
@@ -1497,7 +1497,7 @@ function renderBrowsedTask(){
   const r = ROUTINES.find(r => r.id === block.routineId);
   heroEmoji.textContent = r ? r.icon : '📋';
   heroLabel.textContent = r ? r.name : 'Rotina';
-  // O nome da criança no título nunca some — o que muda é só essa linha do card
+  // The child's name in the title never disappears — only this card line changes
   const dayLabel = browseDay === 0 ? 'Hoje' : (browseDay === 1 ? 'Amanhã' : `${WEEKDAY_FULL[(new Date().getDay()+browseDay)%7]}`);
   const taskCount = block.endIdx - block.startIdx + 1;
 
@@ -1534,7 +1534,7 @@ function browsePrev(){
       browseDay = prevDay;
       browseRoutineIdx = routineBlocksForDay(prevDay).length - 1;
     } else if(browseDay === 0){
-      browseDay = null; browseRoutineIdx = null; // volta pra tela padrão
+      browseDay = null; browseRoutineIdx = null; // back to the default screen
     }
   }
   render();
@@ -1573,7 +1573,7 @@ function updateHeaderTitle(){
   pageTitleEl.textContent = CHILD_NAME ? `🌞 Rotina de ${CHILD_NAME}` : '🌞 Rotina da Manhã';
 }
 
-// ---------- Construção da timeline (refeita sempre que a ordem muda) ----------
+// ---------- Timeline construction (rebuilt whenever the order changes) ----------
 function rebuildTimelineDOM(){
   timelineEl.innerHTML = '';
   tasks.forEach((t, i) => {
@@ -1600,10 +1600,10 @@ function rebuildTimelineDOM(){
     timelineEl.appendChild(div);
   });
 }
-// (a construção inicial da timeline acontece no initSchedule() lá no fim do arquivo)
+// (the initial timeline construction happens in initSchedule() at the end of the file)
 
-// ---------- SOM (beep gerado, sem arquivos externos) ----------
-let soundEnabled = false; // começa desligado; usuário liga com o botão
+// ---------- SOUND (generated beep, no external files) ----------
+let soundEnabled = false; // starts off; user turns it on with the button
 let audioCtx;
 
 function ensureAudioCtx(){
@@ -1631,16 +1631,16 @@ function beep(freq=880, duration=0.15, delay=0){
 }
 function chime(){ beep(660,0.15,0); beep(880,0.18,0.16); beep(1046,0.22,0.34); }
 
-// Melodia de demonstração pra tarefa "Acordar" (só pra testar "som maior no
-// início" enquanto não temos um mp3 real hospedado — troque por sound.src
-// com um link/arquivo de música quando tiver um).
+// Demo melody for the "Wake up" task (just to test "bigger sound at the
+// start" while we don't have a real hosted mp3 — replace with sound.src
+// pointing to a music link/file when we have one).
 function wakeMelody(){
   const notes = [523,587,659,698,784,880,784,659];
   notes.forEach((f,i) => beep(f, 0.22, i*0.2));
 }
 
-// ---------- Som de palmas (ruído filtrado, em ritmo de aplauso) ----------
-// ---------- Som de aplauso "torcida" (camada de ruído + palmas espalhadas) ----------
+// ---------- Clapping sound (filtered noise, in applause rhythm) ----------
+// ---------- "Crowd" applause sound (noise layer + scattered claps) ----------
 function playClapSound(){
   if(!soundEnabled) return;
   try{
@@ -1648,7 +1648,7 @@ function playClapSound(){
     const duration = 2.6;
     const t0 = ctx.currentTime;
 
-    // camada 1: "rugido" contínuo de fundo, tipo torcida ao longe
+    // layer 1: continuous background "roar", like a distant crowd
     const roarBuf = ctx.createBuffer(1, Math.floor(ctx.sampleRate*duration), ctx.sampleRate);
     const roarData = roarBuf.getChannelData(0);
     for(let i=0;i<roarData.length;i++){ roarData[i] = Math.random()*2-1; }
@@ -1666,7 +1666,7 @@ function playClapSound(){
     roarSrc.connect(roarFilter).connect(roarGain).connect(ctx.destination);
     roarSrc.start(t0);
 
-    // camada 2: muitas palminhas individuais, espalhadas e irregulares (não em ritmo fixo)
+    // layer 2: many individual small claps, scattered and irregular (no fixed rhythm)
     const clapCount = 45;
     for(let i=0;i<clapCount;i++){
       const t = Math.random() * duration * 0.92;
@@ -1687,7 +1687,7 @@ function playClapSound(){
       noise.start(t0 + t);
     }
 
-    // camada 3: assobios (glissando agudo)
+    // layer 3: whistles (high-pitched glissando)
     [0.15, 1.3].forEach(delay => {
       const t1 = t0 + delay;
       const osc = ctx.createOscillator();
@@ -1703,7 +1703,7 @@ function playClapSound(){
       osc.start(t1); osc.stop(t1+0.5);
     });
 
-    // camada 4: "gritos" de torcida (ruído filtrado com glissando)
+    // layer 4: crowd "cheers" (filtered noise with glissando)
     [0.05, 0.85, 1.9].forEach(delay => {
       const t1 = t0 + delay;
       const dur = 0.55;
@@ -1728,7 +1728,7 @@ function playClapSound(){
   }catch(e){}
 }
 
-// ---------- Balões coloridos subindo (genéricos, sem personagens de marca) ----------
+// ---------- Colorful balloons rising (generic, no branded characters) ----------
 function spawnBalloons(){
   const colors = ['#FF6B6B','#FFC145','#5FC28E','#4EA8DE','#B983FF','#FF8FB1'];
   for(let i=0;i<7;i++){
@@ -1743,7 +1743,7 @@ function spawnBalloons(){
   }
 }
 
-// ---------- Fala (aviso encorajador, com timbre mais "mascote") ----------
+// ---------- Speech (encouraging message, with a more "mascot"-like voice) ----------
 function speak(text, opts={}){
   if(!soundEnabled) return;
   try{
@@ -1757,12 +1757,12 @@ function speak(text, opts={}){
       if(ptVoice) u.voice = ptVoice;
       window.speechSynthesis.speak(u);
     } else {
-      beep(392,0.2,0); beep(440,0.2,0.22); beep(494,0.3,0.44); // motivo suave, sem voz
+      beep(392,0.2,0); beep(440,0.2,0.22); beep(494,0.3,0.44); // soft motif, no voice
     }
   }catch(e){}
 }
 
-// ---------- Celebração (confete) e incentivo (banner) ----------
+// ---------- Celebration (confetti) and encouragement (banner) ----------
 const celebrationLayer = document.getElementById('celebration-layer');
 const encourageBanner = document.getElementById('encourage-banner');
 
@@ -1791,12 +1791,12 @@ function encourage(){
   const namePart = CHILD_NAME ? `${CHILD_NAME}, ` : '';
   encourageBanner.textContent = `${LATE_ICON} Vamos lá, ${namePart}você consegue!`;
   encourageBanner.classList.add('show');
-  speak(`Vamos lá, ${namePart}você consegue!`, { pitch: 1.7, rate: 1.05 }); // tom mais agudo e animado, tipo mascote infantil
+  speak(`Vamos lá, ${namePart}você consegue!`, { pitch: 1.7, rate: 1.05 }); // higher-pitched, livelier tone, like a kids' mascot
   setTimeout(() => encourageBanner.classList.remove('show'), 4500);
 }
 
-// Feedback ao entrar no tempo extra (clique em "Não"): sempre toca, mesmo se
-// o cálculo de compensação de horários falhar por algum motivo.
+// Feedback when entering extra time (click on "No"): always plays, even if
+// the schedule compensation calculation fails for some reason.
 function startExtraTimeFeedback(){
   const namePart = CHILD_NAME ? `${CHILD_NAME}, ` : '';
   try{
@@ -1805,7 +1805,7 @@ function startExtraTimeFeedback(){
     setTimeout(() => encourageBanner.classList.remove('show'), 4500);
   }catch(e){}
   try{
-    // alerta mais longo e perceptível que os bipes curtos de antes
+    // longer, more noticeable alert than the previous short beeps
     beep(587,0.3,0); beep(523,0.3,0.3); beep(440,0.5,0.6); beep(440,0.5,1.15);
   }catch(e){}
   try{ speak(`Vamos, ${namePart}se concentra que você consegue`, { pitch: 1.7, rate: 1.05 }); }catch(e){}
@@ -1842,7 +1842,7 @@ function playForTask(task){
   }
 }
 
-// ---------- Segmentos por minuto ----------
+// ---------- Per-minute segments ----------
 let lastSegTaskIndex = -1;
 
 function buildSegments(totalMin, redMin=0){
@@ -1873,10 +1873,10 @@ function updateSegments(elapsedMin){
   }
 }
 
-// ---------- Extensão de tarefa (+5 min), respeitando o horário limite ----------
-// Recalcula só as tarefas DEPOIS da atual (pointer), usando o fim atual dela
-// como âncora. Nunca mexe no início da própria tarefa atual — importante
-// porque esse início pode ter sido definido por um "Iniciar" adiantado.
+// ---------- Task extension (+5 min), respecting the deadline ----------
+// Recompute only the tasks AFTER the current one (pointer), using its current
+// end as the anchor. Never touches the current task's own start — important
+// because that start may have been set by an early "Start".
 function cascadeAfterPointer(){
   let cursor = tasks[pointer].endMin;
   for(let i = pointer+1; i < tasks.length; i++){
@@ -1891,15 +1891,15 @@ function extendCurrentTask(){
   const extra = 5;
   tasks[pointer].baseDurationMin += extra;
   tasks[pointer].redMin += extra;
-  tasks[pointer].endMin += extra; // estende só o fim; o início não muda
-  cascadeAfterPointer(); // primeiro deixa o atraso empurrar naturalmente as seguintes
+  tasks[pointer].endMin += extra; // extend only the end; the start doesn't change
+  cascadeAfterPointer(); // first let the delay naturally push the following tasks
 
   const limit = hardLimitMin();
-  const block = routineBlockAt(pointer); // só mexe dentro da MESMA rotina, nunca na próxima
+  const block = routineBlockAt(pointer); // only touch tasks within the SAME routine, never the next one
   const lastIdxOfRoutine = block.endIdx;
   const overflow = tasks[lastIdxOfRoutine].endMin - limit;
   if(overflow > 0){
-    // só comprime o necessário pra nunca ultrapassar o horário limite dessa rotina
+    // only compress as much as needed to never exceed this routine's deadline
     const after = tasks.slice(pointer+1, lastIdxOfRoutine+1);
     if(after.length){
       const floor = 3;
@@ -1925,8 +1925,8 @@ function extendCurrentTask(){
   }
 }
 
-// ---------- Marcar tarefa como concluída (comum às duas formas de avançar) ----------
-let awaitingStart = false; // true = próxima tarefa aguardando toque em "Iniciar"
+// ---------- Mark task as done (shared by both ways of advancing) ----------
+let awaitingStart = false; // true = next task waiting for a tap on "Start"
 
 function markTaskDone(actualEndMin){
   tasks[pointer].endMin = actualEndMin;
@@ -1938,8 +1938,8 @@ function markTaskDone(actualEndMin){
   rebuildTimelineDOM();
 }
 
-// Usado pelo diálogo de confirmação (Sim / timeout): a tarefa terminou no
-// horário certo, então a próxima começa imediatamente, sem espera.
+// Used by the confirmation dialog (Yes / timeout): the task finished on
+// time, so the next one starts immediately, with no wait.
 function advanceTask(actualEndMin){
   if(pointer >= tasks.length) return;
   markTaskDone(actualEndMin);
@@ -1948,7 +1948,7 @@ function advanceTask(actualEndMin){
   playForTask(nextTask);
 }
 
-// ---------- Diálogo "a tarefa foi concluída?" ----------
+// ---------- "Was the task completed?" dialog ----------
 const confirmOverlay = document.getElementById('confirm-overlay');
 const confirmCardEl = document.querySelector('.confirm-card');
 const confirmTaskName = document.getElementById('confirm-task-name');
@@ -1978,7 +1978,7 @@ function resolveConfirm(answer){
     closeConfirm();
     lastSegTaskIndex = -1;
     try{ rebuildTimelineDOM(); }catch(e){}
-    startExtraTimeFeedback(); // banner + som + voz, sempre — mesmo se algo acima falhar
+    startExtraTimeFeedback(); // banner + sound + voice, always — even if something above fails
   } else {
     const finishAt = tasks[pointer].endMin;
     closeConfirm();
@@ -1989,16 +1989,16 @@ function resolveConfirm(answer){
 document.getElementById('confirm-yes').addEventListener('click', () => resolveConfirm('sim'));
 document.getElementById('confirm-no').addEventListener('click', () => resolveConfirm('nao'));
 
-// ---------- Botão "Já terminei" (conclusão antecipada) ----------
+// ---------- "I'm done" button (early completion) ----------
 function finishEarly(){
   if(pointer >= tasks.length || confirmState || awaitingStart) return;
   const now = new Date();
   const nowMin = now.getHours()*60 + now.getMinutes() + now.getSeconds()/60;
-  if(nowMin < tasks[pointer].startMin) return; // ainda no intervalo de espera entre rotinas
+  if(nowMin < tasks[pointer].startMin) return; // still in the waiting gap between routines
   const finishAt = Math.max(tasks[pointer].startMin, Math.min(nowMin, tasks[pointer].endMin));
   markTaskDone(finishAt);
   if(pointer < tasks.length){
-    awaitingStart = true; // próxima tarefa espera o toque em "Iniciar"
+    awaitingStart = true; // next task waits for a tap on "Start"
   } else {
     recomputeUpcoming();
   }
@@ -2006,21 +2006,21 @@ function finishEarly(){
 }
 finishEarlyBtn.addEventListener('click', finishEarly);
 
-// ---------- Botão "Iniciar" (começa a próxima tarefa e antecipa o resto) ----------
+// ---------- "Start" button (starts the next task and moves the rest earlier) ----------
 const startNextBtn = document.getElementById('start-next-btn');
 function startNextTask(){
   if(!awaitingStart) return;
   const now = new Date();
   const nowMin = now.getHours()*60 + now.getMinutes() + now.getSeconds()/60;
   awaitingStart = false;
-  recomputeUpcoming(nowMin); // ancora a próxima tarefa (e as seguintes) a partir de agora
+  recomputeUpcoming(nowMin); // anchor the next task (and the following ones) from now
   lastSegTaskIndex = -1;
   playForTask(tasks[pointer]);
   render();
 }
 startNextBtn.addEventListener('click', startNextTask);
 
-// ---------- Reordenar tarefas ainda não feitas ----------
+// ---------- Reorder tasks not done yet ----------
 function moveTask(idx, dir){
   const j = idx + dir;
   if(idx < pointer || j < pointer || j >= tasks.length) return;
@@ -2039,19 +2039,19 @@ timelineEl.addEventListener('click', (e) => {
   moveTask(idx, btn.classList.contains('up') ? -1 : 1);
 });
 
-// ---------- Render principal ----------
+// ---------- Main render ----------
 function render(){
   checkDayRollover();
   const now = new Date();
   clockEl.textContent = String(now.getHours()).padStart(2,'0')+':'+String(now.getMinutes()).padStart(2,'0')+':'+String(now.getSeconds()).padStart(2,'0');
   const nowMin = now.getHours()*60 + now.getMinutes() + now.getSeconds()/60;
   maybeAutoRefresh(nowMin);
-  refreshLimitForCurrentRoutine(); // recalcula o limite sozinho ao trocar de rotina
-  updateHeaderTitle(); // volta ao título normal por padrão; renderBrowsedTask() sobrescreve quando navegando
+  refreshLimitForCurrentRoutine(); // automatically recompute the deadline when the routine changes
+  updateHeaderTitle(); // reset to the normal title by default; renderBrowsedTask() overrides it while browsing
   limitHourEl.textContent = String(Math.floor(limitMin/60)).padStart(2,'0');
   limitMinEl.textContent = String(Math.round(limitMin%60)).padStart(2,'0');
 
-  // Marca visualmente tarefas concluídas / ativa
+  // Visually mark completed / active tasks
   tasks.forEach((t,i) => {
     const el = document.getElementById('step-'+i);
     if(!el) return;
@@ -2114,19 +2114,19 @@ function render(){
   finishEarlyBtn.style.display = 'inline-block';
   startNextBtn.style.display = 'none';
 
-  // Intervalo real entre rotinas diferentes (ex: fim da Manhã até o Almoço
-  // começar). Logo depois de terminar, fica um tempo mostrando a telinha de
-  // "concluído" (pra criança ver o que ela terminou) em vez de já pular pra
-  // contagem regressiva — só mostra a contagem quando a próxima estiver
-  // perto (30min ou menos) E já tiver passado pelo menos 15min do término.
+  // Actual gap between different routines (e.g. end of Morning until Lunch
+  // starts). Right after finishing, it keeps showing the "done" screen for
+  // a while (so the child sees what they finished) instead of jumping straight
+  // to the countdown — only shows the countdown when the next one is close
+  // (30min or less) AND at least 15min have passed since the end.
   if(nowMin < tasks[pointer].startMin){
     const minutesSinceLastDone = pointer > 0 ? (nowMin - tasks[pointer-1].endMin) : 999;
     const minutesUntilNext = tasks[pointer].startMin - nowMin;
     const showCountdown = (minutesSinceLastDone >= 15) && (minutesUntilNext <= 30);
 
-    // Rede de segurança: a 15min ou menos do horário real, força de volta
-    // pro modo ao vivo, mesmo que estivesse navegando manualmente por outra
-    // página — garante que ninguém perca a hora por ter ficado passeando.
+    // Safety net: at 15min or less from the actual time, force back to live
+    // mode, even if manually browsing another page — ensures nobody misses
+    // the time because they were wandering around.
     if(minutesUntilNext <= 15){ browseDay = null; browseTaskIdx = null; }
 
     finishEarlyBtn.style.display = 'none';
@@ -2134,7 +2134,7 @@ function render(){
 
     browseControlsEl.style.display = 'flex';
     browsePrevBtn.disabled = (browseDay === null) ? (pointer === 0) : false;
-    browseNextBtn.disabled = false; // sempre dá pra tentar ir em frente (pula pros próximos dias com rotina)
+    browseNextBtn.disabled = false; // can always try moving forward (skips to the next days with a routine)
     if(browseDay !== null){ renderBrowsedTask(); return; }
 
     if(showCountdown){
@@ -2153,13 +2153,13 @@ function render(){
     return;
   }
 
-  // Diálogo de confirmação quando o tempo da tarefa atual esgota
+  // Confirmation dialog when the current task's time runs out
   if(!confirmState && nowMin >= tasks[pointer].endMin){
     openConfirm();
   }
   if(confirmState){
     if(Date.now() >= confirmState.deadline){
-      resolveConfirm('sim'); // sem resposta em 10s -> assume concluída
+      resolveConfirm('sim'); // no answer within 10s -> assume completed
       return;
     }
     const msLeft = Math.max(0, confirmState.deadline - Date.now());
@@ -2190,7 +2190,7 @@ function render(){
   updateSegments(elapsed);
 }
 
-// ---------- Botão liga/desliga som ----------
+// ---------- Sound on/off button ----------
 const toggleBtn = document.getElementById('sound-toggle');
 
 function setSoundEnabled(enabled){
@@ -2199,16 +2199,16 @@ function setSoundEnabled(enabled){
   toggleBtn.classList.toggle('off', !enabled);
   if(enabled){
     ensureAudioCtx();
-    beep(880,0.15,0); // beep de confirmação ao ligar
+    beep(880,0.15,0); // confirmation beep when turning on
   } else {
     stopTaskAudio();
   }
 }
 function toggleSound(){ setSoundEnabled(!soundEnabled); }
 toggleBtn.addEventListener('click', toggleSound);
-setSoundEnabled(false); // estado inicial: desligado, ícone 🔇
+setSoundEnabled(false); // initial state: off, 🔇 icon
 
-// ---------- Botões "Testar agora" e "Horário real" ----------
+// ---------- "Test now" and "Real time" buttons ----------
 function applyTestSchedule(){
   pointer = 0;
   lastSegTaskIndex = -1;
@@ -2216,9 +2216,9 @@ function applyTestSchedule(){
   awaitingStart = false;
   const now = new Date();
   dayStartMin = Math.ceil(now.getHours()*60 + now.getMinutes() + now.getSeconds()/60) + 1;
-  tasks.forEach(t => { t.baseDurationMin = 1; t.redMin = 0; t.outcome = null; }); // 1 minuto por tarefa, pra testar rápido
+  tasks.forEach(t => { t.baseDurationMin = 1; t.redMin = 0; t.outcome = null; }); // 1 minute per task, for quick testing
   recomputeUpcoming();
-  catchUpToNow(); // por segurança; normalmente não faz nada aqui, já que começa no futuro
+  catchUpToNow(); // just in case; normally a no-op here, since it starts in the future
   rebuildTimelineDOM();
   render();
 }
@@ -2231,7 +2231,7 @@ function applyPlannedSchedule(){
 document.getElementById('test-schedule-btn').addEventListener('click', applyTestSchedule);
 document.getElementById('reset-schedule-btn').addEventListener('click', applyPlannedSchedule);
 
-// ---------- Controle do horário limite (setas de hora e minuto) ----------
+// ---------- Deadline control (hour and minute arrows) ----------
 const limitHourEl = document.getElementById('limit-hour');
 const limitMinEl = document.getElementById('limit-min');
 document.getElementById('limit-hour-plus').addEventListener('click', () => { limitMin += 60; render(); });
@@ -2239,7 +2239,7 @@ document.getElementById('limit-hour-minus').addEventListener('click', () => { li
 document.getElementById('limit-min-plus').addEventListener('click', () => { limitMin += 1; render(); });
 document.getElementById('limit-min-minus').addEventListener('click', () => { limitMin = Math.max(0, limitMin - 1); render(); });
 
-// ---------- Tela de configuração (tarefas, horários, ícones e sons) ----------
+// ---------- Settings screen (tasks, times, icons and sounds) ----------
 function hhmmToArr(str){
   const parts = (str || '00:00').split(':').map(Number);
   return [parts[0]||0, parts[1]||0];
@@ -2277,9 +2277,9 @@ document.getElementById('late-icon-picker').addEventListener('click', (e) => {
   renderIconPickers();
 });
 
-// Preenche o "rascunho" da tela de configuração a partir da configuração
-// atual (ROUTINES/WEEK_SCHEDULE/etc) — usado ao abrir a tela e também logo
-// depois de importar um config.json.
+// Fill the settings screen "draft" from the current configuration
+// (ROUTINES/WEEK_SCHEDULE/etc) — used when opening the screen and also
+// right after importing a config.json.
 function populateDraftFromCurrentConfig(){
   draftRoutines = ROUTINES.map(r => ({
     id: r.id,
@@ -2298,7 +2298,7 @@ function populateDraftFromCurrentConfig(){
   draftWeekSchedule = {};
   for(let d=0; d<7; d++) draftWeekSchedule[d] = (WEEK_SCHEDULE[d] || []).slice();
   selectedRoutineIndex = 0;
-  draftTasks = draftRoutines[0].tasks; // mesma referência: editar draftTasks já edita a rotina
+  draftTasks = draftRoutines[0].tasks; // same reference: editing draftTasks already edits the routine
 
   settingsChildNameInput.value = CHILD_NAME;
   draftOnTimeIcon = ONTIME_ICON;
@@ -2322,7 +2322,7 @@ function closeSettings(){
   settingsOverlay.style.display = 'none';
 }
 
-// ---------- Gestão de rotinas (abas) ----------
+// ---------- Routine management (tabs) ----------
 let draftRoutines = [];
 let draftWeekSchedule = {};
 let selectedRoutineIndex = 0;
@@ -2351,7 +2351,7 @@ function renderRoutineTabs(){
 }
 
 function computeDraftRoutineNaturalLimit(routine){
-  if(!routine.tasks || routine.tasks.length === 0) return 8*60 + 55; // fallback se ainda não tem tarefas
+  if(!routine.tasks || routine.tasks.length === 0) return 8*60 + 55; // fallback if it has no tasks yet
   let end = 0;
   routine.tasks.forEach(t => { const e = toMinutes(hhmmToArr(t.end)); if(e > end) end = e; });
   return end + 10;
@@ -2380,7 +2380,7 @@ document.getElementById('routine-limit-min-minus').addEventListener('click', () 
 document.getElementById('routine-name-input').addEventListener('input', (e) => {
   const r = draftRoutines[selectedRoutineIndex];
   r.name = e.target.value;
-  // Atualiza só o texto da aba correspondente, sem redesenhar tudo (evita perder o foco do campo)
+  // Update only the matching tab's text, without redrawing everything (avoids losing field focus)
   const tabBtn = document.querySelectorAll('.routine-tab')[selectedRoutineIndex];
   if(tabBtn) tabBtn.textContent = `${r.icon} ${r.name}`;
 });
@@ -2409,9 +2409,9 @@ document.getElementById('routine-delete-btn').addEventListener('click', () => {
   renderSettingsRows();
 });
 
-// ---------- Tabela semanal (dia x rotina) ----------
-// Detecta sobreposição real de horário entre rotinas diferentes marcadas no
-// mesmo dia. Retorna { byDay: {0:[{routineName,...}], ...}, messages: [texto,...] }
+// ---------- Weekly table (day x routine) ----------
+// Detect actual time overlap between different routines checked on the
+// same day. Returns { byDay: {0:[{routineName,...}], ...}, messages: [text,...] }
 function findScheduleConflicts(){
   const byDay = {};
   const messages = [];
@@ -2526,13 +2526,13 @@ function renderSettingsRows(){
       ${t.soundType==='url' ? `<input type="text" class="settings-text-input sound-url-input" data-field="soundUrl" data-index="${i}" value="${(t.soundUrl||'').replace(/"/g,'&quot;')}" placeholder="https://.../musica.mp3 (link direto do arquivo)">` : ''}
     </div>
   `).join('');
-  if(draftRoutines.length) renderWeekMatrix(); // horários podem ter mudado -> reavalia conflitos
+  if(draftRoutines.length) renderWeekMatrix(); // times may have changed -> re-evaluate conflicts
 }
 
-// Ajusta um horário (start/end) de uma tarefa pelo incremento escolhido.
-// Quando mexe no FIM de uma tarefa e o encadeamento automático está ligado,
-// empurra o INÍCIO (e o fim, mantendo a duração) da próxima tarefa junto,
-// pra nunca sobrar buraco entre uma e outra.
+// Adjust a task's time (start/end) by the chosen increment.
+// When changing a task's END and auto-chaining is on, push the next task's
+// START (and end, keeping its duration) along with it, so there's never
+// a gap between them.
 function adjustDraftTime(index, field, dir){
   const t = draftTasks[index];
   let totalMin = toMinutes(hhmmToArr(t[field])) + (dir * timeStepMin);
@@ -2550,10 +2550,10 @@ function adjustDraftTime(index, field, dir){
   renderSettingsRows();
 }
 
-// Depois de reordenar, recalcula os horários em cadeia: cada tarefa mantém
-// sua própria duração, mas passa a começar exatamente onde a anterior
-// termina, na nova ordem — a primeira tarefa da lista mantém seu horário
-// de início original.
+// After reordering, recompute times in a chain: each task keeps its own
+// duration, but now starts exactly where the previous one ends, in the new
+// order — the first task in the list keeps its original
+// start time.
 function recalculateDraftTaskTimes(){
   if(draftTasks.length === 0) return;
   let cursor = toMinutes(hhmmToArr(draftTasks[0].start));
@@ -2585,7 +2585,7 @@ settingsTasksList.addEventListener('change', (e) => {
   if(e.target.dataset.field === 'soundType'){
     const idx = parseInt(e.target.dataset.index, 10);
     draftTasks[idx].soundType = e.target.value;
-    renderSettingsRows(); // pra mostrar/esconder o campo de link
+    renderSettingsRows(); // to show/hide the link field
   }
 });
 settingsTasksList.addEventListener('click', (e) => {
@@ -2639,7 +2639,7 @@ document.getElementById('settings-add-task').addEventListener('click', () => {
 });
 
 document.getElementById('settings-save').addEventListener('click', () => {
-  // Valida todas as rotinas (não só a que está sendo exibida agora)
+  // Validate all routines (not only the one currently shown)
   for(const r of draftRoutines){
     for(const t of r.tasks){
       if(!t.name || !t.name.trim()){
@@ -2655,8 +2655,8 @@ document.getElementById('settings-save').addEventListener('click', () => {
     }
   }
 
-  // Sobreposição real de horário entre rotinas diferentes marcadas no mesmo dia
-  // (mesma checagem já mostrada ao vivo na tabela — aqui é a última garantia)
+  // Actual time overlap between different routines checked on the same day
+  // (same check already shown live in the table — this is the final safeguard)
   const conflictCheck = findScheduleConflicts();
   if(conflictCheck.messages.length > 0){
     const msg = 'Horários sobrepostos encontrados:\n' + conflictCheck.messages.join('\n') + '\n\nSalvar mesmo assim?';
@@ -2697,7 +2697,7 @@ document.getElementById('settings-save').addEventListener('click', () => {
 });
 document.getElementById('settings-cancel').addEventListener('click', closeSettings);
 
-// ---------- Exportar / Importar configuração (celular <-> TV) ----------
+// ---------- Export / Import configuration (phone <-> TV) ----------
 function getCurrentConfigObject(){
   return {
     childName: CHILD_NAME,
@@ -2708,8 +2708,8 @@ function getCurrentConfigObject(){
   };
 }
 
-// Aplica um objeto de configuração recebido de qualquer fonte (config.json
-// ou link de importação), com validação básica.
+// Apply a configuration object received from any source (config.json
+// or import link), with basic validation.
 function applyImportedConfig(cfg, statusEl){
   if(!cfg || !Array.isArray(cfg.routines) || cfg.routines.length === 0){
     if(statusEl) statusEl.textContent = '❌ Configuração inválida.';
@@ -2733,7 +2733,7 @@ document.getElementById('import-config-btn').addEventListener('click', () => {
     .then(r => { if(!r.ok) throw new Error('not found'); return r.json(); })
     .then(cfg => {
       if(applyImportedConfig(cfg, statusEl)){
-        populateDraftFromCurrentConfig(); // atualiza a própria tela de configuração com o que acabou de vir
+        populateDraftFromCurrentConfig(); // update the settings screen itself with what just arrived
         statusEl.textContent = '✅ Configuração importada com sucesso!';
       }
     })
@@ -2743,13 +2743,13 @@ document.getElementById('import-config-btn').addEventListener('click', () => {
 });
 document.getElementById('config-btn').addEventListener('click', openSettings);
 
-// ---------- Criar/atualizar config.json no GitHub ----------
-// Padrão (sem credenciais avançadas): usa o link pré-preenchido do GitHub
-// (recurso nativo de pré-preencher um novo arquivo por parâmetros de URL) —
-// a pessoa copia o texto e confirma o commit à mão.
-// Avançado (com usuário/repositório + token preenchidos): fala direto com a
-// API do GitHub, cria ou atualiza o arquivo num só toque, sem copiar/colar.
-const REPO_PATH_DEFAULT = 'fabiofialho1/rotina-infantil-na-tv'; // usado só se o campo avançado estiver vazio
+// ---------- Create/update config.json on GitHub ----------
+// Default (no advanced credentials): uses GitHub's prefilled link
+// (native feature to prefill a new file via URL parameters) —
+// the user copies the text and confirms the commit by hand.
+// Advanced (with user/repository + token filled in): talks directly to the
+// GitHub API, creates or updates the file in one tap, no copy/paste.
+const REPO_PATH_DEFAULT = 'fabiofialho1/rotina-infantil-na-tv'; // used only if the advanced field is empty
 const REPO_BRANCH = 'main';
 
 function utf8ToBase64(str){ return btoa(unescape(encodeURIComponent(str))); }
@@ -2762,9 +2762,9 @@ function loadGithubSyncSettings(){
   }catch(e){}
   return { repo: '', token: '' };
 }
-// Aceita qualquer formato de link que a pessoa colar (URL normal do GitHub,
-// link .git, link do GitHub Pages, com ou sem https://) e extrai só o
-// "usuário/repositório", que é o formato que a API realmente precisa.
+// Accept any link format the user pastes (regular GitHub URL, .git link,
+// GitHub Pages link, with or without https://) and extract just the
+// "user/repository", which is the format the API actually needs.
 function normalizeRepoPath(input){
   let s = (input || '').trim();
   if(!s) return '';
@@ -2772,13 +2772,13 @@ function normalizeRepoPath(input){
   let m;
   m = s.match(/^git@github\.com:([^\/]+)\/([^\/]+?)\/?$/i);
   if(m) return `${m[1]}/${m[2]}`;
-  m = s.match(/^(?:https?:\/\/)?([^.\/]+)\.github\.io\/([^\/?#]+)/i); // link do GitHub Pages (usuario.github.io/repo)
+  m = s.match(/^(?:https?:\/\/)?([^.\/]+)\.github\.io\/([^\/?#]+)/i); // GitHub Pages link (user.github.io/repo)
   if(m) return `${m[1]}/${m[2]}`;
-  m = s.match(/^(?:https?:\/\/)?(?:www\.)?github\.com\/([^\/?#]+)\/([^\/?#]+)/i); // link normal do github.com
+  m = s.match(/^(?:https?:\/\/)?(?:www\.)?github\.com\/([^\/?#]+)\/([^\/?#]+)/i); // regular github.com link
   if(m) return `${m[1]}/${m[2]}`;
-  m = s.match(/^([^\/]+)\/([^\/]+?)\/?$/); // já está no formato usuario/repositorio
+  m = s.match(/^([^\/]+)\/([^\/]+?)\/?$/); // already in user/repository format
   if(m) return `${m[1]}/${m[2]}`;
-  return s; // não reconhecido — devolve como veio
+  return s; // not recognized — return as is
 }
 
 function saveGithubSyncSettings(){
@@ -2795,8 +2795,8 @@ function saveGithubSyncSettings(){
   document.getElementById('gh-token-input').value = saved.token || '';
   document.getElementById('gh-repo-input').addEventListener('input', saveGithubSyncSettings);
   document.getElementById('gh-token-input').addEventListener('input', saveGithubSyncSettings);
-  // Ao sair do campo, já limpa/ajusta o texto pro formato certo na tela —
-  // assim a pessoa vê que funcionou, não importa o que colou.
+  // On blur, clean up/adjust the text to the right format on screen —
+  // so the user sees it worked, no matter what they pasted.
   document.getElementById('gh-repo-input').addEventListener('blur', (e) => {
     const cleaned = normalizeRepoPath(e.target.value);
     e.target.value = cleaned;
@@ -2810,10 +2810,10 @@ function getRepoPath(){
 }
 document.getElementById('repo-path-hint').textContent = `Repositório configurado: ${getRepoPath()} (branch ${REPO_BRANCH})`;
 
-let pendingGithubUrl = null; // guarda o link certo (novo ou editar) até a pessoa confirmar que já copiou
+let pendingGithubUrl = null; // stores the right link (new or edit) until the user confirms they copied it
 
-// Envia direto pela API do GitHub (cria ou atualiza), usando token — sem
-// abrir nenhuma tela, sem copiar/colar nada.
+// Send directly via the GitHub API (create or update), using a token — without
+// opening any screen, no copy/paste.
 function syncViaGithubApi(){
   const repo = getRepoPath();
   const token = document.getElementById('gh-token-input').value.trim();
@@ -2843,9 +2843,9 @@ function syncViaGithubApi(){
     });
 }
 
-// Passo 1: gera o texto, mostra na tela pra copiar à mão, e já descobre o
-// link certo do GitHub (novo arquivo ou editar o existente). Se as
-// credenciais avançadas estiverem preenchidas, usa a API direto em vez disso.
+// Step 1: generate the text, show it on screen to copy by hand, and find the
+// right GitHub link (new file or edit the existing one). If advanced
+// credentials are filled in, use the API directly instead.
 document.getElementById('github-prefill-btn').addEventListener('click', () => {
   const repo = getRepoPath();
   const token = document.getElementById('gh-token-input').value.trim();
@@ -2879,18 +2879,18 @@ document.getElementById('github-prefill-btn').addEventListener('click', () => {
     });
 });
 
-// Passo 3: só navega quando a pessoa já teve a chance de copiar o texto.
+// Step 3: only navigate once the user has had a chance to copy the text.
 document.getElementById('go-github-btn').addEventListener('click', () => {
   if(pendingGithubUrl) window.location.href = pendingGithubUrl;
 });
 
-// Agora que tudo (DOM, funções, tela de configuração) já existe, monta a
-// rotina de verdade a partir da configuração salva neste navegador (ou do
-// padrão, se for a primeira vez).
+// Now that everything (DOM, functions, settings screen) exists, build the
+// actual routine from the configuration saved in this browser (or the
+// default, if it's the first time).
 initSchedule(TASKS);
 
 function safeRender(){
-  try{ render(); }catch(e){ /* nunca deixa o loop travar por causa de um erro pontual */ }
+  try{ render(); }catch(e){ /* never let the loop hang because of a one-off error */ }
 }
 safeRender();
 setInterval(safeRender, 1000);
