@@ -1139,7 +1139,7 @@
       <button id="settings-cancel" class="settings-btn cancel">Cancelar</button>
       <button id="settings-save" class="settings-btn save">💾 Salvar</button>
     </div>
-    <p style="text-align:right; font-size:0.7vw; color:#9aa5b1; margin-top:1vh;">Versão do código: 2026-09-26 21:30</p>
+    <p style="text-align:right; font-size:0.7vw; color:#9aa5b1; margin-top:1vh;">Versão do código: 2026-09-26 23:00</p>
   </div>
 </div>
 
@@ -2550,6 +2550,21 @@ function adjustDraftTime(index, field, dir){
   renderSettingsRows();
 }
 
+// Depois de reordenar, recalcula os horários em cadeia: cada tarefa mantém
+// sua própria duração, mas passa a começar exatamente onde a anterior
+// termina, na nova ordem — a primeira tarefa da lista mantém seu horário
+// de início original.
+function recalculateDraftTaskTimes(){
+  if(draftTasks.length === 0) return;
+  let cursor = toMinutes(hhmmToArr(draftTasks[0].start));
+  draftTasks.forEach(t => {
+    const duration = toMinutes(hhmmToArr(t.end)) - toMinutes(hhmmToArr(t.start));
+    t.start = arrToHHMM([Math.floor(cursor/60)%24, cursor%60]);
+    cursor += duration;
+    t.end = arrToHHMM([Math.floor(cursor/60)%24, cursor%60]);
+  });
+}
+
 document.querySelectorAll('.step-size-btn').forEach(btn => {
   btn.addEventListener('click', () => {
     timeStepMin = parseInt(btn.dataset.step, 10);
@@ -2595,6 +2610,7 @@ settingsTasksList.addEventListener('click', (e) => {
   if(upBtn && !upBtn.disabled){
     const i = parseInt(upBtn.dataset.index,10);
     [draftTasks[i-1], draftTasks[i]] = [draftTasks[i], draftTasks[i-1]];
+    recalculateDraftTaskTimes();
     renderSettingsRows();
     return;
   }
@@ -2602,6 +2618,7 @@ settingsTasksList.addEventListener('click', (e) => {
   if(downBtn && !downBtn.disabled){
     const i = parseInt(downBtn.dataset.index,10);
     [draftTasks[i+1], draftTasks[i]] = [draftTasks[i], draftTasks[i+1]];
+    recalculateDraftTaskTimes();
     renderSettingsRows();
     return;
   }
