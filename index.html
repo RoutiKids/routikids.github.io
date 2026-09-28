@@ -512,6 +512,28 @@
     outline-offset:2px;
   }
 
+  /* ---- In-app alert/confirm dialog (TV browsers may block native ones) ---- */
+  #app-dialog-overlay{
+    position:fixed;
+    inset:0;
+    background:rgba(29,53,87,0.85);
+    display:none;
+    align-items:center;
+    justify-content:center;
+    z-index:1000;
+    padding:3vh 4vw;
+  }
+  #app-dialog-overlay .confirm-card{ max-width:min(90vw, 900px); }
+  #app-dialog-message{
+    font-family:'Nunito', sans-serif;
+    font-weight:800;
+    font-size:clamp(17px, 1.5vw, 32px);
+    color:var(--navy);
+    white-space:pre-line;
+    margin-bottom:3vh;
+  }
+  #app-dialog-overlay .confirm-btn{ font-size:clamp(17px, 1.5vw, 32px); }
+
   /* ---- Task confirmation dialog ---- */
   #confirm-overlay{
     position:fixed;
@@ -1247,7 +1269,17 @@
       <button id="settings-cancel" class="settings-btn cancel">Cancelar</button>
       <button id="settings-save" class="settings-btn save">💾 Salvar</button>
     </div>
-    <p style="text-align:right; font-size:0.7vw; color:#9aa5b1; margin-top:1vh;">Versão do código: 2026-09-28 08:30</p>
+    <p style="text-align:right; font-size:0.7vw; color:#9aa5b1; margin-top:1vh;">Versão do código: 2026-09-28 08:57</p>
+  </div>
+</div>
+
+<div id="app-dialog-overlay">
+  <div class="confirm-card">
+    <div id="app-dialog-message"></div>
+    <div class="confirm-buttons">
+      <button type="button" id="app-dialog-yes" class="confirm-btn yes">OK</button>
+      <button type="button" id="app-dialog-no" class="confirm-btn no">Cancelar</button>
+    </div>
   </div>
 </div>
 
@@ -2437,6 +2469,40 @@ function closeSettings(){
   }
 }
 
+// ---------- In-app alert/confirm ----------
+// TV browsers (e.g. on Google TV) may block native alert()/confirm() popups,
+// and a blocked confirm() silently returns false — so use our own dialog.
+let appDialogResolve = null;
+function openAppDialog(message, yesLabel, noLabel){
+  if(appDialogResolve) appDialogResolve(false); // a newer dialog replaces an unanswered one
+  document.getElementById('app-dialog-message').textContent = message;
+  const yesBtn = document.getElementById('app-dialog-yes');
+  const noBtn = document.getElementById('app-dialog-no');
+  yesBtn.textContent = yesLabel;
+  noBtn.textContent = noLabel || '';
+  noBtn.style.display = noLabel ? '' : 'none';
+  document.getElementById('app-dialog-overlay').style.display = 'flex';
+  // Focus the safe choice, so an accidental remote "OK" press doesn't confirm.
+  (noLabel ? noBtn : yesBtn).focus();
+  return new Promise(resolve => { appDialogResolve = resolve; });
+}
+function closeAppDialog(answer){
+  document.getElementById('app-dialog-overlay').style.display = 'none';
+  const resolve = appDialogResolve;
+  appDialogResolve = null;
+  if(resolve) resolve(answer);
+}
+function appAlert(message){ return openAppDialog(message, 'OK', null); }
+function appConfirm(message, yesLabel){ return openAppDialog(message, yesLabel || 'Sim', 'Cancelar'); }
+document.getElementById('app-dialog-yes').addEventListener('click', () => closeAppDialog(true));
+document.getElementById('app-dialog-no').addEventListener('click', () => closeAppDialog(false));
+document.addEventListener('keydown', (e) => {
+  if(appDialogResolve && (e.key === 'Escape' || e.key === 'Backspace' || e.key === 'GoBack')){
+    e.preventDefault();
+    closeAppDialog(false);
+  }
+});
+
 // ---------- Routine management (tabs) ----------
 let draftRoutines = [];
 let draftWeekSchedule = {};
@@ -2508,7 +2574,7 @@ document.getElementById('routine-icon-picker').addEventListener('click', (e) => 
 });
 document.getElementById('routine-delete-btn').addEventListener('click', () => {
   if(draftRoutines.length <= 1){
-    alert('Precisa ter pelo menos uma rotina.');
+    appAlert('Precisa ter pelo menos uma rotina.');
     return;
   }
   const removedId = draftRoutines[selectedRoutineIndex].id;
@@ -2758,13 +2824,13 @@ document.getElementById('settings-save').addEventListener('click', () => {
   for(const r of draftRoutines){
     for(const t of r.tasks){
       if(!t.name || !t.name.trim()){
-        alert(`Toda tarefa precisa de um nome (rotina "${r.name}").`);
+        appAlert(`Toda tarefa precisa de um nome (rotina "${r.name}").`);
         return;
       }
       const s = toMinutes(hhmmToArr(t.start));
       const e = toMinutes(hhmmToArr(t.end));
       if(e <= s){
-        alert(`A tarefa "${t.name}" (rotina "${r.name}") precisa ter o fim depois do início.`);
+        appAlert(`A tarefa "${t.name}" (rotina "${r.name}") precisa ter o fim depois do início.`);
         return;
       }
     }
@@ -2775,9 +2841,13 @@ document.getElementById('settings-save').addEventListener('click', () => {
   const conflictCheck = findScheduleConflicts();
   if(conflictCheck.messages.length > 0){
     const msg = 'Horários sobrepostos encontrados:\n' + conflictCheck.messages.join('\n') + '\n\nSalvar mesmo assim?';
-    if(!confirm(msg)) return;
+    appConfirm(msg, 'Salvar mesmo assim').then(ok => { if(ok) saveSettings(); });
+    return;
   }
+  saveSettings();
+});
 
+function saveSettings(){
   const newRoutines = draftRoutines.map(r => ({
     id: r.id,
     name: (r.name && r.name.trim()) ? r.name.trim() : 'Rotina',
@@ -2812,7 +2882,7 @@ document.getElementById('settings-save').addEventListener('click', () => {
   TASKS = buildTodaysTasks();
   initSchedule(TASKS);
   closeSettings();
-});
+}
 document.getElementById('settings-cancel').addEventListener('click', closeSettings);
 
 // ---------- Export / Import configuration (phone <-> TV) ----------
@@ -3378,15 +3448,15 @@ function removeMembers(ids){
   const question = ids.length === 1
     ? `Remover ${names} do grupo? Esse aparelho deixa de ver e de alterar a rotina na hora.`
     : `Remover todos os outros aparelhos (${names})? Eles deixam de ver e de alterar a rotina na hora.`;
-  if(!confirm(question)) return;
-  const patch = {};
-  ids.forEach(id => { patch[id] = null; });
-  cloudFetch(`houses/${houseId}/members`, { method: 'PATCH', body: JSON.stringify(patch) })
-    .then(() => {
+  appConfirm(question, 'Remover').then(ok => {
+    if(!ok) return;
+    const patch = {};
+    ids.forEach(id => { patch[id] = null; });
+    return cloudFetch(`houses/${houseId}/members`, { method: 'PATCH', body: JSON.stringify(patch) }).then(() => {
       setCloudStatus(ids.length === 1 ? `✅ ${names} foi removido do grupo.` : '✅ Todos os outros aparelhos foram removidos do grupo.');
       return refreshFromCloud();
-    })
-    .catch(() => setCloudStatus('⚠️ Não consegui remover. Verifique a internet e tente de novo.'));
+    });
+  }).catch(() => setCloudStatus('⚠️ Não consegui remover. Verifique a internet e tente de novo.'));
 }
 
 function saveDeviceName(rawName){
@@ -3511,7 +3581,10 @@ function joinWithCode(rawCode){
 }
 
 function disconnectHouse(){
-  if(!confirm('Desconectar este aparelho? A rotina continua salva aqui, mas deixa de sincronizar com os outros.')) return;
+  appConfirm('Desconectar este aparelho? A rotina continua salva aqui, mas deixa de sincronizar com os outros.', 'Desconectar')
+    .then(ok => { if(ok) leaveHouse(); });
+}
+function leaveHouse(){
   const houseId = getHouseId();
   const uid = getUid();
   if(houseId && uid) cloudFetch(`houses/${houseId}/members/${uid}`, { method: 'DELETE' }).catch(() => {});
