@@ -1213,7 +1213,7 @@
       <button id="settings-cancel" class="settings-btn cancel">Cancelar</button>
       <button id="settings-save" class="settings-btn save">💾 Salvar</button>
     </div>
-    <p style="text-align:right; font-size:0.7vw; color:#9aa5b1; margin-top:1vh;">Versão do código: 2026-09-28 02:07</p>
+    <p style="text-align:right; font-size:0.7vw; color:#9aa5b1; margin-top:1vh;">Versão do código: 2026-09-28 07:23</p>
   </div>
 </div>
 
@@ -2385,6 +2385,7 @@ function populateDraftFromCurrentConfig(){
 }
 
 function openSettings(){
+  settingsDirty = false;
   hideCloudBanner();
   populateDraftFromCurrentConfig();
   document.getElementById('autolink-toggle').checked = autoLinkNext;
@@ -3026,15 +3027,38 @@ function pushConfigToCloud(cfg){
 }
 
 // Apply a house record received from the cloud, unless it's the revision this
-// device already has. While the settings screen is open, defer it so the
-// user's unsaved edits aren't wiped (closeSettings applies it later).
+// device already has. If the settings screen is open with unsaved edits,
+// defer it so they aren't wiped (closeSettings applies it later); if it's
+// open but untouched (e.g. the TV still showing the pair code), apply it
+// right away and refresh the form.
 let pendingRemoteHouse = null;
 function handleRemoteHouse(house){
   if(!house || !house.config || !house.rev) return;
   if(house.rev === lsGet(HOUSE_REV_KEY)) return;
-  if(settingsOverlay.style.display === 'flex'){ pendingRemoteHouse = house; return; }
-  applyRemoteHouse(house);
+  if(settingsOverlay.style.display !== 'flex'){ applyRemoteHouse(house); return; }
+  if(settingsDirty){
+    pendingRemoteHouse = house;
+    setCloudStatus('🔄 Chegaram mudanças de outro aparelho — elas serão aplicadas quando você fechar esta tela (se você salvar, vale o que você salvar).');
+    return;
+  }
+  if(applyRemoteHouse(house)){
+    populateDraftFromCurrentConfig();
+    setCloudStatus('🔄 Atualizado agora com as mudanças de outro aparelho.');
+  }
 }
+
+// Tracks whether the user changed anything on the settings screen since
+// opening it (the sync section and routine tabs don't count).
+let settingsDirty = false;
+(function trackSettingsEdits(){
+  const card = settingsOverlay.querySelector('.settings-card');
+  const markDirty = (e) => {
+    if(e.target.closest('#sync-section, #cloud-banner, #settings-cancel, #settings-save, #routine-tabs button[data-index]')) return;
+    settingsDirty = true;
+  };
+  ['input', 'change'].forEach(ev => card.addEventListener(ev, markDirty));
+  card.addEventListener('click', (e) => { if(e.target.closest('button')) markDirty(e); });
+})();
 function applyRemoteHouse(house){
   let cfg;
   try{ cfg = JSON.parse(house.config); }catch(e){ return false; }
@@ -3194,7 +3218,7 @@ function joinWithCode(rawCode){
         // The QR link may open inside the camera/Lens app instead of the usual browser, and each
         // browser keeps its own pairing — so tell the user how to connect the usual one too.
         showCloudBanner('ok', '✅ Conectado com sucesso!',
-          `Esta tela já mostra a rotina do outro aparelho, e o que você salvar aqui aparece lá sozinho. ` +
+          `Esta tela já mostra a rotina do outro aparelho, e o que você salvar aqui aparece lá sozinho em poucos segundos. ` +
           `Abriu dentro do app da câmera? Abra o app no navegador de sempre (ex: Chrome) e digite o código ${code.slice(0,3)} ${code.slice(3)} em "Conectar" — vale até ${formatClock(pc.expiresAt)}.`);
         return true;
       });
@@ -3226,6 +3250,10 @@ function initCloudSync(){
   updateCloudStatus();
   startHouseSync();
   setInterval(refreshFromCloud, 5 * 60 * 1000); // safety net in case the live stream silently drops
+  // Without a working live stream (unsupported or disconnected), check more often.
+  setInterval(() => {
+    if(!houseStream || houseStream.readyState !== 1) refreshFromCloud();
+  }, 30 * 1000);
 
   // Opened from the pairing QR code/link: join right away and show the result.
   const params = new URLSearchParams(location.search);
