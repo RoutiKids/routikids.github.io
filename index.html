@@ -1194,7 +1194,7 @@
       <button id="settings-cancel" class="settings-btn cancel">Cancelar</button>
       <button id="settings-save" class="settings-btn save">💾 Salvar</button>
     </div>
-    <p style="text-align:right; font-size:0.7vw; color:#9aa5b1; margin-top:1vh;">Versão do código: 2026-09-28 01:30</p>
+    <p style="text-align:right; font-size:0.7vw; color:#9aa5b1; margin-top:1vh;">Versão do código: 2026-09-28 01:38</p>
   </div>
 </div>
 
@@ -2954,7 +2954,7 @@ document.getElementById('go-github-btn').addEventListener('click', () => {
 // secret (see database.rules.json). A short-lived 6-digit pair code maps to
 // that house id, so a new device can join without typing the long id.
 // Every save uploads the whole config; the last save wins.
-const CLOUD_DB_URL = ''; // e.g. 'https://<project>-default-rtdb.firebaseio.com' — empty = cloud sync off
+const CLOUD_DB_URL = 'https://rotina-infantil-7dc80-default-rtdb.firebaseio.com'; // e.g. 'https://<project>-default-rtdb.firebaseio.com' — empty = cloud sync off
 const HOUSE_ID_KEY = 'rotinaHouseId_v1';
 const HOUSE_REV_KEY = 'rotinaHouseRev_v1'; // revision of the config this device last applied or sent
 const PAIR_CODE_TTL_MS = 10 * 60 * 1000;
