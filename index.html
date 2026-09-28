@@ -18,7 +18,9 @@
 })();
 </script>
 <meta charset="UTF-8">
-<title>Rotina da Manhã</title>
+<title>Tickido</title>
+<!-- The code version lives here (read by the app and by the update check); bump it on every change. -->
+<meta name="app-version" content="Versão do código: 2026-09-28 21:56">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@500;700;800&family=Nunito:wght@600;800&display=swap" rel="stylesheet">
@@ -512,6 +514,31 @@
     outline:5px solid var(--sun);
     outline-offset:2px;
   }
+
+  /* ---- Language picker ---- */
+  .lang-picker{
+    display:flex;
+    flex-wrap:wrap;
+    align-items:center;
+    justify-content:flex-end;
+    gap:0.5vw;
+    margin-bottom:1.5vh;
+    font-family:'Nunito', sans-serif;
+  }
+  .lang-label{ font-size:clamp(13px, 0.9vw, 18px); color:#6b7a90; margin-right:0.3vw; }
+  .lang-btn{
+    font-family:'Nunito', sans-serif;
+    font-weight:700;
+    font-size:clamp(13px, 0.9vw, 18px);
+    border:2px solid rgba(29,53,87,0.15);
+    background:white;
+    color:var(--navy);
+    border-radius:999px;
+    padding:0.5vh 0.9vw;
+    cursor:pointer;
+  }
+  .lang-btn.selected{ background:var(--sky); color:white; border-color:var(--sky); }
+  .lang-btn:focus{ outline:4px solid var(--sun); outline-offset:2px; }
 
   /* ---- First-use welcome screen ---- */
   #welcome-overlay{
@@ -1201,20 +1228,22 @@
     .settings-btn{ font-size:17px; padding:10px 20px; }
     #app-version{ font-size:11px !important; }
     #cloud-sync .settings-label{ font-size:14px; }
+    .lang-picker{ justify-content:flex-start; gap:6px; }
+    .lang-btn{ padding:5px 10px; }
   }
 </style>
 </head>
 <body>
 
 <div id="util-buttons">
-  <button id="config-btn" class="util-btn" title="Configurar tarefas, horários e sons" style="background:#B983FF;">⚙️ Configurar</button>
-  <button id="test-schedule-btn" class="util-btn" title="Recalcula tudo a partir de agora, com tarefas curtas">🧪 Testar agora</button>
-  <button id="reset-schedule-btn" class="util-btn" title="Sai do modo de teste e volta aos horários planejados">↺ Sair do teste</button>
+  <button id="config-btn" class="util-btn" data-i18n="btn_config" data-i18n-title="btn_config_title" style="background:#B983FF;"></button>
+  <button id="test-schedule-btn" class="util-btn" data-i18n="btn_test" data-i18n-title="btn_test_title"></button>
+  <button id="reset-schedule-btn" class="util-btn" data-i18n="btn_reset" data-i18n-title="btn_reset_title"></button>
 </div>
 <div id="bottom-info">
   <div id="clock">--:--</div>
   <div id="limit-control">
-    <span class="limit-title">🚩 Horário limite</span>
+    <span class="limit-title" data-i18n="deadline"></span>
     <div class="limit-unit">
       <button id="limit-hour-plus" class="limit-btn">▲</button>
       <span class="limit-value" id="limit-hour">--</span>
@@ -1228,27 +1257,27 @@
     </div>
   </div>
   <!-- Fixed to the bottom-right corner on the TV; part of this bar on phones -->
-  <button id="sound-toggle" title="Ligar/desligar som">🔊</button>
+  <button id="sound-toggle" data-i18n-title="sound_title">🔊</button>
 </div>
 <div id="celebration-layer"></div>
 <div id="encourage-banner"></div>
 
 <header>
-  <h1 id="page-title">🌞 Rotina da Manhã</h1>
+  <h1 id="page-title"></h1>
 </header>
 
 <main>
   <div id="hero">
     <div id="hero-emoji">⏰</div>
-    <div id="hero-label">Carregando...</div>
+    <div id="hero-label" data-i18n="loading"></div>
     <div id="hero-sub"></div>
     <div id="minutes-left">--<span class="unit">min</span></div>
     <div id="segments"></div>
-    <button id="finish-early-btn">✔ Já terminei</button>
-    <button id="start-next-btn">▶ Iniciar</button>
+    <button id="finish-early-btn" data-i18n="finish_early"></button>
+    <button id="start-next-btn" data-i18n="start"></button>
     <div id="browse-controls">
-      <button id="browse-prev-btn" title="Ver tarefa anterior">◀</button>
-      <button id="browse-next-btn" title="Ver próxima tarefa">▶</button>
+      <button id="browse-prev-btn" data-i18n-title="browse_prev_title">◀</button>
+      <button id="browse-next-btn" data-i18n-title="browse_next_title">▶</button>
     </div>
   </div>
 
@@ -1257,53 +1286,54 @@
 
 <div id="settings-overlay">
   <div class="settings-card">
-    <h2>⚙️ Configurar rotina</h2>
+    <h2 data-i18n="settings_title"></h2>
+    <div class="lang-picker"></div>
     <div id="cloud-banner"></div>
 
     <div id="sync-section">
       <div id="cloud-sync" style="display:none;">
-        <h3>📱↔️📺 Conectar celular e TV</h3>
+        <h3 data-i18n="sync_title"></h3>
         <p class="settings-hint" id="cloud-status"></p>
-        <p class="settings-hint"><strong>Para conectar um celular:</strong> toque em "Mostrar código". No celular, aponte a câmera para o QR code e abra o link — ele conecta sozinho, sem digitar nada. Se preferir, digite o código no celular, em "Conectar".</p>
+        <p class="settings-hint" data-i18n-html="sync_howto"></p>
         <div class="sync-buttons">
-          <button type="button" id="cloud-show-code-btn" class="util-btn" style="background:var(--coral);">📺 Mostrar código</button>
+          <button type="button" id="cloud-show-code-btn" class="util-btn" style="background:var(--coral);" data-i18n="show_code"></button>
         </div>
         <div id="cloud-code-box" style="display:none;">
           <div id="cloud-code"></div>
           <div id="cloud-qr"></div>
           <p class="settings-hint" id="cloud-code-hint"></p>
         </div>
-        <p class="settings-hint" style="margin-top:1.5vh;"><strong>Recebeu um código de outro aparelho?</strong> Digite aqui:</p>
+        <p class="settings-hint" style="margin-top:1.5vh;" data-i18n-html="got_code"></p>
         <div class="sync-buttons">
           <input type="text" id="cloud-code-input" class="settings-text-input" inputmode="numeric" autocomplete="off" maxlength="6" placeholder="000000">
-          <button type="button" id="cloud-join-btn" class="util-btn" style="background:var(--mint);">🔗 Conectar</button>
+          <button type="button" id="cloud-join-btn" class="util-btn" style="background:var(--mint);" data-i18n="connect"></button>
         </div>
-        <label class="settings-label" style="margin-top:1.5vh; display:block;">Nome deste aparelho (os outros aparelhos do grupo veem este nome)</label>
+        <label class="settings-label" style="margin-top:1.5vh; display:block;" data-i18n="device_name_label"></label>
         <div id="cloud-name-editor"></div>
         <div id="cloud-devices-box" style="display:none;">
-          <p class="settings-hint" style="margin-top:1.5vh;"><strong>Aparelhos conectados neste grupo</strong> — todos veem e podem alterar a rotina:</p>
+          <p class="settings-hint" style="margin-top:1.5vh;" data-i18n-html="devices_heading"></p>
           <ul id="cloud-devices"></ul>
           <div class="sync-buttons">
-            <button type="button" id="cloud-remove-others-btn" class="util-btn" style="background:var(--coral); display:none;">🚫 Remover todos os outros aparelhos</button>
+            <button type="button" id="cloud-remove-others-btn" class="util-btn" style="background:var(--coral); display:none;" data-i18n="remove_others"></button>
           </div>
         </div>
         <details id="cloud-log-box">
-          <summary>🔎 Histórico da conexão</summary>
+          <summary data-i18n="log_title"></summary>
           <ul id="cloud-log"></ul>
         </details>
         <div class="sync-buttons">
-          <button type="button" id="cloud-disconnect-btn" class="util-btn" style="background:#9aa5b1; display:none;">Desconectar este aparelho</button>
+          <button type="button" id="cloud-disconnect-btn" class="util-btn" style="background:#9aa5b1; display:none;" data-i18n="disconnect"></button>
         </div>
       </div>
 
     </div>
 
-    <label class="settings-label" for="settings-child-name">Apelido da criança (opcional)</label>
-    <input type="text" id="settings-child-name" class="settings-text-input" maxlength="30" placeholder="Ex: Lulu">
-    <p class="settings-hint">🔒 Use só um apelido — nada de nome completo, escola ou endereço.</p>
+    <label class="settings-label" for="settings-child-name" data-i18n="nickname_label"></label>
+    <input type="text" id="settings-child-name" class="settings-text-input" maxlength="30" data-i18n-placeholder="nickname_placeholder">
+    <p class="settings-hint" data-i18n="nickname_hint"></p>
 
     <div id="step-size-row">
-      <span class="settings-label">Incremento das setas de horário:</span>
+      <span class="settings-label" data-i18n="step_size"></span>
       <button type="button" class="step-size-btn selected" data-step="5">5 min</button>
       <button type="button" class="step-size-btn" data-step="10">10 min</button>
       <button type="button" class="step-size-btn" data-step="15">15 min</button>
@@ -1311,29 +1341,29 @@
     </div>
     <div id="autolink-row">
       <input type="checkbox" id="autolink-toggle" checked>
-      <label for="autolink-toggle">🔗 Ajustar automaticamente o início da próxima tarefa (evita buracos na agenda)</label>
+      <label for="autolink-toggle" data-i18n="autolink"></label>
     </div>
 
-    <label class="settings-label">Ícone quando concluir no tempo</label>
+    <label class="settings-label" data-i18n="ontime_icon"></label>
     <div class="emoji-picker" id="ontime-icon-picker"></div>
 
-    <label class="settings-label" style="margin-top:1vh; display:block;">Ícone quando atrasar</label>
+    <label class="settings-label" style="margin-top:1vh; display:block;" data-i18n="late_icon"></label>
     <div class="emoji-picker" id="late-icon-picker"></div>
 
     <div id="routines-section">
-      <h3>🗓️ Rotinas da semana</h3>
-      <p class="settings-hint">Marque cada rotina nos dias em que ela deve rodar. Pode combinar várias no mesmo dia — elas se juntam em ordem de horário. Só evite horários que se sobrepõem entre rotinas do mesmo dia.</p>
+      <h3 data-i18n="week_title"></h3>
+      <p class="settings-hint" data-i18n="week_hint"></p>
 
       <div id="routine-tabs"></div>
       <div class="sync-buttons" id="template-add-row">
         <select id="template-select" class="settings-select"></select>
-        <button type="button" id="template-add-btn" class="util-btn" style="background:var(--sky);">📋 Adicionar modelo</button>
+        <button type="button" id="template-add-btn" class="util-btn" style="background:var(--sky);" data-i18n="add_template"></button>
       </div>
 
       <div id="routine-edit-row">
-        <input type="text" id="routine-name-input" class="settings-text-input" placeholder="Nome da rotina">
+        <input type="text" id="routine-name-input" class="settings-text-input" data-i18n-placeholder="routine_name_ph">
         <div id="routine-icon-picker"></div>
-        <span class="settings-label" style="margin:0;">🚩 Horário limite:</span>
+        <span class="settings-label" style="margin:0;" data-i18n="deadline_colon"></span>
         <div class="limit-unit">
           <button type="button" class="limit-btn" id="routine-limit-hour-plus">▲</button>
           <span class="limit-value" id="routine-limit-hour">08</span>
@@ -1345,49 +1375,50 @@
           <span class="limit-value" id="routine-limit-min">55</span>
           <button type="button" class="limit-btn" id="routine-limit-min-minus">▼</button>
         </div>
-        <button type="button" id="routine-delete-btn">🗑 Excluir esta rotina</button>
+        <button type="button" id="routine-delete-btn" data-i18n="delete_routine"></button>
       </div>
 
       <table id="week-matrix"><thead></thead><tbody></tbody></table>
       <div id="conflict-warning"></div>
     </div>
 
-    <div id="routine-tasks-heading">Tarefas da rotina selecionada</div>
+    <div id="routine-tasks-heading" data-i18n="tasks_heading"></div>
     <div id="settings-tasks-list"></div>
 
-    <button id="settings-add-task" class="settings-add-btn">+ Adicionar tarefa</button>
+    <button id="settings-add-task" class="settings-add-btn" data-i18n="add_task"></button>
 
     <div class="settings-actions">
-      <button id="settings-cancel" class="settings-btn cancel">Cancelar</button>
-      <button id="settings-save" class="settings-btn save">💾 Salvar</button>
+      <button id="settings-cancel" class="settings-btn cancel" data-i18n="cancel"></button>
+      <button id="settings-save" class="settings-btn save" data-i18n="save"></button>
     </div>
-    <p class="settings-hint" style="margin-top:1.5vh;">⚠️ <strong>Versão de teste.</strong> Este app ainda está em fase de testes. Use só apelidos e não coloque dados sensíveis. As rotinas ficam salvas neste aparelho e, se você conectar outros aparelhos, num servidor usado só para sincronizá-los.</p>
-    <p id="app-version" style="text-align:right; font-size:0.7vw; color:#9aa5b1; margin-top:1vh;">Versão do código: 2026-09-28 20:59</p>
+    <p class="settings-hint" style="margin-top:1.5vh;" data-i18n-html="test_note"></p>
+    <p id="app-version" style="text-align:right; font-size:0.7vw; color:#9aa5b1; margin-top:1vh;"></p>
   </div>
 </div>
 
 <div id="welcome-overlay">
   <div class="settings-card welcome-card">
-    <h2>👋 Bem-vindo à Rotina na TV!</h2>
-    <div class="welcome-note">⚠️ <strong>Versão de teste.</strong> Este app ainda está em fase de testes. Para proteger sua família, <strong>use apenas um apelido</strong> para a criança — nada de nome completo, escola ou endereço. As rotinas ficam salvas neste aparelho e, se você conectar outros aparelhos, num servidor usado só para sincronizá-los.</div>
-    <h3>Já tem outro aparelho configurado (ex: a TV)?</h3>
+    <div class="lang-picker"></div>
+    <h2 data-i18n="welcome_title"></h2>
+    <div class="welcome-note" data-i18n-html="welcome_note"></div>
+    <h3 data-i18n="welcome_have_device"></h3>
     <div class="sync-buttons">
-      <button type="button" id="welcome-connect-btn" class="util-btn" style="background:var(--mint);">🔗 Conectar com código</button>
+      <button type="button" id="welcome-connect-btn" class="util-btn" style="background:var(--mint);" data-i18n="welcome_connect"></button>
     </div>
-    <h3>Ou escolha por onde começar (pode marcar vários):</h3>
+    <h3 data-i18n="welcome_choose"></h3>
     <div id="welcome-templates"></div>
-    <label class="settings-label" for="welcome-child-name">Apelido da criança (opcional)</label>
-    <input type="text" id="welcome-child-name" class="settings-text-input" maxlength="30" placeholder="Ex: Lulu">
+    <label class="settings-label" for="welcome-child-name" data-i18n="nickname_label"></label>
+    <input type="text" id="welcome-child-name" class="settings-text-input" maxlength="30" data-i18n-placeholder="nickname_placeholder">
     <div class="settings-actions">
-      <button type="button" id="welcome-start-btn" class="settings-btn save">▶️ Começar</button>
+      <button type="button" id="welcome-start-btn" class="settings-btn save" data-i18n="welcome_start"></button>
     </div>
-    <p class="settings-hint">Depois dá para ajustar tarefas, horários e dias em ⚙️ Configurar.</p>
+    <p class="settings-hint" data-i18n="welcome_later"></p>
   </div>
 </div>
 
 <div id="update-banner">
-  <span>🆕 Nova versão do app disponível.</span>
-  <button type="button" id="update-now-btn" class="util-btn" style="background:var(--mint);">Atualizar agora</button>
+  <span data-i18n="update_available"></span>
+  <button type="button" id="update-now-btn" class="util-btn" style="background:var(--mint);" data-i18n="update_now"></button>
 </div>
 
 <div id="app-dialog-overlay">
@@ -1395,60 +1426,747 @@
     <div id="app-dialog-message"></div>
     <div class="confirm-buttons">
       <button type="button" id="app-dialog-yes" class="confirm-btn yes">OK</button>
-      <button type="button" id="app-dialog-no" class="confirm-btn no">Cancelar</button>
+      <button type="button" id="app-dialog-no" class="confirm-btn no" data-i18n="cancel"></button>
     </div>
   </div>
 </div>
 
 <div id="confirm-overlay">
   <div class="confirm-card">
-    <div class="confirm-title">A tarefa "<span id="confirm-task-name"></span>" foi concluída?</div>
+    <div class="confirm-title" data-i18n-html="confirm_title"></div>
     <div class="confirm-buttons">
-      <button id="confirm-yes" class="confirm-btn yes">✅ Sim</button>
-      <button id="confirm-no" class="confirm-btn no">❌ Não, preciso de mais tempo</button>
+      <button id="confirm-yes" class="confirm-btn yes" data-i18n="confirm_yes"></button>
+      <button id="confirm-no" class="confirm-btn no" data-i18n="confirm_no"></button>
     </div>
     <div class="confirm-timer-wrap"><div id="confirm-timer-bar"></div></div>
-    <div class="confirm-hint">Sem resposta, confirma "Sim" automaticamente em <span id="confirm-seconds">30</span>s</div>
+    <div class="confirm-hint" data-i18n-html="confirm_hint"></div>
   </div>
 </div>
 
 <script>
+// ---------- Languages (pt / en / de) ----------
+// Every user-facing text lives in I18N; tr(key, vars) picks the current
+// language and fills {placeholders}. Static HTML uses data-i18n (text),
+// data-i18n-html (trusted markup), data-i18n-placeholder and data-i18n-title.
+// The language is per device: chosen by the user, else the device language
+// for new devices; devices that already had a routine before this existed
+// stay in Portuguese.
+const APP_NAME = 'Tickido'; // provisional name
+const LANG_KEY = 'rotinaLang_v1';
+const LANG_LOCALES = { pt: 'pt-BR', en: 'en-US', de: 'de-DE' };
+const LANG_LABELS = { pt: '🇧🇷 Português', en: '🇬🇧 English', de: '🇩🇪 Deutsch' };
+const I18N = {
+  pt: {
+    btn_config: "⚙️ Configurar",
+    btn_config_title: "Configurar tarefas, horários e sons",
+    btn_test: "🧪 Testar agora",
+    btn_test_title: "Recalcula tudo a partir de agora, com tarefas curtas",
+    btn_reset: "↺ Sair do teste",
+    btn_reset_title: "Sai do modo de teste e volta aos horários planejados",
+    deadline: "🚩 Horário limite",
+    deadline_colon: "🚩 Horário limite:",
+    sound_title: "Ligar/desligar som",
+    loading: "Carregando...",
+    finish_early: "✔ Já terminei",
+    start: "▶ Iniciar",
+    start_task: "▶ Iniciar \"{task}\"",
+    browse_prev_title: "Ver rotina anterior",
+    browse_next_title: "Ver próxima rotina",
+    move_earlier: "Mover mais cedo",
+    move_later: "Mover mais tarde",
+    page_title_child: "🌞 Rotina de {name}",
+    today: "Hoje",
+    tomorrow: "Amanhã",
+    tomorrow_preview: "Amanhã: {names} — começa às {time}",
+    tomorrow_preview_short: "Amanhã: {names}",
+    routine_fallback: "Rotina",
+    completed_range: "Concluída: {from} – {to} ({n} tarefas)",
+    day_range: "{day}: {from} – {to} ({n} tarefas)",
+    encourage: "Vamos lá, {name}você consegue!",
+    extra_time: "Vamos, {name}se concentra que você consegue!",
+    no_routine_today: "Sem rotina hoje",
+    no_routine_configured: "Nenhuma rotina configurada pra hoje",
+    routine_complete: "Rotina completa!",
+    see_you_tomorrow: "Até amanhã!",
+    ready_to_start: "Pronto pra começar?",
+    next_label: "Próxima: {task}",
+    starts_at: "começa às {time}",
+    all_good: "Tudo certo por enquanto!",
+    next_at: "Próxima: {task} às {time}",
+    confirming: "Confirmando conclusão...",
+    until: "até {time}",
+    confirm_title: "A tarefa \"{task}\" foi concluída?",
+    confirm_yes: "✅ Sim",
+    confirm_no: "❌ Não, preciso de mais tempo",
+    confirm_hint: "Sem resposta, confirma \"Sim\" automaticamente em {seconds}s",
+    days_short: ["Dom", "Seg", "Ter", "Qua", "Qui", "Sex", "Sáb"],
+    days_full: ["domingo", "segunda", "terça", "quarta", "quinta", "sexta", "sábado"],
+    settings_title: "⚙️ Configurar rotina",
+    lang_label: "🌐 Idioma",
+    lang_change_confirm: "Trocar o idioma recarrega o app e descarta as alterações não salvas. Continuar?",
+    nickname_label: "Apelido da criança (opcional)",
+    nickname_placeholder: "Ex: Lulu",
+    nickname_hint: "🔒 Use só um apelido — nada de nome completo, escola ou endereço.",
+    step_size: "Incremento das setas de horário:",
+    autolink: "🔗 Ajustar automaticamente o início da próxima tarefa (evita buracos na agenda)",
+    ontime_icon: "Ícone quando concluir no tempo",
+    late_icon: "Ícone quando atrasar",
+    week_title: "🗓️ Rotinas da semana",
+    week_hint: "Marque cada rotina nos dias em que ela deve rodar. Pode combinar várias no mesmo dia — elas se juntam em ordem de horário. Só evite horários que se sobrepõem entre rotinas do mesmo dia.",
+    add_template: "📋 Adicionar modelo",
+    routine_name_ph: "Nome da rotina",
+    delete_routine: "🗑 Excluir esta rotina",
+    tasks_heading: "Tarefas da rotina selecionada",
+    add_task: "+ Adicionar tarefa",
+    cancel: "Cancelar",
+    save: "💾 Salvar",
+    ok: "OK",
+    yes: "Sim",
+    test_note: "⚠️ <strong>Versão de teste.</strong> Este app ainda está em fase de testes. Use só apelidos e não coloque dados sensíveis. As rotinas ficam salvas neste aparelho e, se você conectar outros aparelhos, num servidor usado só para sincronizá-los.",
+    code_version: "Versão do código",
+    new_routine: "Nova rotina",
+    add_routine_btn: "+ Nova rotina",
+    new_task: "Nova tarefa",
+    need_one_routine: "Precisa ter pelo menos uma rotina.",
+    overlap_heading: "⚠️ <strong>Horários sobrepostos:</strong>",
+    overlap_item: "{day}: \"{a}\" e \"{b}\"",
+    all_days_btn: "Todos os dias",
+    task_name_ph: "Nome da tarefa",
+    sound_default: "🔔 Som padrão",
+    sound_melody: "🎶 Melodia animada",
+    sound_url: "🔗 Link personalizado",
+    sound_url_ph: "https://.../musica.mp3 (link direto do arquivo)",
+    move_up: "Mover pra cima",
+    move_down: "Mover pra baixo",
+    remove_task: "Remover tarefa",
+    task_needs_name: "Toda tarefa precisa de um nome (rotina \"{routine}\").",
+    task_end_after_start: "A tarefa \"{task}\" (rotina \"{routine}\") precisa ter o fim depois do início.",
+    overlap_confirm: "Horários sobrepostos encontrados:\n{list}\n\nSalvar mesmo assim?",
+    save_anyway: "Salvar mesmo assim",
+    welcome_title: "👋 Bem-vindo ao {app}!",
+    welcome_note: "⚠️ <strong>Versão de teste.</strong> Este app ainda está em fase de testes. Para proteger sua família, <strong>use apenas um apelido</strong> para a criança — nada de nome completo, escola ou endereço. As rotinas ficam salvas neste aparelho e, se você conectar outros aparelhos, num servidor usado só para sincronizá-los.",
+    welcome_have_device: "Já tem outro aparelho configurado (ex: a TV)?",
+    welcome_connect: "🔗 Conectar com código",
+    welcome_choose: "Ou escolha por onde começar (pode marcar vários):",
+    welcome_start: "▶️ Começar",
+    welcome_later: "Depois dá para ajustar tarefas, horários e dias em ⚙️ Configurar.",
+    welcome_blank: "✏️ Começar do zero",
+    welcome_blank_hint: "uma rotina vazia para montar do seu jeito",
+    update_available: "🆕 Nova versão do app disponível.",
+    update_now: "Atualizar agora",
+    tpl_morning_name: "Manhã",
+    tpl_morning_label: "Manhã antes da escola",
+    tpl_afternoon_name: "Tarde",
+    tpl_afternoon_label: "Tarde / depois da escola",
+    tpl_bedtime_name: "Noite",
+    tpl_bedtime_label: "Hora de dormir",
+    tpl_weekend_name: "Fim de semana",
+    tpl_weekend_label: "Manhã de fim de semana",
+    tpl_blank_name: "Minha rotina",
+    days_weekdays: "seg–sex",
+    days_weekend: "sáb–dom",
+    days_every: "todos os dias",
+    task_wake: "Acordar",
+    task_breakfast: "Tomar café da manhã",
+    task_dress: "Trocar de roupa",
+    task_teeth: "Escovar os dentes",
+    task_shoes: "Calçar os sapatos e pegar a mochila",
+    task_snack: "Lanche",
+    task_homework: "Lição de casa",
+    task_play: "Brincar",
+    task_tidy: "Arrumar os brinquedos",
+    task_dinner: "Jantar",
+    task_bath: "Tomar banho",
+    task_pyjamas: "Vestir o pijama",
+    task_story: "Hora da história",
+    task_sleep: "Dormir",
+    task_bed: "Arrumar a cama",
+    sync_title: "📱↔️📺 Conectar celular e TV",
+    sync_howto: "<strong>Para conectar um celular:</strong> toque em \"Mostrar código\". No celular, aponte a câmera para o QR code e abra o link — ele conecta sozinho, sem digitar nada. Se preferir, digite o código no celular, em \"Conectar\".",
+    show_code: "📺 Mostrar código",
+    got_code: "<strong>Recebeu um código de outro aparelho?</strong> Digite aqui:",
+    connect: "🔗 Conectar",
+    device_name_label: "Nome deste aparelho (os outros aparelhos do grupo veem este nome)",
+    devices_heading: "<strong>Aparelhos conectados neste grupo</strong> — todos veem e podem alterar a rotina:",
+    remove_others: "🚫 Remover todos os outros aparelhos",
+    log_title: "🔎 Histórico da conexão",
+    disconnect: "Desconectar este aparelho",
+    kind_tv: "TV",
+    kind_tablet: "Tablet",
+    kind_phone: "Celular",
+    kind_computer: "Computador",
+    cloud_connected: "✅ Conectado — o que for salvo aqui aparece sozinho nos outros aparelhos do grupo.",
+    cloud_legacy: "ℹ️ O app foi atualizado e agora mostra quais aparelhos estão conectados. Para isso, conecte os aparelhos de novo: toque em \"Mostrar código\" na TV.",
+    cloud_not_connected: "Este aparelho ainda não está conectado a nenhum outro.",
+    cloud_send_failed: "⚠️ Não consegui enviar para os outros aparelhos. Verifique a internet e salve de novo.",
+    cloud_changes_waiting: "🔄 Chegaram mudanças de outro aparelho — elas serão aplicadas quando você fechar esta tela (se você salvar, vale o que você salvar).",
+    cloud_updated_now: "🔄 Atualizado agora com as mudanças de outro aparelho.",
+    a_device: "Um aparelho",
+    cloud_joined: "✅ {names} acabou de se conectar!",
+    cloud_code_still_valid: " O código continua valendo para conectar outros.",
+    cloud_removed: "⚠️ Este aparelho foi removido do grupo por outro aparelho. A rotina continua salva aqui; para voltar a sincronizar, conecte de novo com um código.",
+    seen_never: "nunca",
+    seen_now: "agora",
+    seen_min: "há {n} min",
+    seen_today: "hoje às {time}",
+    seen_yesterday: "ontem às {time}",
+    seen_date: "em {date}",
+    this_device: " (este aparelho)",
+    last_access: "último acesso: {when}",
+    remove: "Remover",
+    device_word: "aparelho",
+    remove_one_q: "Remover {names} do grupo? Esse aparelho deixa de ver e de alterar a rotina na hora.",
+    remove_all_q: "Remover todos os outros aparelhos ({names})? Eles deixam de ver e de alterar a rotina na hora.",
+    removed_one: "✅ {names} foi removido do grupo.",
+    removed_all: "✅ Todos os outros aparelhos foram removidos do grupo.",
+    remove_failed: "⚠️ Não consegui remover. Verifique a internet e tente de novo.",
+    name_empty: "Digite um nome para este aparelho (ex: \"Celular da Mamãe\").",
+    name_saved_local: "✅ Nome salvo. Os outros aparelhos vão vê-lo quando você conectar.",
+    name_saved: "✅ Nome salvo: agora os outros aparelhos veem \"{name}\".",
+    name_failed: "⚠️ Não consegui salvar o nome. Verifique a internet e tente de novo.",
+    name_ph: "Ex: Celular da Mamãe, TV da sala",
+    save_name: "💾 Salvar nome",
+    generating_code: "⏳ Gerando código...",
+    code_hint: "Serve para conectar quantos aparelhos quiser por mais {time}. Link: {link}",
+    code_expired: "⌛ O código expirou. Toque em \"Mostrar código\" para gerar outro.",
+    code_failed: "⚠️ Não consegui gerar o código. Verifique a internet e tente de novo.",
+    invalid_code_title: "Código inválido ou expirado",
+    new_code_hint: "No outro aparelho (ex: a TV), toque em \"Mostrar código\" para gerar um novo e tente de novo.",
+    incomplete_code_title: "Código incompleto",
+    incomplete_code_hint: "Digite os 6 números que aparecem no outro aparelho.",
+    connecting: "🔗 Conectando...",
+    config_not_found_title: "Configuração não encontrada",
+    joined_title: "✅ Conectado com sucesso!",
+    joined_text: "Esta tela já mostra a rotina do outro aparelho, e o que você salvar aqui aparece lá sozinho em poucos segundos. Abriu dentro do app da câmera? Abra o app no navegador de sempre (ex: Chrome) e digite o código {code} em \"Conectar\" — vale até {time}. Como os outros devem ver este aparelho?",
+    connect_failed_title: "Não consegui conectar",
+    check_internet: "Verifique a internet e tente de novo.",
+    disconnect_q: "Desconectar este aparelho? A rotina continua salva aqui, mas deixa de sincronizar com os outros.",
+    disconnect_btn: "Desconectar",
+    log_identity_lost: "Identidade deste aparelho perdida ({code}); uma nova será criada",
+    log_refresh_failed: "Falha ao renovar a identidade ({info}); tento de novo depois",
+    log_new_identity: "Nova identidade anônima criada ({id}…)",
+    log_refused: "Acesso recusado pelo servidor ({source}); confirmando…",
+    log_recovered: "Acesso normalizado",
+    log_removed: "Desconectado: acesso recusado de novo ({source}, identidade {id}…)",
+    source_send: "envio",
+    source_read: "leitura",
+    log_group_created: "Grupo novo criado neste aparelho",
+    log_joined: "Conectado a um grupo com o código {code}",
+    log_disconnected: "Desconectado por este aparelho (\"Desconectar\")",
+    log_opened: "App aberto na versão {version} — {state}",
+    state_in_group: "conectado a um grupo",
+    state_no_group: "sem grupo",
+    log_empty: "Nada registrado ainda."
+  },
+  en: {
+    btn_config: "⚙️ Settings",
+    btn_config_title: "Set up tasks, times and sounds",
+    btn_test: "🧪 Test now",
+    btn_test_title: "Recalculates everything from now, with short tasks",
+    btn_reset: "↺ Exit test",
+    btn_reset_title: "Leaves test mode and goes back to the planned times",
+    deadline: "🚩 Deadline",
+    deadline_colon: "🚩 Deadline:",
+    sound_title: "Sound on/off",
+    loading: "Loading...",
+    finish_early: "✔ I'm done",
+    start: "▶ Start",
+    start_task: "▶ Start \"{task}\"",
+    browse_prev_title: "Previous routine",
+    browse_next_title: "Next routine",
+    move_earlier: "Move earlier",
+    move_later: "Move later",
+    page_title_child: "🌞 {name}'s routine",
+    today: "Today",
+    tomorrow: "Tomorrow",
+    tomorrow_preview: "Tomorrow: {names} — starts at {time}",
+    tomorrow_preview_short: "Tomorrow: {names}",
+    routine_fallback: "Routine",
+    completed_range: "Done: {from} – {to} ({n} tasks)",
+    day_range: "{day}: {from} – {to} ({n} tasks)",
+    encourage: "Come on, {name}you can do it!",
+    extra_time: "Come on, {name}focus — you can do it!",
+    no_routine_today: "No routine today",
+    no_routine_configured: "No routine set up for today",
+    routine_complete: "Routine complete!",
+    see_you_tomorrow: "See you tomorrow!",
+    ready_to_start: "Ready to start?",
+    next_label: "Next: {task}",
+    starts_at: "starts at {time}",
+    all_good: "All good for now!",
+    next_at: "Next: {task} at {time}",
+    confirming: "Confirming...",
+    until: "until {time}",
+    confirm_title: "Is \"{task}\" done?",
+    confirm_yes: "✅ Yes",
+    confirm_no: "❌ No, I need more time",
+    confirm_hint: "No answer: \"Yes\" is confirmed automatically in {seconds}s",
+    days_short: ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"],
+    days_full: ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"],
+    settings_title: "⚙️ Routine settings",
+    lang_label: "🌐 Language",
+    lang_change_confirm: "Changing the language reloads the app and discards unsaved changes. Continue?",
+    nickname_label: "Child's nickname (optional)",
+    nickname_placeholder: "E.g. Lulu",
+    nickname_hint: "🔒 Use only a nickname — no full name, school or address.",
+    step_size: "Time arrow step:",
+    autolink: "🔗 Automatically adjust the next task's start (no gaps in the schedule)",
+    ontime_icon: "Icon when finished on time",
+    late_icon: "Icon when late",
+    week_title: "🗓️ Weekly routines",
+    week_hint: "Tick each routine on the days it should run. Several can share a day — they are combined in time order. Just avoid times that overlap between routines on the same day.",
+    add_template: "📋 Add template",
+    routine_name_ph: "Routine name",
+    delete_routine: "🗑 Delete this routine",
+    tasks_heading: "Tasks of the selected routine",
+    add_task: "+ Add task",
+    cancel: "Cancel",
+    save: "💾 Save",
+    ok: "OK",
+    yes: "Yes",
+    test_note: "⚠️ <strong>Test version.</strong> This app is still being tested. Use only nicknames and no sensitive data. Routines are stored on this device and, if you connect other devices, on a server used only to sync them.",
+    code_version: "Code version",
+    new_routine: "New routine",
+    add_routine_btn: "+ New routine",
+    new_task: "New task",
+    need_one_routine: "There must be at least one routine.",
+    overlap_heading: "⚠️ <strong>Overlapping times:</strong>",
+    overlap_item: "{day}: \"{a}\" and \"{b}\"",
+    all_days_btn: "Every day",
+    task_name_ph: "Task name",
+    sound_default: "🔔 Default sound",
+    sound_melody: "🎶 Happy melody",
+    sound_url: "🔗 Custom link",
+    sound_url_ph: "https://.../music.mp3 (direct link to the file)",
+    move_up: "Move up",
+    move_down: "Move down",
+    remove_task: "Remove task",
+    task_needs_name: "Every task needs a name (routine \"{routine}\").",
+    task_end_after_start: "Task \"{task}\" (routine \"{routine}\") must end after it starts.",
+    overlap_confirm: "Overlapping times found:\n{list}\n\nSave anyway?",
+    save_anyway: "Save anyway",
+    welcome_title: "👋 Welcome to {app}!",
+    welcome_note: "⚠️ <strong>Test version.</strong> This app is still being tested. To protect your family, <strong>use only a nickname</strong> for your child — no full name, school or address. Routines are stored on this device and, if you connect other devices, on a server used only to sync them.",
+    welcome_have_device: "Already set up another device (e.g. the TV)?",
+    welcome_connect: "🔗 Connect with a code",
+    welcome_choose: "Or choose where to start (you can pick several):",
+    welcome_start: "▶️ Let's go",
+    welcome_later: "You can adjust tasks, times and days later in ⚙️ Settings.",
+    welcome_blank: "✏️ Start from scratch",
+    welcome_blank_hint: "an empty routine to build your way",
+    update_available: "🆕 A new version of the app is available.",
+    update_now: "Update now",
+    tpl_morning_name: "Morning",
+    tpl_morning_label: "Morning before school",
+    tpl_afternoon_name: "Afternoon",
+    tpl_afternoon_label: "Afternoon / after school",
+    tpl_bedtime_name: "Evening",
+    tpl_bedtime_label: "Bedtime",
+    tpl_weekend_name: "Weekend",
+    tpl_weekend_label: "Weekend morning",
+    tpl_blank_name: "My routine",
+    days_weekdays: "Mon–Fri",
+    days_weekend: "Sat–Sun",
+    days_every: "every day",
+    task_wake: "Wake up",
+    task_breakfast: "Have breakfast",
+    task_dress: "Get dressed",
+    task_teeth: "Brush teeth",
+    task_shoes: "Put on shoes and grab the backpack",
+    task_snack: "Snack",
+    task_homework: "Homework",
+    task_play: "Play",
+    task_tidy: "Tidy up the toys",
+    task_dinner: "Dinner",
+    task_bath: "Bath time",
+    task_pyjamas: "Put on pyjamas",
+    task_story: "Story time",
+    task_sleep: "Sleep",
+    task_bed: "Make the bed",
+    sync_title: "📱↔️📺 Connect phone and TV",
+    sync_howto: "<strong>To connect a phone:</strong> tap \"Show code\". On the phone, point the camera at the QR code and open the link — it connects by itself, no typing. Or type the code on the phone, under \"Connect\".",
+    show_code: "📺 Show code",
+    got_code: "<strong>Got a code from another device?</strong> Type it here:",
+    connect: "🔗 Connect",
+    device_name_label: "This device's name (the group's other devices see it)",
+    devices_heading: "<strong>Devices in this group</strong> — all of them can see and change the routine:",
+    remove_others: "🚫 Remove all other devices",
+    log_title: "🔎 Connection history",
+    disconnect: "Disconnect this device",
+    kind_tv: "TV",
+    kind_tablet: "Tablet",
+    kind_phone: "Phone",
+    kind_computer: "Computer",
+    cloud_connected: "✅ Connected — whatever is saved here shows up on the group's other devices by itself.",
+    cloud_legacy: "ℹ️ The app was updated and now shows which devices are connected. For that, connect your devices again: tap \"Show code\" on the TV.",
+    cloud_not_connected: "This device is not connected to any other yet.",
+    cloud_send_failed: "⚠️ Couldn't send to the other devices. Check the internet and save again.",
+    cloud_changes_waiting: "🔄 Changes arrived from another device — they'll be applied when you close this screen (if you save, your version wins).",
+    cloud_updated_now: "🔄 Just updated with changes from another device.",
+    a_device: "A device",
+    cloud_joined: "✅ {names} just connected!",
+    cloud_code_still_valid: " The code still works for connecting others.",
+    cloud_removed: "⚠️ This device was removed from the group by another device. The routine stays saved here; to sync again, connect with a new code.",
+    seen_never: "never",
+    seen_now: "now",
+    seen_min: "{n} min ago",
+    seen_today: "today at {time}",
+    seen_yesterday: "yesterday at {time}",
+    seen_date: "on {date}",
+    this_device: " (this device)",
+    last_access: "last seen: {when}",
+    remove: "Remove",
+    device_word: "device",
+    remove_one_q: "Remove {names} from the group? That device immediately stops seeing and changing the routine.",
+    remove_all_q: "Remove all other devices ({names})? They immediately stop seeing and changing the routine.",
+    removed_one: "✅ {names} was removed from the group.",
+    removed_all: "✅ All other devices were removed from the group.",
+    remove_failed: "⚠️ Couldn't remove. Check the internet and try again.",
+    name_empty: "Type a name for this device (e.g. \"Mum's phone\").",
+    name_saved_local: "✅ Name saved. Other devices will see it once you connect.",
+    name_saved: "✅ Name saved: other devices now see \"{name}\".",
+    name_failed: "⚠️ Couldn't save the name. Check the internet and try again.",
+    name_ph: "E.g. Mum's phone, Living room TV",
+    save_name: "💾 Save name",
+    generating_code: "⏳ Creating code...",
+    code_hint: "Works for connecting as many devices as you like for another {time}. Link: {link}",
+    code_expired: "⌛ The code expired. Tap \"Show code\" to get a new one.",
+    code_failed: "⚠️ Couldn't create the code. Check the internet and try again.",
+    invalid_code_title: "Invalid or expired code",
+    new_code_hint: "On the other device (e.g. the TV), tap \"Show code\" to get a new one and try again.",
+    incomplete_code_title: "Incomplete code",
+    incomplete_code_hint: "Type the 6 digits shown on the other device.",
+    connecting: "🔗 Connecting...",
+    config_not_found_title: "Settings not found",
+    joined_title: "✅ Connected!",
+    joined_text: "This screen already shows the other device's routine, and whatever you save here shows up there within seconds. Did it open inside the camera app? Open the app in your usual browser (e.g. Chrome) and type the code {code} under \"Connect\" — valid until {time}. How should the others see this device?",
+    connect_failed_title: "Couldn't connect",
+    check_internet: "Check the internet and try again.",
+    disconnect_q: "Disconnect this device? The routine stays saved here but stops syncing with the others.",
+    disconnect_btn: "Disconnect",
+    log_identity_lost: "This device's identity was lost ({code}); a new one will be created",
+    log_refresh_failed: "Could not renew the identity ({info}); will retry later",
+    log_new_identity: "New anonymous identity created ({id}…)",
+    log_refused: "Access refused by the server ({source}); checking again…",
+    log_recovered: "Access back to normal",
+    log_removed: "Disconnected: access refused again ({source}, identity {id}…)",
+    source_send: "sending",
+    source_read: "reading",
+    log_group_created: "New group created on this device",
+    log_joined: "Joined a group with code {code}",
+    log_disconnected: "Disconnected by this device (\"Disconnect\")",
+    log_opened: "App opened, version {version} — {state}",
+    state_in_group: "in a group",
+    state_no_group: "no group",
+    log_empty: "Nothing recorded yet."
+  },
+  de: {
+    btn_config: "⚙️ Einstellungen",
+    btn_config_title: "Aufgaben, Zeiten und Töne einstellen",
+    btn_test: "🧪 Jetzt testen",
+    btn_test_title: "Berechnet alles ab jetzt neu, mit kurzen Aufgaben",
+    btn_reset: "↺ Test beenden",
+    btn_reset_title: "Beendet den Testmodus und kehrt zu den geplanten Zeiten zurück",
+    deadline: "🚩 Spätestens um",
+    deadline_colon: "🚩 Spätestens um:",
+    sound_title: "Ton an/aus",
+    loading: "Lädt...",
+    finish_early: "✔ Fertig!",
+    start: "▶ Starten",
+    start_task: "▶ „{task}\" starten",
+    browse_prev_title: "Vorherige Routine",
+    browse_next_title: "Nächste Routine",
+    move_earlier: "Früher",
+    move_later: "Später",
+    page_title_child: "🌞 Routine von {name}",
+    today: "Heute",
+    tomorrow: "Morgen",
+    tomorrow_preview: "Morgen: {names} – beginnt um {time}",
+    tomorrow_preview_short: "Morgen: {names}",
+    routine_fallback: "Routine",
+    completed_range: "Erledigt: {from} – {to} ({n} Aufgaben)",
+    day_range: "{day}: {from} – {to} ({n} Aufgaben)",
+    encourage: "Komm, {name}du schaffst das!",
+    extra_time: "Los, {name}konzentrier dich – du schaffst das!",
+    no_routine_today: "Heute keine Routine",
+    no_routine_configured: "Für heute ist keine Routine eingerichtet",
+    routine_complete: "Routine geschafft!",
+    see_you_tomorrow: "Bis morgen!",
+    ready_to_start: "Bereit?",
+    next_label: "Als Nächstes: {task}",
+    starts_at: "beginnt um {time}",
+    all_good: "Alles erledigt für jetzt!",
+    next_at: "Als Nächstes: {task} um {time}",
+    confirming: "Wird bestätigt...",
+    until: "bis {time}",
+    confirm_title: "Ist „{task}\" erledigt?",
+    confirm_yes: "✅ Ja",
+    confirm_no: "❌ Nein, ich brauche mehr Zeit",
+    confirm_hint: "Ohne Antwort wird in {seconds} s automatisch „Ja\" bestätigt",
+    days_short: ["So", "Mo", "Di", "Mi", "Do", "Fr", "Sa"],
+    days_full: ["Sonntag", "Montag", "Dienstag", "Mittwoch", "Donnerstag", "Freitag", "Samstag"],
+    settings_title: "⚙️ Routine einstellen",
+    lang_label: "🌐 Sprache",
+    lang_change_confirm: "Beim Sprachwechsel wird die App neu geladen und ungespeicherte Änderungen gehen verloren. Fortfahren?",
+    nickname_label: "Spitzname des Kindes (optional)",
+    nickname_placeholder: "z. B. Lulu",
+    nickname_hint: "🔒 Nur einen Spitznamen verwenden – keinen vollen Namen, keine Schule, keine Adresse.",
+    step_size: "Schrittweite der Zeitpfeile:",
+    autolink: "🔗 Beginn der nächsten Aufgabe automatisch anpassen (keine Lücken im Ablauf)",
+    ontime_icon: "Symbol, wenn pünktlich fertig",
+    late_icon: "Symbol bei Verspätung",
+    week_title: "🗓️ Routinen der Woche",
+    week_hint: "Hake jede Routine an den Tagen an, an denen sie laufen soll. Mehrere am selben Tag sind möglich – sie werden nach Uhrzeit kombiniert. Vermeide nur Zeiten, die sich am selben Tag überschneiden.",
+    add_template: "📋 Vorlage hinzufügen",
+    routine_name_ph: "Name der Routine",
+    delete_routine: "🗑 Diese Routine löschen",
+    tasks_heading: "Aufgaben der ausgewählten Routine",
+    add_task: "+ Aufgabe hinzufügen",
+    cancel: "Abbrechen",
+    save: "💾 Speichern",
+    ok: "OK",
+    yes: "Ja",
+    test_note: "⚠️ <strong>Testversion.</strong> Diese App wird noch getestet. Bitte nur Spitznamen und keine sensiblen Daten verwenden. Die Routinen werden auf diesem Gerät gespeichert und, wenn du weitere Geräte verbindest, auf einem Server, der nur zum Synchronisieren dient.",
+    code_version: "Code-Version",
+    new_routine: "Neue Routine",
+    add_routine_btn: "+ Neue Routine",
+    new_task: "Neue Aufgabe",
+    need_one_routine: "Es muss mindestens eine Routine geben.",
+    overlap_heading: "⚠️ <strong>Überschneidende Zeiten:</strong>",
+    overlap_item: "{day}: „{a}\" und „{b}\"",
+    all_days_btn: "Jeden Tag",
+    task_name_ph: "Name der Aufgabe",
+    sound_default: "🔔 Standardton",
+    sound_melody: "🎶 Fröhliche Melodie",
+    sound_url: "🔗 Eigener Link",
+    sound_url_ph: "https://.../musik.mp3 (direkter Link zur Datei)",
+    move_up: "Nach oben",
+    move_down: "Nach unten",
+    remove_task: "Aufgabe entfernen",
+    task_needs_name: "Jede Aufgabe braucht einen Namen (Routine „{routine}\").",
+    task_end_after_start: "Die Aufgabe „{task}\" (Routine „{routine}\") muss nach ihrem Beginn enden.",
+    overlap_confirm: "Überschneidende Zeiten gefunden:\n{list}\n\nTrotzdem speichern?",
+    save_anyway: "Trotzdem speichern",
+    welcome_title: "👋 Willkommen bei {app}!",
+    welcome_note: "⚠️ <strong>Testversion.</strong> Diese App wird noch getestet. Zum Schutz deiner Familie <strong>verwende nur einen Spitznamen</strong> für dein Kind – keinen vollen Namen, keine Schule, keine Adresse. Die Routinen werden auf diesem Gerät gespeichert und, wenn du weitere Geräte verbindest, auf einem Server, der nur zum Synchronisieren dient.",
+    welcome_have_device: "Schon ein anderes Gerät eingerichtet (z. B. den Fernseher)?",
+    welcome_connect: "🔗 Mit Code verbinden",
+    welcome_choose: "Oder wähle einen Startpunkt (mehrere möglich):",
+    welcome_start: "▶️ Los geht's",
+    welcome_later: "Aufgaben, Zeiten und Tage kannst du später unter ⚙️ Einstellungen anpassen.",
+    welcome_blank: "✏️ Bei null anfangen",
+    welcome_blank_hint: "eine leere Routine nach deinen Wünschen",
+    update_available: "🆕 Eine neue Version der App ist verfügbar.",
+    update_now: "Jetzt aktualisieren",
+    tpl_morning_name: "Morgenroutine",
+    tpl_morning_label: "Morgens vor der Schule",
+    tpl_afternoon_name: "Nachmittag",
+    tpl_afternoon_label: "Nachmittag / nach der Schule",
+    tpl_bedtime_name: "Abendroutine",
+    tpl_bedtime_label: "Schlafenszeit",
+    tpl_weekend_name: "Wochenende",
+    tpl_weekend_label: "Wochenend-Morgen",
+    tpl_blank_name: "Meine Routine",
+    days_weekdays: "Mo–Fr",
+    days_weekend: "Sa–So",
+    days_every: "jeden Tag",
+    task_wake: "Aufstehen",
+    task_breakfast: "Frühstücken",
+    task_dress: "Anziehen",
+    task_teeth: "Zähne putzen",
+    task_shoes: "Schuhe anziehen und Rucksack nehmen",
+    task_snack: "Snack",
+    task_homework: "Hausaufgaben",
+    task_play: "Spielen",
+    task_tidy: "Spielsachen aufräumen",
+    task_dinner: "Abendessen",
+    task_bath: "Baden",
+    task_pyjamas: "Schlafanzug anziehen",
+    task_story: "Geschichte vorlesen",
+    task_sleep: "Schlafen",
+    task_bed: "Bett machen",
+    sync_title: "📱↔️📺 Handy und TV verbinden",
+    sync_howto: "<strong>Handy verbinden:</strong> Tippe auf „Code anzeigen\". Richte die Handykamera auf den QR-Code und öffne den Link – es verbindet sich von selbst, ohne Tippen. Oder gib den Code auf dem Handy unter „Verbinden\" ein.",
+    show_code: "📺 Code anzeigen",
+    got_code: "<strong>Code von einem anderen Gerät?</strong> Hier eingeben:",
+    connect: "🔗 Verbinden",
+    device_name_label: "Name dieses Geräts (die anderen Geräte der Gruppe sehen ihn)",
+    devices_heading: "<strong>Geräte in dieser Gruppe</strong> – alle können die Routine sehen und ändern:",
+    remove_others: "🚫 Alle anderen Geräte entfernen",
+    log_title: "🔎 Verbindungsverlauf",
+    disconnect: "Dieses Gerät trennen",
+    kind_tv: "Fernseher",
+    kind_tablet: "Tablet",
+    kind_phone: "Handy",
+    kind_computer: "Computer",
+    cloud_connected: "✅ Verbunden – was hier gespeichert wird, erscheint automatisch auf den anderen Geräten der Gruppe.",
+    cloud_legacy: "ℹ️ Die App wurde aktualisiert und zeigt jetzt an, welche Geräte verbunden sind. Verbinde deine Geräte dafür bitte neu: Tippe auf dem Fernseher auf „Code anzeigen\".",
+    cloud_not_connected: "Dieses Gerät ist noch mit keinem anderen verbunden.",
+    cloud_send_failed: "⚠️ Senden an die anderen Geräte fehlgeschlagen. Prüfe die Internetverbindung und speichere erneut.",
+    cloud_changes_waiting: "🔄 Änderungen von einem anderen Gerät sind eingetroffen – sie werden übernommen, wenn du diesen Bildschirm schließt (wenn du speicherst, gilt deine Version).",
+    cloud_updated_now: "🔄 Gerade mit Änderungen von einem anderen Gerät aktualisiert.",
+    a_device: "Ein Gerät",
+    cloud_joined: "✅ {names} hat sich gerade verbunden!",
+    cloud_code_still_valid: " Der Code funktioniert weiterhin für weitere Geräte.",
+    cloud_removed: "⚠️ Dieses Gerät wurde von einem anderen Gerät aus der Gruppe entfernt. Die Routine bleibt hier gespeichert; zum erneuten Synchronisieren mit einem neuen Code verbinden.",
+    seen_never: "nie",
+    seen_now: "jetzt",
+    seen_min: "vor {n} Min.",
+    seen_today: "heute um {time}",
+    seen_yesterday: "gestern um {time}",
+    seen_date: "am {date}",
+    this_device: " (dieses Gerät)",
+    last_access: "zuletzt aktiv: {when}",
+    remove: "Entfernen",
+    device_word: "Gerät",
+    remove_one_q: "{names} aus der Gruppe entfernen? Dieses Gerät kann die Routine dann sofort nicht mehr sehen oder ändern.",
+    remove_all_q: "Alle anderen Geräte entfernen ({names})? Sie können die Routine dann sofort nicht mehr sehen oder ändern.",
+    removed_one: "✅ {names} wurde aus der Gruppe entfernt.",
+    removed_all: "✅ Alle anderen Geräte wurden aus der Gruppe entfernt.",
+    remove_failed: "⚠️ Entfernen fehlgeschlagen. Prüfe die Internetverbindung und versuche es erneut.",
+    name_empty: "Gib diesem Gerät einen Namen (z. B. „Mamas Handy\").",
+    name_saved_local: "✅ Name gespeichert. Die anderen Geräte sehen ihn, sobald du verbindest.",
+    name_saved: "✅ Name gespeichert: Die anderen Geräte sehen jetzt „{name}\".",
+    name_failed: "⚠️ Name konnte nicht gespeichert werden. Prüfe die Internetverbindung und versuche es erneut.",
+    name_ph: "z. B. Mamas Handy, Wohnzimmer-TV",
+    save_name: "💾 Name speichern",
+    generating_code: "⏳ Code wird erstellt...",
+    code_hint: "Damit kannst du noch {time} lang beliebig viele Geräte verbinden. Link: {link}",
+    code_expired: "⌛ Der Code ist abgelaufen. Tippe auf „Code anzeigen\" für einen neuen.",
+    code_failed: "⚠️ Code konnte nicht erstellt werden. Prüfe die Internetverbindung und versuche es erneut.",
+    invalid_code_title: "Ungültiger oder abgelaufener Code",
+    new_code_hint: "Tippe auf dem anderen Gerät (z. B. dem Fernseher) auf „Code anzeigen\", um einen neuen zu erhalten, und versuche es erneut.",
+    incomplete_code_title: "Unvollständiger Code",
+    incomplete_code_hint: "Gib die 6 Ziffern ein, die auf dem anderen Gerät angezeigt werden.",
+    connecting: "🔗 Verbinde...",
+    config_not_found_title: "Einstellungen nicht gefunden",
+    joined_title: "✅ Erfolgreich verbunden!",
+    joined_text: "Dieser Bildschirm zeigt schon die Routine des anderen Geräts, und was du hier speicherst, erscheint dort in wenigen Sekunden. Hat es sich in der Kamera-App geöffnet? Öffne die App in deinem normalen Browser (z. B. Chrome) und gib den Code {code} unter „Verbinden\" ein – gültig bis {time}. Wie sollen die anderen dieses Gerät sehen?",
+    connect_failed_title: "Verbindung fehlgeschlagen",
+    check_internet: "Prüfe die Internetverbindung und versuche es erneut.",
+    disconnect_q: "Dieses Gerät trennen? Die Routine bleibt hier gespeichert, wird aber nicht mehr mit den anderen synchronisiert.",
+    disconnect_btn: "Trennen",
+    log_identity_lost: "Identität dieses Geräts verloren ({code}); eine neue wird erstellt",
+    log_refresh_failed: "Identität konnte nicht erneuert werden ({info}); neuer Versuch später",
+    log_new_identity: "Neue anonyme Identität erstellt ({id}…)",
+    log_refused: "Zugriff vom Server verweigert ({source}); prüfe erneut…",
+    log_recovered: "Zugriff wieder normal",
+    log_removed: "Getrennt: Zugriff erneut verweigert ({source}, Identität {id}…)",
+    source_send: "Senden",
+    source_read: "Lesen",
+    log_group_created: "Neue Gruppe auf diesem Gerät erstellt",
+    log_joined: "Mit Code {code} einer Gruppe beigetreten",
+    log_disconnected: "Von diesem Gerät getrennt („Trennen\")",
+    log_opened: "App geöffnet, Version {version} – {state}",
+    state_in_group: "in einer Gruppe",
+    state_no_group: "keine Gruppe",
+    log_empty: "Noch nichts aufgezeichnet."
+  }
+};
+function detectLang(){
+  let saved = null;
+  try{ saved = localStorage.getItem(LANG_KEY); }catch(e){}
+  if(saved && I18N[saved]) return saved;
+  let hasRoutine = false;
+  try{ hasRoutine = !!(localStorage.getItem('rotinaConfig_v2') || localStorage.getItem('rotinaConfig_v1')); }catch(e){}
+  if(hasRoutine) return 'pt';
+  const prefs = (navigator.languages && navigator.languages.length) ? navigator.languages : [navigator.language || 'en'];
+  for(const p of prefs){
+    const code = String(p).slice(0, 2).toLowerCase();
+    if(I18N[code]) return code;
+  }
+  return 'en';
+}
+const LANG = detectLang();
+function tr(key, vars){
+  const table = I18N[LANG];
+  let s = (key in table) ? table[key] : ((key in I18N.pt) ? I18N.pt[key] : key);
+  if(vars && typeof s === 'string') s = s.replace(/\{(\w+)\}/g, (m, k) => (k in vars ? String(vars[k]) : m));
+  return s;
+}
+function applyStaticTranslations(){
+  document.documentElement.lang = LANG_LOCALES[LANG];
+  document.title = APP_NAME;
+  const htmlVars = { app: APP_NAME, task: '<span id="confirm-task-name"></span>', seconds: '<span id="confirm-seconds">30</span>' };
+  document.querySelectorAll('[data-i18n]').forEach(el => { el.textContent = tr(el.dataset.i18n, { app: APP_NAME }); });
+  document.querySelectorAll('[data-i18n-html]').forEach(el => { el.innerHTML = tr(el.dataset.i18nHtml, htmlVars); });
+  document.querySelectorAll('[data-i18n-placeholder]').forEach(el => { el.placeholder = tr(el.dataset.i18nPlaceholder); });
+  document.querySelectorAll('[data-i18n-title]').forEach(el => { el.title = tr(el.dataset.i18nTitle); });
+  const stamp = (document.querySelector('meta[name="app-version"]').content.match(/\d{4}-\d{2}-\d{2} \d{2}:\d{2}/) || [''])[0];
+  document.getElementById('app-version').textContent = `${tr('code_version')}: ${stamp}`;
+}
+applyStaticTranslations();
+
+// Language picker (welcome screen and settings). Changing the language saves
+// it for this device and reloads the app; unsaved settings edits are asked about first.
+function renderLangPickers(){
+  document.querySelectorAll('.lang-picker').forEach(box => {
+    box.innerHTML = '';
+    const label = document.createElement('span');
+    label.className = 'lang-label';
+    label.textContent = tr('lang_label');
+    box.appendChild(label);
+    Object.keys(LANG_LABELS).forEach(code => {
+      const btn = document.createElement('button');
+      btn.type = 'button';
+      btn.className = 'lang-btn' + (code === LANG ? ' selected' : '');
+      btn.dataset.lang = code;
+      btn.textContent = LANG_LABELS[code];
+      btn.addEventListener('click', () => changeLang(code));
+      box.appendChild(btn);
+    });
+  });
+}
+function changeLang(code){
+  if(code === LANG) return;
+  const go = () => {
+    try{ localStorage.setItem(LANG_KEY, code); }catch(e){}
+    reloadFresh();
+  };
+  if(settingsDirty && settingsOverlay.style.display === 'flex'){
+    appConfirm(tr('lang_change_confirm')).then(ok => { if(ok) go(); });
+  } else {
+    go();
+  }
+}
+renderLangPickers();
+
 // ---------- Routine templates (first use and "Adicionar modelo") ----------
 const WEEKDAYS = [1,2,3,4,5];
 const WEEKEND = [0,6];
 const EVERY_DAY = [0,1,2,3,4,5,6];
 const ROUTINE_TEMPLATES = [
-  { key: 'morning', name: 'Manhã', label: 'Manhã antes da escola', icon: '🌞', days: WEEKDAYS, daysLabel: 'seg–sex', tasks: [
-    { name: 'Acordar',                             emoji: '🛏️', start: [7,0],  end: [7,10], sound: { type: 'melody' } },
-    { name: 'Tomar café da manhã',                 emoji: '🥣', start: [7,10], end: [7,25] },
-    { name: 'Trocar de roupa',                     emoji: '👕', start: [7,25], end: [7,35] },
-    { name: 'Escovar os dentes',                   emoji: '🪥', start: [7,35], end: [7,40] },
-    { name: 'Calçar os sapatos e pegar a mochila', emoji: '👟', start: [7,40], end: [7,45] }
+  { key: 'morning', name: tr('tpl_morning_name'), label: tr('tpl_morning_label'), icon: '🌞', days: WEEKDAYS, daysLabel: tr('days_weekdays'), tasks: [
+    { name: tr('task_wake'),      emoji: '🛏️', start: [7,0],  end: [7,10], sound: { type: 'melody' } },
+    { name: tr('task_breakfast'), emoji: '🥣', start: [7,10], end: [7,25] },
+    { name: tr('task_dress'),     emoji: '👕', start: [7,25], end: [7,35] },
+    { name: tr('task_teeth'),     emoji: '🪥', start: [7,35], end: [7,40] },
+    { name: tr('task_shoes'),     emoji: '👟', start: [7,40], end: [7,45] }
   ]},
-  { key: 'afternoon', name: 'Tarde', label: 'Tarde / depois da escola', icon: '🎒', days: WEEKDAYS, daysLabel: 'seg–sex', tasks: [
-    { name: 'Lanche',                emoji: '🍎', start: [15,30], end: [15,45] },
-    { name: 'Lição de casa',         emoji: '📚', start: [15,45], end: [16,15] },
-    { name: 'Brincar',               emoji: '🧸', start: [16,15], end: [17,0] },
-    { name: 'Arrumar os brinquedos', emoji: '🧹', start: [17,0],  end: [17,10] }
+  { key: 'afternoon', name: tr('tpl_afternoon_name'), label: tr('tpl_afternoon_label'), icon: '🎒', days: WEEKDAYS, daysLabel: tr('days_weekdays'), tasks: [
+    { name: tr('task_snack'),    emoji: '🍎', start: [15,30], end: [15,45] },
+    { name: tr('task_homework'), emoji: '📚', start: [15,45], end: [16,15] },
+    { name: tr('task_play'),     emoji: '🧸', start: [16,15], end: [17,0] },
+    { name: tr('task_tidy'),     emoji: '🧹', start: [17,0],  end: [17,10] }
   ]},
-  { key: 'bedtime', name: 'Noite', label: 'Hora de dormir', icon: '🌙', days: EVERY_DAY, daysLabel: 'todos os dias', tasks: [
-    { name: 'Jantar',            emoji: '🍽️', start: [18,30], end: [19,0] },
-    { name: 'Tomar banho',       emoji: '🛁', start: [19,0],  end: [19,20] },
-    { name: 'Vestir o pijama',   emoji: '👕', start: [19,20], end: [19,25] },
-    { name: 'Escovar os dentes', emoji: '🪥', start: [19,25], end: [19,30] },
-    { name: 'Hora da história',  emoji: '📚', start: [19,30], end: [19,45] },
-    { name: 'Dormir',            emoji: '🌙', start: [19,45], end: [19,50] }
+  { key: 'bedtime', name: tr('tpl_bedtime_name'), label: tr('tpl_bedtime_label'), icon: '🌙', days: EVERY_DAY, daysLabel: tr('days_every'), tasks: [
+    { name: tr('task_dinner'),  emoji: '🍽️', start: [18,30], end: [19,0] },
+    { name: tr('task_bath'),    emoji: '🛁', start: [19,0],  end: [19,20] },
+    { name: tr('task_pyjamas'), emoji: '👕', start: [19,20], end: [19,25] },
+    { name: tr('task_teeth'),   emoji: '🪥', start: [19,25], end: [19,30] },
+    { name: tr('task_story'),   emoji: '📚', start: [19,30], end: [19,45] },
+    { name: tr('task_sleep'),   emoji: '🌙', start: [19,45], end: [19,50] }
   ]},
-  { key: 'weekend', name: 'Fim de semana', label: 'Manhã de fim de semana', icon: '🎈', days: WEEKEND, daysLabel: 'sáb–dom', tasks: [
-    { name: 'Acordar',             emoji: '🛏️', start: [8,0],  end: [8,10], sound: { type: 'melody' } },
-    { name: 'Tomar café da manhã', emoji: '🥣', start: [8,10], end: [8,30] },
-    { name: 'Trocar de roupa',     emoji: '👕', start: [8,30], end: [8,40] },
-    { name: 'Escovar os dentes',   emoji: '🪥', start: [8,40], end: [8,45] },
-    { name: 'Arrumar a cama',      emoji: '🛏️', start: [8,45], end: [8,50] }
+  { key: 'weekend', name: tr('tpl_weekend_name'), label: tr('tpl_weekend_label'), icon: '🎈', days: WEEKEND, daysLabel: tr('days_weekend'), tasks: [
+    { name: tr('task_wake'),      emoji: '🛏️', start: [8,0],  end: [8,10], sound: { type: 'melody' } },
+    { name: tr('task_breakfast'), emoji: '🥣', start: [8,10], end: [8,30] },
+    { name: tr('task_dress'),     emoji: '👕', start: [8,30], end: [8,40] },
+    { name: tr('task_teeth'),     emoji: '🪥', start: [8,40], end: [8,45] },
+    { name: tr('task_bed'),       emoji: '🛏️', start: [8,45], end: [8,50] }
   ]}
 ];
-const BLANK_TEMPLATE = { key: 'blank', name: 'Minha rotina', icon: '📋', days: EVERY_DAY, tasks: [
-  { name: 'Nova tarefa', emoji: '⭐', start: [8,0], end: [8,10] }
+const BLANK_TEMPLATE = { key: 'blank', name: tr('tpl_blank_name'), icon: '📋', days: EVERY_DAY, tasks: [
+  { name: tr('new_task'), emoji: '⭐', start: [8,0], end: [8,10] }
 ]};
 function makeTemplateRoutine(tpl, id){
   return { id, name: tpl.name, icon: tpl.icon, tasks: JSON.parse(JSON.stringify(tpl.tasks)) };
@@ -1470,7 +2188,7 @@ const DEFAULT_CHILD_NAME = "";
 const DEFAULT_ONTIME_ICON = "🐆";
 const DEFAULT_LATE_ICON = "🐢";
 const DEFAULT_ROUTINES = [ makeTemplateRoutine(ROUTINE_TEMPLATES[0], 'r_morning') ];
-const DAY_NAMES = ['Dom','Seg','Ter','Qua','Qui','Sex','Sáb'];
+const DAY_NAMES = tr('days_short');
 const DEFAULT_WEEK_SCHEDULE = { 0:[], 1:['r_morning'], 2:['r_morning'], 3:['r_morning'], 4:['r_morning'], 5:['r_morning'], 6:[] };
 
 // ---------- Presets for the settings screen ----------
@@ -1501,7 +2219,7 @@ function loadStoredConfig(){
           childName: old.childName,
           onTimeIcon: old.onTimeIcon,
           lateIcon: old.lateIcon,
-          routines: [{ id:'r_migrated', name:'Rotina', icon:'📋', tasks: old.tasks }],
+          routines: [{ id:'r_migrated', name: tr('routine_fallback'), icon:'📋', tasks: old.tasks }],
           weekSchedule: { 0:['r_migrated'],1:['r_migrated'],2:['r_migrated'],3:['r_migrated'],4:['r_migrated'],5:['r_migrated'],6:['r_migrated'] }
         };
       }
@@ -1551,7 +2269,7 @@ function buildPreviewTasksForOffset(dayOffset){
     outcome: null
   }));
 }
-const WEEKDAY_FULL = ['domingo','segunda','terça','quarta','quinta','sexta','sábado'];
+const WEEKDAY_FULL = tr('days_full');
 
 // Only used to show a preview on the "routine complete" screen — it doesn't
 // load or change anything, it just looks at what's scheduled for the next day.
@@ -1568,7 +2286,7 @@ function previewTomorrow(){
     });
   });
   const names = activeRoutines.map(r => `${r.icon} ${r.name}`).join(', ');
-  return firstStart !== null ? `Amanhã: ${names} — começa às ${fmtMin(firstStart)}` : `Amanhã: ${names}`;
+  return firstStart !== null ? tr('tomorrow_preview', { names, time: fmtMin(firstStart) }) : tr('tomorrow_preview_short', { names });
 }
 
 let TASKS = buildTodaysTasks();
@@ -1797,18 +2515,18 @@ function renderBrowsedTask(){
 
   const r = ROUTINES.find(r => r.id === block.routineId);
   heroEmoji.textContent = r ? r.icon : '📋';
-  heroLabel.textContent = r ? r.name : 'Rotina';
+  heroLabel.textContent = r ? r.name : tr('routine_fallback');
   // The child's name in the title never disappears — only this card line changes
-  const dayLabel = browseDay === 0 ? 'Hoje' : (browseDay === 1 ? 'Amanhã' : `${WEEKDAY_FULL[(new Date().getDay()+browseDay)%7]}`);
+  const dayLabel = browseDay === 0 ? tr('today') : (browseDay === 1 ? tr('tomorrow') : `${WEEKDAY_FULL[(new Date().getDay()+browseDay)%7]}`);
   const taskCount = block.endIdx - block.startIdx + 1;
 
   if(isCompleted){
     const blockTasks = list.slice(block.startIdx, block.endIdx + 1);
     const anyLate = blockTasks.some(t => t.outcome === 'late');
     const outcomeTxt = anyLate ? ` ${LATE_ICON}` : ` ${ONTIME_ICON}`;
-    heroSub.textContent = `Concluída: ${fmtMin(block.startMin)} – ${fmtMin(block.endMin)} (${taskCount} tarefas)${outcomeTxt}`;
+    heroSub.textContent = tr('completed_range', { from: fmtMin(block.startMin), to: fmtMin(block.endMin), n: taskCount }) + outcomeTxt;
   } else {
-    heroSub.textContent = `${dayLabel}: ${fmtMin(block.startMin)} – ${fmtMin(block.endMin)} (${taskCount} tarefas)`;
+    heroSub.textContent = tr('day_range', { day: dayLabel, from: fmtMin(block.startMin), to: fmtMin(block.endMin), n: taskCount });
   }
   minutesLeftEl.innerHTML = '';
   segmentsEl.innerHTML = '';
@@ -1871,7 +2589,7 @@ const clockEl = document.getElementById('clock');
 const pageTitleEl = document.getElementById('page-title');
 
 function updateHeaderTitle(){
-  pageTitleEl.textContent = CHILD_NAME ? `🌞 Rotina de ${CHILD_NAME}` : '🌞 Rotina da Manhã';
+  pageTitleEl.textContent = CHILD_NAME ? tr('page_title_child', { name: CHILD_NAME }) : `🌞 ${APP_NAME}`;
 }
 
 // ---------- Timeline construction (rebuilt whenever the order changes) ----------
@@ -1894,8 +2612,8 @@ function rebuildTimelineDOM(){
       ${isDone
         ? `<div class="check">✔</div>${t.outcome === 'skipped' ? '' : `<div class="outcome-badge${t.outcome === 'late' ? '' : ' star'}">${t.outcome === 'late' ? LATE_ICON : ONTIME_ICON}</div>`}`
         : `<div class="reorder-controls">
-             <button class="reorder-btn up" data-index="${i}" ${canMoveUp ? '' : 'disabled'} title="Mover mais cedo">▲</button>
-             <button class="reorder-btn down" data-index="${i}" ${canMoveDown ? '' : 'disabled'} title="Mover mais tarde">▼</button>
+             <button class="reorder-btn up" data-index="${i}" ${canMoveUp ? '' : 'disabled'} title="${tr('move_earlier')}">▲</button>
+             <button class="reorder-btn down" data-index="${i}" ${canMoveDown ? '' : 'disabled'} title="${tr('move_later')}">▼</button>
            </div>`
       }
     `;
@@ -1959,9 +2677,9 @@ function applyTimelineFocus(){
   const { day, block } = focus;
   const r = ROUTINES.find(r => r.id === block.routineId);
   const weekday = WEEKDAY_FULL[(new Date().getDay() + day) % 7];
-  const dayPrefix = day === 0 ? '' : (day === 1 ? 'Amanhã · ' : `${weekday[0].toUpperCase()}${weekday.slice(1)} · `);
+  const dayPrefix = day === 0 ? '' : (day === 1 ? `${tr('tomorrow')} · ` : `${weekday[0].toUpperCase()}${weekday.slice(1)} · `);
   if(titleEl){
-    titleEl.textContent = `${dayPrefix}${r ? `${r.icon} ${r.name}` : '📋 Rotina'}`;
+    titleEl.textContent = `${dayPrefix}${r ? `${r.icon} ${r.name}` : `📋 ${tr('routine_fallback')}`}`;
     titleEl.style.display = '';
   }
   tasks.forEach((t, i) => {
@@ -2142,12 +2860,12 @@ function speak(text, opts={}){
   try{
     if('speechSynthesis' in window){
       const u = new SpeechSynthesisUtterance(text);
-      u.lang = 'pt-BR';
+      u.lang = LANG_LOCALES[LANG];
       u.pitch = opts.pitch !== undefined ? opts.pitch : 1;
       u.rate = opts.rate !== undefined ? opts.rate : 1;
       const voices = window.speechSynthesis.getVoices();
-      const ptVoice = voices.find(v => v.lang && v.lang.toLowerCase().startsWith('pt'));
-      if(ptVoice) u.voice = ptVoice;
+      const voice = voices.find(v => v.lang && v.lang.toLowerCase().startsWith(LANG));
+      if(voice) u.voice = voice;
       window.speechSynthesis.speak(u);
     } else {
       beep(392,0.2,0); beep(440,0.2,0.22); beep(494,0.3,0.44); // soft motif, no voice
@@ -2182,9 +2900,9 @@ function celebrate(){
 
 function encourage(){
   const namePart = CHILD_NAME ? `${CHILD_NAME}, ` : '';
-  encourageBanner.textContent = `${LATE_ICON} Vamos lá, ${namePart}você consegue!`;
+  encourageBanner.textContent = `${LATE_ICON} ${tr('encourage', { name: namePart })}`;
   encourageBanner.classList.add('show');
-  speak(`Vamos lá, ${namePart}você consegue!`, { pitch: 1.7, rate: 1.05 }); // higher-pitched, livelier tone, like a kids' mascot
+  speak(tr('encourage', { name: namePart }), { pitch: 1.7, rate: 1.05 }); // higher-pitched, livelier tone, like a kids' mascot
   setTimeout(() => encourageBanner.classList.remove('show'), 4500);
 }
 
@@ -2193,7 +2911,7 @@ function encourage(){
 function startExtraTimeFeedback(){
   const namePart = CHILD_NAME ? `${CHILD_NAME}, ` : '';
   try{
-    encourageBanner.textContent = `${LATE_ICON} Vamos, ${namePart}se concentra que você consegue!`;
+    encourageBanner.textContent = `${LATE_ICON} ${tr('extra_time', { name: namePart })}`;
     encourageBanner.classList.add('show');
     setTimeout(() => encourageBanner.classList.remove('show'), 4500);
   }catch(e){}
@@ -2201,7 +2919,7 @@ function startExtraTimeFeedback(){
     // longer, more noticeable alert than the previous short beeps
     beep(587,0.3,0); beep(523,0.3,0.3); beep(440,0.5,0.6); beep(440,0.5,1.15);
   }catch(e){}
-  try{ speak(`Vamos, ${namePart}se concentra que você consegue`, { pitch: 1.7, rate: 1.05 }); }catch(e){}
+  try{ speak(tr('extra_time', { name: namePart }), { pitch: 1.7, rate: 1.05 }); }catch(e){}
 }
 
 const taskAudio = new Audio();
@@ -2480,12 +3198,12 @@ function renderMain(){
 
     if(tasks.length === 0){
       heroEmoji.textContent = '😴';
-      heroLabel.textContent = 'Sem rotina hoje';
-      heroSub.textContent = previewTomorrow() || 'Nenhuma rotina configurada pra hoje';
+      heroLabel.textContent = tr('no_routine_today');
+      heroSub.textContent = previewTomorrow() || tr('no_routine_configured');
     } else {
       heroEmoji.textContent = '🎉';
-      heroLabel.textContent = 'Rotina completa!';
-      heroSub.textContent = previewTomorrow() || 'Até amanhã!';
+      heroLabel.textContent = tr('routine_complete');
+      heroSub.textContent = previewTomorrow() || tr('see_you_tomorrow');
     }
     minutesLeftEl.innerHTML = '';
     segmentsEl.innerHTML = '';
@@ -2498,12 +3216,12 @@ function renderMain(){
     heroEl.classList.remove('done');
     heroEmoji.textContent = t.emoji;
     heroLabel.textContent = t.name;
-    heroSub.textContent = 'Pronto pra começar?';
+    heroSub.textContent = tr('ready_to_start');
     minutesLeftEl.innerHTML = '';
     segmentsEl.innerHTML = '';
     finishEarlyBtn.style.display = 'none';
     startNextBtn.style.display = 'inline-block';
-    startNextBtn.textContent = '▶ Iniciar "' + t.name + '"';
+    startNextBtn.textContent = tr('start_task', { task: t.name });
     return;
   }
   finishEarlyBtn.style.display = 'inline-block';
@@ -2535,14 +3253,14 @@ function renderMain(){
     if(showCountdown){
       heroEl.classList.remove('done');
       heroEmoji.textContent = '⏳';
-      heroLabel.textContent = 'Próxima: ' + tasks[pointer].name;
-      heroSub.textContent = `começa às ${fmtMin(tasks[pointer].startMin)}`;
+      heroLabel.textContent = tr('next_label', { task: tasks[pointer].name });
+      heroSub.textContent = tr('starts_at', { time: fmtMin(tasks[pointer].startMin) });
       minutesLeftEl.innerHTML = Math.ceil(minutesUntilNext) + '<span class="unit">min</span>';
     } else {
       heroEl.classList.add('done');
       heroEmoji.textContent = '🎉';
-      heroLabel.textContent = 'Tudo certo por enquanto!';
-      heroSub.textContent = `Próxima: ${tasks[pointer].name} às ${fmtMin(tasks[pointer].startMin)}`;
+      heroLabel.textContent = tr('all_good');
+      heroSub.textContent = tr('next_at', { task: tasks[pointer].name, time: fmtMin(tasks[pointer].startMin) });
       minutesLeftEl.innerHTML = '';
     }
     return;
@@ -2571,7 +3289,7 @@ function renderMain(){
   heroEl.classList.remove('done');
   heroEmoji.textContent = t.emoji;
   heroLabel.textContent = t.name;
-  heroSub.textContent = confirmState ? 'Confirmando conclusão...' : `até ${fmtMin(t.endMin)}`;
+  heroSub.textContent = confirmState ? tr('confirming') : tr('until', { time: fmtMin(t.endMin) });
 
   const total = t.endMin - t.startMin;
   const elapsed = confirmState ? total : Math.max(0, nowMin - t.startMin);
@@ -2751,8 +3469,8 @@ function closeAppDialog(answer){
   appDialogResolve = null;
   if(resolve) resolve(answer);
 }
-function appAlert(message){ return openAppDialog(message, 'OK', null); }
-function appConfirm(message, yesLabel){ return openAppDialog(message, yesLabel || 'Sim', 'Cancelar'); }
+function appAlert(message){ return openAppDialog(message, tr('ok'), null); }
+function appConfirm(message, yesLabel){ return openAppDialog(message, yesLabel || tr('yes'), tr('cancel')); }
 document.getElementById('app-dialog-yes').addEventListener('click', () => closeAppDialog(true));
 document.getElementById('app-dialog-no').addEventListener('click', () => closeAppDialog(false));
 document.addEventListener('keydown', (e) => {
@@ -2794,12 +3512,12 @@ function renderRoutineTabs(){
   const wrap = document.getElementById('routine-tabs');
   wrap.innerHTML = draftRoutines.map((r,i) =>
     `<button type="button" class="routine-tab${i===selectedRoutineIndex?' selected':''}" data-index="${i}">${r.icon} ${r.name}</button>`
-  ).join('') + `<button type="button" id="routine-add-btn">+ Nova rotina</button>`;
+  ).join('') + `<button type="button" id="routine-add-btn">${tr('add_routine_btn')}</button>`;
   wrap.querySelectorAll('.routine-tab').forEach(btn => {
     btn.addEventListener('click', () => selectRoutine(parseInt(btn.dataset.index,10)));
   });
   document.getElementById('routine-add-btn').addEventListener('click', () => {
-    draftRoutines.push({ id: 'r_' + Date.now(), name: 'Nova rotina', icon: '📋', tasks: [] });
+    draftRoutines.push({ id: 'r_' + Date.now(), name: tr('new_routine'), icon: '📋', tasks: [] });
     selectRoutine(draftRoutines.length - 1);
     renderWeekMatrix();
   });
@@ -2848,7 +3566,7 @@ document.getElementById('routine-icon-picker').addEventListener('click', (e) => 
 });
 document.getElementById('routine-delete-btn').addEventListener('click', () => {
   if(draftRoutines.length <= 1){
-    appAlert('Precisa ter pelo menos uma rotina.');
+    appAlert(tr('need_one_routine'));
     return;
   }
   const removedId = draftRoutines[selectedRoutineIndex].id;
@@ -2890,7 +3608,7 @@ function findScheduleConflicts(){
       if(combined[i].start < combined[i-1].end && combined[i].routineId !== combined[i-1].routineId){
         conflictingIds.add(combined[i].routineId);
         conflictingIds.add(combined[i-1].routineId);
-        messages.push(`${DAY_NAMES[d]}: "${combined[i-1].routineName}" e "${combined[i].routineName}"`);
+        messages.push(tr('overlap_item', { day: DAY_NAMES[d], a: combined[i-1].routineName, b: combined[i].routineName }));
       }
     }
     if(conflictingIds.size > 0) byDay[d] = conflictingIds;
@@ -2911,13 +3629,13 @@ function renderWeekMatrix(){
         const isConflict = checked && conflicts.byDay[d] && conflicts.byDay[d].has(r.id);
         return `<td class="${isConflict?'day-conflict':''}"><input type="checkbox" class="${isConflict?'conflict-checkbox':''}" data-day="${d}" data-rid="${r.id}" ${checked ? 'checked' : ''}></td>`;
       }).join('')}
-      <td><button type="button" class="apply-all-days-btn" data-rid="${r.id}">Todos os dias</button></td>
+      <td><button type="button" class="apply-all-days-btn" data-rid="${r.id}">${tr('all_days_btn')}</button></td>
     </tr>
   `).join('');
 
   const warningEl = document.getElementById('conflict-warning');
   if(conflicts.messages.length > 0){
-    warningEl.innerHTML = '⚠️ <strong>Horários sobrepostos:</strong><br>' + conflicts.messages.join('<br>');
+    warningEl.innerHTML = tr('overlap_heading') + '<br>' + conflicts.messages.join('<br>');
     warningEl.classList.add('show');
   } else {
     warningEl.classList.remove('show');
@@ -2951,7 +3669,7 @@ function renderSettingsRows(){
   settingsTasksList.innerHTML = draftTasks.map((t, i) => `
     <div class="task-row" data-index="${i}">
       <div class="emoji-preview">${t.emoji}</div>
-      <input type="text" class="settings-text-input task-name-input" data-field="name" data-index="${i}" value="${t.name.replace(/"/g,'&quot;')}" placeholder="Nome da tarefa">
+      <input type="text" class="settings-text-input task-name-input" data-field="name" data-index="${i}" value="${t.name.replace(/"/g,'&quot;')}" placeholder="${tr('task_name_ph')}">
       <div class="task-time-group">
         <div class="time-stepper">
           <button type="button" class="time-step-btn" data-index="${i}" data-field="start" data-dir="1">▲</button>
@@ -2966,19 +3684,19 @@ function renderSettingsRows(){
         </div>
       </div>
       <select class="settings-select" data-field="soundType" data-index="${i}">
-        <option value="chime" ${t.soundType==='chime'?'selected':''}>🔔 Som padrão</option>
-        <option value="melody" ${t.soundType==='melody'?'selected':''}>🎶 Melodia animada</option>
-        <option value="url" ${t.soundType==='url'?'selected':''}>🔗 Link personalizado</option>
+        <option value="chime" ${t.soundType==='chime'?'selected':''}>${tr('sound_default')}</option>
+        <option value="melody" ${t.soundType==='melody'?'selected':''}>${tr('sound_melody')}</option>
+        <option value="url" ${t.soundType==='url'?'selected':''}>${tr('sound_url')}</option>
       </select>
       <div class="row-reorder">
-        <button class="row-up" data-index="${i}" ${i===0?'disabled':''} title="Mover pra cima">▲</button>
-        <button class="row-down" data-index="${i}" ${i===draftTasks.length-1?'disabled':''} title="Mover pra baixo">▼</button>
+        <button class="row-up" data-index="${i}" ${i===0?'disabled':''} title="${tr('move_up')}">▲</button>
+        <button class="row-down" data-index="${i}" ${i===draftTasks.length-1?'disabled':''} title="${tr('move_down')}">▼</button>
       </div>
-      <button class="remove-task-btn" data-index="${i}" title="Remover tarefa">🗑</button>
+      <button class="remove-task-btn" data-index="${i}" title="${tr('remove_task')}">🗑</button>
       <div class="emoji-picker">
         ${EMOJI_PRESETS.map(e => `<button type="button" data-index="${i}" data-emoji="${e}" class="${t.emoji===e?'selected':''}">${e}</button>`).join('')}
       </div>
-      ${t.soundType==='url' ? `<input type="text" class="settings-text-input sound-url-input" data-field="soundUrl" data-index="${i}" value="${(t.soundUrl||'').replace(/"/g,'&quot;')}" placeholder="https://.../musica.mp3 (link direto do arquivo)">` : ''}
+      ${t.soundType==='url' ? `<input type="text" class="settings-text-input sound-url-input" data-field="soundUrl" data-index="${i}" value="${(t.soundUrl||'').replace(/"/g,'&quot;')}" placeholder="${tr('sound_url_ph')}">` : ''}
     </div>
   `).join('');
   if(draftRoutines.length) renderWeekMatrix(); // times may have changed -> re-evaluate conflicts
@@ -3083,7 +3801,7 @@ document.getElementById('settings-add-task').addEventListener('click', () => {
   const last = draftTasks[draftTasks.length-1];
   const lastEndMin = last ? toMinutes(hhmmToArr(last.end)) : (8*60);
   draftTasks.push({
-    name: 'Nova tarefa',
+    name: tr('new_task'),
     emoji: '⭐',
     start: arrToHHMM([Math.floor(lastEndMin/60), lastEndMin%60]),
     end: arrToHHMM([Math.floor((lastEndMin+10)/60), (lastEndMin+10)%60]),
@@ -3098,13 +3816,13 @@ document.getElementById('settings-save').addEventListener('click', () => {
   for(const r of draftRoutines){
     for(const t of r.tasks){
       if(!t.name || !t.name.trim()){
-        appAlert(`Toda tarefa precisa de um nome (rotina "${r.name}").`);
+        appAlert(tr('task_needs_name', { routine: r.name }));
         return;
       }
       const s = toMinutes(hhmmToArr(t.start));
       const e = toMinutes(hhmmToArr(t.end));
       if(e <= s){
-        appAlert(`A tarefa "${t.name}" (rotina "${r.name}") precisa ter o fim depois do início.`);
+        appAlert(tr('task_end_after_start', { task: t.name, routine: r.name }));
         return;
       }
     }
@@ -3114,8 +3832,8 @@ document.getElementById('settings-save').addEventListener('click', () => {
   // (same check already shown live in the table — this is the final safeguard)
   const conflictCheck = findScheduleConflicts();
   if(conflictCheck.messages.length > 0){
-    const msg = 'Horários sobrepostos encontrados:\n' + conflictCheck.messages.join('\n') + '\n\nSalvar mesmo assim?';
-    appConfirm(msg, 'Salvar mesmo assim').then(ok => { if(ok) saveSettings(); });
+    const msg = tr('overlap_confirm', { list: conflictCheck.messages.join('\n') });
+    appConfirm(msg, tr('save_anyway')).then(ok => { if(ok) saveSettings(); });
     return;
   }
   saveSettings();
@@ -3124,7 +3842,7 @@ document.getElementById('settings-save').addEventListener('click', () => {
 function saveSettings(){
   const newRoutines = draftRoutines.map(r => ({
     id: r.id,
-    name: (r.name && r.name.trim()) ? r.name.trim() : 'Rotina',
+    name: (r.name && r.name.trim()) ? r.name.trim() : tr('routine_fallback'),
     icon: r.icon,
     limitMin: r.limitMin,
     tasks: r.tasks.map(t => {
@@ -3262,10 +3980,10 @@ function getIdToken(force){
           // Only when Google says the identity itself is gone. Other 400s (bad key,
           // quota, transient errors) keep it, so a glitch never costs the pairing.
           if(['TOKEN_EXPIRED', 'USER_DISABLED', 'USER_NOT_FOUND', 'INVALID_REFRESH_TOKEN'].includes(String(err.code))){
-            logCloudEvent(`Identidade deste aparelho perdida (${err.code}); uma nova será criada`);
+            logCloudEvent(tr('log_identity_lost', { code: err.code }));
             lsSet(AUTH_KEY, null);
           } else {
-            logCloudEvent(`Falha ao renovar a identidade (${err.status || 'rede'} ${err.code || ''}); tento de novo depois`);
+            logCloudEvent(tr('log_refresh_failed', { info: `${err.status || 'network'} ${err.code || ''}`.trim() }));
           }
           throw err;
         })
@@ -3275,7 +3993,7 @@ function getIdToken(force){
         body: JSON.stringify({ returnSecureToken: true })
       }).then(j => ({ uid: j.localId, idToken: j.idToken, refreshToken: j.refreshToken, expiresIn: j.expiresIn }));
   tokenPromise = request.then(t => {
-    if(!auth || auth.uid !== t.uid) logCloudEvent(`Nova identidade anônima criada (${String(t.uid).slice(0, 6)}…)`);
+    if(!auth || auth.uid !== t.uid) logCloudEvent(tr('log_new_identity', { id: String(t.uid).slice(0, 6) }));
     lsSet(AUTH_KEY, JSON.stringify({ uid: t.uid, refreshToken: t.refreshToken }));
     idToken = t.idToken;
     idTokenExpiresAt = Date.now() + Number(t.expiresIn) * 1000;
@@ -3301,10 +4019,10 @@ function cloudFetch(path, options, retried){
 
 // ---- This device's name and kind, shown to the other devices ----
 const DEVICE_KINDS = {
-  tv:       { icon: '📺', name: 'TV' },
-  tablet:   { icon: '📱', name: 'Tablet' },
-  phone:    { icon: '📱', name: 'Celular' },
-  computer: { icon: '💻', name: 'Computador' }
+  tv:       { icon: '📺', name: tr('kind_tv') },
+  tablet:   { icon: '📱', name: tr('kind_tablet') },
+  phone:    { icon: '📱', name: tr('kind_phone') },
+  computer: { icon: '💻', name: tr('kind_computer') }
 };
 function guessDeviceKind(){
   const ua = navigator.userAgent || '';
@@ -3340,7 +4058,7 @@ function renderCloudLog(){
     li.textContent = `${String(d.getDate()).padStart(2,'0')}/${String(d.getMonth()+1).padStart(2,'0')} ${String(d.getHours()).padStart(2,'0')}:${String(d.getMinutes()).padStart(2,'0')} — ${e.text}`;
     list.appendChild(li);
   });
-  if(!list.children.length) list.innerHTML = '<li>Nada registrado ainda.</li>';
+  if(!list.children.length) list.innerHTML = `<li>${tr('log_empty')}</li>`;
 }
 
 const cloudStatusEl = document.getElementById('cloud-status');
@@ -3348,9 +4066,9 @@ let legacyPairingNotice = false;
 function setCloudStatus(text){ cloudStatusEl.textContent = text; }
 function updateCloudStatus(){
   const connected = !!getHouseId();
-  if(connected) setCloudStatus('✅ Conectado — o que for salvo aqui aparece sozinho nos outros aparelhos do grupo.');
-  else if(legacyPairingNotice) setCloudStatus('ℹ️ O app foi atualizado e agora mostra quais aparelhos estão conectados. Para isso, conecte os aparelhos de novo: toque em "Mostrar código" na TV.');
-  else setCloudStatus('Este aparelho ainda não está conectado a nenhum outro.');
+  if(connected) setCloudStatus(tr('cloud_connected'));
+  else if(legacyPairingNotice) setCloudStatus(tr('cloud_legacy'));
+  else setCloudStatus(tr('cloud_not_connected'));
   document.getElementById('cloud-disconnect-btn').style.display = connected ? '' : 'none';
   if(!connected) renderDevices(null);
 }
@@ -3364,8 +4082,8 @@ function pushConfigToCloud(cfg){
   return cloudFetch(`houses/${houseId}/data`, { method: 'PUT', body })
     .then(() => { updateCloudStatus(); return true; })
     .catch(err => {
-      if(err.status === 401){ suspectRemoved('envio'); return false; }
-      setCloudStatus('⚠️ Não consegui enviar para os outros aparelhos. Verifique a internet e salve de novo.');
+      if(err.status === 401){ suspectRemoved(tr('source_send')); return false; }
+      setCloudStatus(tr('cloud_send_failed'));
       return false;
     });
 }
@@ -3387,12 +4105,12 @@ function handleRemoteHouse(house){
   if(settingsOverlay.style.display !== 'flex'){ applyRemoteHouse(house); return; }
   if(settingsDirty){
     pendingRemoteHouse = house;
-    setCloudStatus('🔄 Chegaram mudanças de outro aparelho — elas serão aplicadas quando você fechar esta tela (se você salvar, vale o que você salvar).');
+    setCloudStatus(tr('cloud_changes_waiting'));
     return;
   }
   if(applyRemoteHouse(house)){
     populateDraftFromCurrentConfig();
-    setCloudStatus('🔄 Atualizado agora com as mudanças de outro aparelho.');
+    setCloudStatus(tr('cloud_updated_now'));
   }
 }
 function applyRemoteHouse(house){
@@ -3407,8 +4125,8 @@ function announceNewMembers(members){
   if(knownMemberIds){
     const added = ids.filter(id => !knownMemberIds.includes(id));
     if(added.length){
-      const names = added.map(id => members[id].name || 'Um aparelho').join(', ');
-      setCloudStatus(`✅ ${names} acabou de se conectar!` + (pairCodeTimer ? ' O código continua valendo para conectar outros.' : ''));
+      const names = added.map(id => members[id].name || tr('a_device')).join(', ');
+      setCloudStatus(tr('cloud_joined', { names }) + (pairCodeTimer ? tr('cloud_code_still_valid') : ''));
     }
   }
   knownMemberIds = ids;
@@ -3441,7 +4159,7 @@ function suspectRemoved(source){
   }
   if(!removalSuspectAt){
     removalSuspectAt = now;
-    logCloudEvent(`Acesso recusado pelo servidor (${source}); confirmando…`);
+    logCloudEvent(tr('log_refused', { source }));
   }
   setTimeout(refreshFromCloud, 20000);
 }
@@ -3450,14 +4168,14 @@ function suspectRemoved(source){
 // per-device identities existed): stop syncing, but keep the local routine.
 function handleRemovedFromHouse(source){
   if(!getHouseId()) return;
-  logCloudEvent(`Desconectado: acesso recusado de novo (${source || '?'}, identidade ${String(getUid()).slice(0, 6)}…)`);
+  logCloudEvent(tr('log_removed', { source: source || '?', id: String(getUid()).slice(0, 6) }));
   stopHouseSync();
   hidePairCode();
   lsSet(HOUSE_ID_KEY, null);
   lsSet(HOUSE_REV_KEY, null);
   knownMemberIds = null;
   updateCloudStatus();
-  setCloudStatus('⚠️ Este aparelho foi removido do grupo por outro aparelho. A rotina continua salva aqui; para voltar a sincronizar, conecte de novo com um código.');
+  setCloudStatus(tr('cloud_removed'));
 }
 
 // Only one read in flight at a time: if a slower, older response arrived
@@ -3472,10 +4190,10 @@ function refreshFromCloud(){
   refreshInFlight = cloudFetch(`houses/${houseId}`)
     .then(house => {
       if(getHouseId() !== houseId) return;
-      if(removalSuspectAt){ removalSuspectAt = 0; logCloudEvent('Acesso normalizado'); }
+      if(removalSuspectAt){ removalSuspectAt = 0; logCloudEvent(tr('log_recovered')); }
       handleRemoteHouse(house);
     })
-    .catch(err => { if(err.status === 401 && getHouseId() === houseId) suspectRemoved('leitura'); })
+    .catch(err => { if(err.status === 401 && getHouseId() === houseId) suspectRemoved(tr('source_read')); })
     .then(() => {
       refreshInFlight = null;
       if(refreshAgain){ refreshAgain = false; return refreshFromCloud(); }
@@ -3534,7 +4252,7 @@ function ensureHouse(){
     .then(() => cloudFetch(`houses/${houseId}/members/${getUid()}`, { method: 'PUT', body: JSON.stringify(newMemberRecord()) }))
     .then(() => {
       lsSet(HOUSE_ID_KEY, houseId);
-      logCloudEvent('Grupo novo criado neste aparelho');
+      logCloudEvent(tr('log_group_created'));
       return pushConfigToCloud(getCurrentConfigObject());
     })
     .then(ok => {
@@ -3576,16 +4294,16 @@ function formatClock(ms){
   return `${String(d.getHours()).padStart(2,'0')}:${String(d.getMinutes()).padStart(2,'0')}`;
 }
 function formatLastSeen(ms){
-  if(!ms) return 'nunca';
+  if(!ms) return tr('seen_never');
   const diffMin = Math.floor((Date.now() - ms) / 60000);
-  if(diffMin < 2) return 'agora';
-  if(diffMin < 60) return `há ${diffMin} min`;
+  if(diffMin < 2) return tr('seen_now');
+  if(diffMin < 60) return tr('seen_min', { n: diffMin });
   const d = new Date(ms);
   const today = new Date(); today.setHours(0,0,0,0);
   const dayDiff = Math.round((today - new Date(d.getFullYear(), d.getMonth(), d.getDate())) / 86400000);
-  if(dayDiff === 0) return `hoje às ${formatClock(ms)}`;
-  if(dayDiff === 1) return `ontem às ${formatClock(ms)}`;
-  return `em ${String(d.getDate()).padStart(2,'0')}/${String(d.getMonth()+1).padStart(2,'0')}`;
+  if(dayDiff === 0) return tr('seen_today', { time: formatClock(ms) });
+  if(dayDiff === 1) return tr('seen_yesterday', { time: formatClock(ms) });
+  return tr('seen_date', { date: `${String(d.getDate()).padStart(2,'0')}/${String(d.getMonth()+1).padStart(2,'0')}` });
 }
 
 // ---- Device list, names and removal ----
@@ -3606,17 +4324,17 @@ function renderDevices(house){
     const li = document.createElement('li');
     const name = document.createElement('span');
     name.className = 'cloud-device-name';
-    name.textContent = `${kind.icon} ${m.name || kind.name}` + (id === me ? ' (este aparelho)' : '');
+    name.textContent = `${kind.icon} ${m.name || kind.name}` + (id === me ? tr('this_device') : '');
     const seen = document.createElement('span');
     seen.className = 'cloud-device-seen';
-    seen.textContent = (id === me) ? 'agora' : `último acesso: ${formatLastSeen(m.lastSeen)}`;
+    seen.textContent = (id === me) ? tr('seen_now') : tr('last_access', { when: formatLastSeen(m.lastSeen) });
     li.appendChild(name);
     li.appendChild(seen);
     if(id !== me){
       const btn = document.createElement('button');
       btn.type = 'button';
       btn.className = 'util-btn cloud-remove-btn';
-      btn.textContent = 'Remover';
+      btn.textContent = tr('remove');
       btn.addEventListener('click', () => removeMembers([id]));
       li.appendChild(btn);
     }
@@ -3628,32 +4346,32 @@ function renderDevices(house){
 function removeMembers(ids){
   const houseId = getHouseId();
   if(!houseId || !ids.length) return;
-  const names = ids.map(id => `"${(lastMembers[id] && lastMembers[id].name) || 'aparelho'}"`).join(', ');
+  const names = ids.map(id => `"${(lastMembers[id] && lastMembers[id].name) || tr('device_word')}"`).join(', ');
   const question = ids.length === 1
-    ? `Remover ${names} do grupo? Esse aparelho deixa de ver e de alterar a rotina na hora.`
-    : `Remover todos os outros aparelhos (${names})? Eles deixam de ver e de alterar a rotina na hora.`;
-  appConfirm(question, 'Remover').then(ok => {
+    ? tr('remove_one_q', { names })
+    : tr('remove_all_q', { names });
+  appConfirm(question, tr('remove')).then(ok => {
     if(!ok) return;
     const patch = {};
     ids.forEach(id => { patch[id] = null; });
     return cloudFetch(`houses/${houseId}/members`, { method: 'PATCH', body: JSON.stringify(patch) }).then(() => {
-      setCloudStatus(ids.length === 1 ? `✅ ${names} foi removido do grupo.` : '✅ Todos os outros aparelhos foram removidos do grupo.');
+      setCloudStatus(ids.length === 1 ? tr('removed_one', { names }) : tr('removed_all'));
       return refreshFromCloud();
     });
-  }).catch(() => setCloudStatus('⚠️ Não consegui remover. Verifique a internet e tente de novo.'));
+  }).catch(() => setCloudStatus(tr('remove_failed')));
 }
 
 function saveDeviceName(rawName){
   const name = String(rawName || '').trim().slice(0, 40);
-  if(!name){ setCloudStatus('Digite um nome para este aparelho (ex: "Celular da Mamãe").'); return; }
+  if(!name){ setCloudStatus(tr('name_empty')); return; }
   lsSet(DEVICE_NAME_KEY, name);
   document.querySelectorAll('.cloud-device-name-input').forEach(input => { input.value = name; });
   const houseId = getHouseId();
   const uid = getUid();
-  if(!houseId || !uid){ setCloudStatus('✅ Nome salvo. Os outros aparelhos vão vê-lo quando você conectar.'); return; }
+  if(!houseId || !uid){ setCloudStatus(tr('name_saved_local')); return; }
   cloudFetch(`houses/${houseId}/members/${uid}/name`, { method: 'PUT', body: JSON.stringify(name) })
-    .then(() => { setCloudStatus(`✅ Nome salvo: agora os outros aparelhos veem "${name}".`); return refreshFromCloud(); })
-    .catch(() => setCloudStatus('⚠️ Não consegui salvar o nome. Verifique a internet e tente de novo.'));
+    .then(() => { setCloudStatus(tr('name_saved', { name })); return refreshFromCloud(); })
+    .catch(() => setCloudStatus(tr('name_failed')));
 }
 // Name field + save button (used in the sync section and in the success banner).
 function buildDeviceNameEditor(){
@@ -3663,13 +4381,13 @@ function buildDeviceNameEditor(){
   input.type = 'text';
   input.maxLength = 40;
   input.className = 'settings-text-input cloud-device-name-input';
-  input.placeholder = 'Ex: Celular da Mamãe, TV da sala';
+  input.placeholder = tr('name_ph');
   input.value = getDeviceName();
   const btn = document.createElement('button');
   btn.type = 'button';
   btn.className = 'util-btn';
   btn.style.background = 'var(--sky)';
-  btn.textContent = '💾 Salvar nome';
+  btn.textContent = tr('save_name');
   btn.addEventListener('click', () => saveDeviceName(input.value));
   wrap.appendChild(input);
   wrap.appendChild(btn);
@@ -3684,7 +4402,7 @@ function hidePairCode(){
 function showPairCode(){
   const btn = document.getElementById('cloud-show-code-btn');
   btn.disabled = true;
-  setCloudStatus('⏳ Gerando código...');
+  setCloudStatus(tr('generating_code'));
   ensureHouse()
     .then(houseId => createPairCode(houseId))
     .then(code => {
@@ -3702,13 +4420,13 @@ function showPairCode(){
       if(pairCodeTimer) clearInterval(pairCodeTimer);
       const tick = () => {
         const left = Math.max(0, Math.round((expiresAt - Date.now()) / 1000));
-        hintEl.textContent = `Serve para conectar quantos aparelhos quiser por mais ${Math.floor(left/60)}:${String(left%60).padStart(2,'0')}. Link: ${link}`;
-        if(left <= 0){ hidePairCode(); setCloudStatus('⌛ O código expirou. Toque em "Mostrar código" para gerar outro.'); }
+        hintEl.textContent = tr('code_hint', { time: `${Math.floor(left/60)}:${String(left%60).padStart(2,'0')}`, link });
+        if(left <= 0){ hidePairCode(); setCloudStatus(tr('code_expired')); }
       };
       pairCodeTimer = setInterval(tick, 1000);
       tick();
     })
-    .catch(() => setCloudStatus('⚠️ Não consegui gerar o código. Verifique a internet e tente de novo.'))
+    .catch(() => setCloudStatus(tr('code_failed')))
     .then(() => { btn.disabled = false; });
 }
 
@@ -3719,10 +4437,10 @@ function joinWithCode(rawCode){
     showCloudBanner('error', `❌ ${title}`, text);
     return false;
   };
-  const invalidCode = () => fail('Código inválido ou expirado', 'No outro aparelho (ex: a TV), toque em "Mostrar código" para gerar um novo e tente de novo.');
-  if(code.length !== 6) return Promise.resolve(fail('Código incompleto', 'Digite os 6 números que aparecem no outro aparelho.'));
+  const invalidCode = () => fail(tr('invalid_code_title'), tr('new_code_hint'));
+  if(code.length !== 6) return Promise.resolve(fail(tr('incomplete_code_title'), tr('incomplete_code_hint')));
   hideCloudBanner();
-  setCloudStatus('🔗 Conectando...');
+  setCloudStatus(tr('connecting'));
   let houseId;
   return getIdToken()
     .then(() => cloudFetch(`pairCodes/${code}`))
@@ -3734,7 +4452,7 @@ function joinWithCode(rawCode){
         .then(() => cloudFetch(`houses/${houseId}`))
         .then(house => {
           if(!house || !house.data || !house.data.config){
-            return fail('Configuração não encontrada', 'No outro aparelho (ex: a TV), toque em "Mostrar código" para gerar um novo e tente de novo.');
+            return fail(tr('config_not_found_title'), tr('new_code_hint'));
           }
           const previous = getHouseId();
           if(previous && previous !== houseId){
@@ -3744,7 +4462,7 @@ function joinWithCode(rawCode){
           stopHouseSync();
           hidePairCode();
           lsSet(HOUSE_ID_KEY, houseId);
-          logCloudEvent(`Conectado a um grupo com o código ${code}`);
+          logCloudEvent(tr('log_joined', { code }));
           knownMemberIds = null;
           applyRemoteHouse(house); // joining is explicit, so apply even with the settings screen open
           pendingRemoteHouse = null;
@@ -3754,23 +4472,21 @@ function joinWithCode(rawCode){
           renderDevices(house);
           // The QR link may open inside the camera/Lens app instead of the usual browser, and each
           // browser is a separate device here — so tell the user how to connect the usual one too.
-          showCloudBanner('ok', '✅ Conectado com sucesso!',
-            `Esta tela já mostra a rotina do outro aparelho, e o que você salvar aqui aparece lá sozinho em poucos segundos. ` +
-            `Abriu dentro do app da câmera? Abra o app no navegador de sempre (ex: Chrome) e digite o código ${code.slice(0,3)} ${code.slice(3)} em "Conectar" — vale até ${formatClock(pc.expiresAt)}. ` +
-            `Como os outros devem ver este aparelho?`,
+          showCloudBanner('ok', tr('joined_title'),
+            tr('joined_text', { code: `${code.slice(0,3)} ${code.slice(3)}`, time: formatClock(pc.expiresAt) }) + ' ',
             buildDeviceNameEditor());
           return true;
         });
     })
-    .catch(err => (err && err.status === 401) ? invalidCode() : fail('Não consegui conectar', 'Verifique a internet e tente de novo.'));
+    .catch(err => (err && err.status === 401) ? invalidCode() : fail(tr('connect_failed_title'), tr('check_internet')));
 }
 
 function disconnectHouse(){
-  appConfirm('Desconectar este aparelho? A rotina continua salva aqui, mas deixa de sincronizar com os outros.', 'Desconectar')
+  appConfirm(tr('disconnect_q'), tr('disconnect_btn'))
     .then(ok => { if(ok) leaveHouse(); });
 }
 function leaveHouse(){
-  logCloudEvent('Desconectado por este aparelho ("Desconectar")');
+  logCloudEvent(tr('log_disconnected'));
   const houseId = getHouseId();
   const uid = getUid();
   if(houseId && uid) cloudFetch(`houses/${houseId}/members/${uid}`, { method: 'DELETE' }).catch(() => {});
@@ -3806,7 +4522,7 @@ function initCloudSync(){
   const openSignature = `${RUNNING_VERSION}|${getHouseId() ? 'on' : 'off'}`;
   if(lsGet('rotinaCloudLogLastOpen_v1') !== openSignature){
     lsSet('rotinaCloudLogLastOpen_v1', openSignature);
-    logCloudEvent(`App aberto na versão ${RUNNING_VERSION} — ${getHouseId() ? 'conectado a um grupo' : 'sem grupo'}`);
+    logCloudEvent(tr('log_opened', { version: RUNNING_VERSION, state: getHouseId() ? tr('state_in_group') : tr('state_no_group') }));
   }
   startHouseSync();
   touchLastSeen();
@@ -3847,7 +4563,7 @@ function initCloudSync(){
 // and compare its "Versão do código" stamp with the one running. When newer,
 // show a banner, and reload by itself at the next safe moment (no task
 // running, no settings screen, dialog or welcome screen open).
-const RUNNING_VERSION = (document.getElementById('app-version').textContent.match(/\d{4}-\d{2}-\d{2} \d{2}:\d{2}/) || [''])[0];
+const RUNNING_VERSION = (document.querySelector('meta[name="app-version"]').content.match(/\d{4}-\d{2}-\d{2} \d{2}:\d{2}/) || [''])[0];
 let updateAvailable = false;
 let lastUpdateCheck = 0;
 function freshAppUrl(){ return location.pathname + '?_cb=' + Date.now(); }
@@ -3883,7 +4599,7 @@ function renderWelcomeTemplates(){
   const defaults = ['morning', 'bedtime'];
   const options = ROUTINE_TEMPLATES.map(t =>
     `<label><input type="checkbox" value="${t.key}"${defaults.includes(t.key) ? ' checked' : ''}> ${t.icon} ${t.label} <span class="days">${t.daysLabel}</span></label>`);
-  options.push(`<label><input type="checkbox" value="blank"> ✏️ Começar do zero <span class="days">uma rotina vazia para montar do seu jeito</span></label>`);
+  options.push(`<label><input type="checkbox" value="blank"> ${tr('welcome_blank')} <span class="days">${tr('welcome_blank_hint')}</span></label>`);
   document.getElementById('welcome-templates').innerHTML = options.join('');
 }
 function hideWelcome(){ document.getElementById('welcome-overlay').style.display = 'none'; }

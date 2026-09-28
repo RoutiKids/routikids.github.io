@@ -6,11 +6,13 @@ Single-page app (`index.html`) served via GitHub Pages from `main`. Families sha
 
 - Code comments: **English**.
 - Commit messages, PR titles/descriptions and GitHub comments: **English**.
-- User-facing UI text inside the app stays in **Portuguese (pt-BR)**.
+- User-facing UI text lives in the `I18N` dictionary in `index.html`, in **Portuguese (pt-BR), English and German**; always add a new text to all three and use `tr('key', {vars})` (static HTML: `data-i18n`, `data-i18n-html`, `data-i18n-placeholder`, `data-i18n-title`). The translation function is `tr`, not `t`, because `t` is used everywhere for tasks.
+- The language is per device (picker on the welcome screen and in settings; else the device language for new devices; devices that already had a routine default to Portuguese).
+- `APP_NAME` holds the (provisional) app name.
 
 ## Versioning
 
-- On every change to `index.html`, update the "Versão do código: YYYY-MM-DD HH:MM" line (near the bottom of the settings screen) to the current date/time in Europe/Berlin (the owner lives in Germany). The owner uses it to confirm on the TV that the latest version is live, and the app compares it with the published `index.html` to detect updates (banner + automatic reload at a safe moment), so it must always move forward.
+- On every change to `index.html`, update the `<meta name="app-version" content="Versão do código: YYYY-MM-DD HH:MM">` tag in `<head>` (keep that exact text: older app versions search for it to detect updates; the settings footer shows it translated) to the current date/time in Europe/Berlin (the owner lives in Germany). The owner uses it to confirm on the TV that the latest version is live, and the app compares it with the published `index.html` to detect updates (banner + automatic reload at a safe moment), so it must always move forward.
 
 ## Cloud sync (pairing)
 
