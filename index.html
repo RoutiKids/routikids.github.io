@@ -756,6 +756,31 @@
     font-size:clamp(22px, 1.6vw, 34px);
     margin-bottom:0.5vh;
   }
+  #cloud-devices{
+    list-style:none;
+    padding:0;
+    margin:0.5vh 0 1vh;
+  }
+  #cloud-devices li{
+    display:flex;
+    flex-wrap:wrap;
+    align-items:center;
+    gap:0.4vh 1vw;
+    background:white;
+    border:2px solid rgba(29,53,87,0.1);
+    border-radius:12px;
+    padding:0.8vh 1vw;
+    margin-bottom:0.8vh;
+    font-family:'Nunito', sans-serif;
+    font-size:clamp(14px, 0.95vw, 20px);
+    color:var(--navy);
+  }
+  .cloud-device-name{ font-weight:800; flex:1 1 auto; }
+  .cloud-device-seen{ color:#6b7a90; font-size:0.9em; }
+  .cloud-remove-btn{ background:var(--coral); font-size:clamp(13px, 0.9vw, 18px); }
+  #cloud-banner .sync-buttons{ margin-top:1vh; }
+  #cloud-banner .settings-text-input,
+  #cloud-banner .util-btn{ font-size:clamp(16px, 1vw, 22px); }
   #cloud-code{
     font-family:'Baloo 2', sans-serif;
     font-weight:800;
@@ -1117,6 +1142,15 @@
           <input type="text" id="cloud-code-input" class="settings-text-input" inputmode="numeric" autocomplete="off" maxlength="6" placeholder="000000">
           <button type="button" id="cloud-join-btn" class="util-btn" style="background:var(--mint);">🔗 Conectar</button>
         </div>
+        <label class="settings-label" style="margin-top:1.5vh; display:block;">Nome deste aparelho (os outros aparelhos do grupo veem este nome)</label>
+        <div id="cloud-name-editor"></div>
+        <div id="cloud-devices-box" style="display:none;">
+          <p class="settings-hint" style="margin-top:1.5vh;"><strong>Aparelhos conectados neste grupo</strong> — todos veem e podem alterar a rotina:</p>
+          <ul id="cloud-devices"></ul>
+          <div class="sync-buttons">
+            <button type="button" id="cloud-remove-others-btn" class="util-btn" style="background:var(--coral); display:none;">🚫 Remover todos os outros aparelhos</button>
+          </div>
+        </div>
         <div class="sync-buttons">
           <button type="button" id="cloud-disconnect-btn" class="util-btn" style="background:#9aa5b1; display:none;">Desconectar este aparelho</button>
         </div>
@@ -1213,7 +1247,7 @@
       <button id="settings-cancel" class="settings-btn cancel">Cancelar</button>
       <button id="settings-save" class="settings-btn save">💾 Salvar</button>
     </div>
-    <p style="text-align:right; font-size:0.7vw; color:#9aa5b1; margin-top:1vh;">Versão do código: 2026-09-28 07:23</p>
+    <p style="text-align:right; font-size:0.7vw; color:#9aa5b1; margin-top:1vh;">Versão do código: 2026-09-28 08:40</p>
   </div>
 </div>
 
@@ -2969,20 +3003,29 @@ document.getElementById('go-github-btn').addEventListener('click', () => {
   if(pendingGithubUrl) window.location.href = pendingGithubUrl;
 });
 
-// ---------- Cloud sync (pairing by code, no accounts) ----------
-// All paired devices (TV, phones) share one "house" record in a Firebase
-// Realtime Database, addressed by a long random house id that works as the
-// secret (see database.rules.json). A short-lived 6-digit pair code maps to
-// that house id, so a new device can join without typing the long id.
-// Every save uploads the whole config; the last save wins.
-const CLOUD_DB_URL = 'https://rotina-infantil-7dc80-default-rtdb.firebaseio.com'; // e.g. 'https://<project>-default-rtdb.firebaseio.com' — empty = cloud sync off
-const HOUSE_ID_KEY = 'rotinaHouseId_v1';
-const HOUSE_REV_KEY = 'rotinaHouseRev_v1'; // revision of the config this device last applied or sent
+// ---------- Cloud sync (pairing by code, one anonymous identity per device) ----------
+// All paired devices (TV, phones) share one "house" in a Firebase Realtime
+// Database. Each device signs in anonymously through the Firebase Auth REST
+// API (no accounts, e-mails or passwords), and the database rules only let
+// devices listed in houses/<id>/members read or write that house, so removing
+// a device from the list cuts its access for real (see database.rules.json).
+// A short-lived 6-digit pair code lets a new device add itself as a member.
+// Every save uploads the whole config to houses/<id>/data; the last save wins.
+const CLOUD_DB_URL = 'https://rotina-infantil-7dc80-default-rtdb.firebaseio.com'; // empty = cloud sync off
+const FIREBASE_API_KEY = 'AIzaSyBLKN1Tc425FYJt9-opD2DO6XUDu_4y5HY'; // public by design; access is enforced by the database rules
+const AUTH_SIGNUP_URL = 'https://identitytoolkit.googleapis.com/v1/accounts:signUp';
+const AUTH_REFRESH_URL = 'https://securetoken.googleapis.com/v1/token';
+const HOUSE_ID_KEY = 'rotinaHouseId_v2';
+const LEGACY_HOUSE_ID_KEY = 'rotinaHouseId_v1'; // pairing from before per-device identities; must pair again
+const HOUSE_REV_KEY = 'rotinaHouseRev_v2'; // revision of the config this device last applied or sent
+const AUTH_KEY = 'rotinaAuth_v1';          // { uid, refreshToken } of this device's anonymous identity
+const DEVICE_NAME_KEY = 'rotinaDeviceName_v1';
 const PAIR_CODE_TTL_MS = 10 * 60 * 1000;
+const TOKEN_MARGIN_MS = 60 * 1000;         // refresh the ID token this long before it expires
+const LAST_SEEN_INTERVAL_MS = 60 * 60 * 1000;
 const ALNUM = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
 
-function cloudEnabled(){ return !!CLOUD_DB_URL; }
-function cloudUrl(path){ return `${CLOUD_DB_URL.replace(/\/+$/, '')}/${path}.json`; }
+function cloudEnabled(){ return !!(CLOUD_DB_URL && FIREBASE_API_KEY); }
 function lsGet(key){ try{ return localStorage.getItem(key); }catch(e){ return null; } }
 function lsSet(key, value){
   try{
@@ -2997,19 +3040,98 @@ function randomId(len, alphabet){
 }
 function getHouseId(){ return lsGet(HOUSE_ID_KEY); }
 
-function cloudFetch(path, options){
-  return fetch(cloudUrl(path), Object.assign({ cache: 'no-store' }, options))
-    .then(r => { if(!r.ok) throw new Error('HTTP ' + r.status); return r.json(); });
+// ---- Anonymous device identity (Firebase Auth REST API) ----
+let idToken = null;
+let idTokenExpiresAt = 0;
+let tokenPromise = null;
+function loadAuth(){
+  try{ return JSON.parse(lsGet(AUTH_KEY)) || null; }catch(e){ return null; }
+}
+function getUid(){
+  const auth = loadAuth();
+  return auth ? auth.uid : null;
+}
+function fetchJson(url, options){
+  return fetch(url, options).then(r => r.json().then(body => {
+    if(!r.ok){ const err = new Error('HTTP ' + r.status); err.status = r.status; throw err; }
+    return body;
+  }));
+}
+function getIdToken(force){
+  if(!force && idToken && Date.now() < idTokenExpiresAt - TOKEN_MARGIN_MS) return Promise.resolve(idToken);
+  if(tokenPromise) return tokenPromise;
+  const auth = loadAuth();
+  const request = (auth && auth.refreshToken)
+    ? fetchJson(`${AUTH_REFRESH_URL}?key=${FIREBASE_API_KEY}`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+        body: 'grant_type=refresh_token&refresh_token=' + encodeURIComponent(auth.refreshToken)
+      }).then(j => ({ uid: j.user_id, idToken: j.id_token, refreshToken: j.refresh_token, expiresIn: j.expires_in }),
+        err => {
+          // The identity itself is gone (e.g. deleted in the console): start over with a new
+          // one; the database will then treat this device as no longer being a member.
+          if(err.status === 400) lsSet(AUTH_KEY, null);
+          throw err;
+        })
+    : fetchJson(`${AUTH_SIGNUP_URL}?key=${FIREBASE_API_KEY}`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ returnSecureToken: true })
+      }).then(j => ({ uid: j.localId, idToken: j.idToken, refreshToken: j.refreshToken, expiresIn: j.expiresIn }));
+  tokenPromise = request.then(t => {
+    lsSet(AUTH_KEY, JSON.stringify({ uid: t.uid, refreshToken: t.refreshToken }));
+    idToken = t.idToken;
+    idTokenExpiresAt = Date.now() + Number(t.expiresIn) * 1000;
+    tokenPromise = null;
+    return idToken;
+  }, err => { tokenPromise = null; throw err; });
+  return tokenPromise;
+}
+
+function dbUrl(path, token){
+  return `${CLOUD_DB_URL.replace(/\/+$/, '')}/${path}.json?auth=${encodeURIComponent(token)}`;
+}
+// Database REST call as this device. A 401 is retried once with a fresh token
+// (it may just have expired); a second 401 means the rules deny access.
+function cloudFetch(path, options, retried){
+  return getIdToken(retried).then(token => fetch(dbUrl(path, token), Object.assign({ cache: 'no-store' }, options)))
+    .then(r => {
+      if(r.status === 401 && !retried) return cloudFetch(path, options, true);
+      if(!r.ok){ const err = new Error('HTTP ' + r.status); err.status = r.status; throw err; }
+      return r.json();
+    });
+}
+
+// ---- This device's name and kind, shown to the other devices ----
+const DEVICE_KINDS = {
+  tv:       { icon: '📺', name: 'TV' },
+  tablet:   { icon: '📱', name: 'Tablet' },
+  phone:    { icon: '📱', name: 'Celular' },
+  computer: { icon: '💻', name: 'Computador' }
+};
+function guessDeviceKind(){
+  const ua = navigator.userAgent || '';
+  if(/\b(TV|SmartTV|SMART-TV|GoogleTV|Chromecast|CrKey|AFT\w*|BRAVIA|Tizen|Web0S|webOS)\b/i.test(ua)) return 'tv';
+  if(/iPad|Tablet/i.test(ua) || (/Android/i.test(ua) && !/Mobile/i.test(ua))) return 'tablet';
+  if(/Mobi|iPhone|Android/i.test(ua)) return 'phone';
+  return 'computer';
+}
+function getDeviceName(){ return lsGet(DEVICE_NAME_KEY) || DEVICE_KINDS[guessDeviceKind()].name; }
+function newMemberRecord(extra){
+  const now = Date.now();
+  return Object.assign({ name: getDeviceName(), kind: guessDeviceKind(), joinedAt: now, lastSeen: now }, extra || {});
 }
 
 const cloudStatusEl = document.getElementById('cloud-status');
+let legacyPairingNotice = false;
 function setCloudStatus(text){ cloudStatusEl.textContent = text; }
 function updateCloudStatus(){
   const connected = !!getHouseId();
-  setCloudStatus(connected
-    ? '✅ Conectado — o que for salvo aqui aparece sozinho nos outros aparelhos conectados.'
-    : 'Este aparelho ainda não está conectado a nenhum outro.');
+  if(connected) setCloudStatus('✅ Conectado — o que for salvo aqui aparece sozinho nos outros aparelhos do grupo.');
+  else if(legacyPairingNotice) setCloudStatus('ℹ️ O app foi atualizado e agora mostra quais aparelhos estão conectados. Para isso, conecte os aparelhos de novo: toque em "Mostrar código" na TV.');
+  else setCloudStatus('Este aparelho ainda não está conectado a nenhum outro.');
   document.getElementById('cloud-disconnect-btn').style.display = connected ? '' : 'none';
+  if(!connected) renderDevices(null);
 }
 
 function pushConfigToCloud(cfg){
@@ -3018,23 +3140,29 @@ function pushConfigToCloud(cfg){
   const rev = randomId(12, ALNUM);
   lsSet(HOUSE_REV_KEY, rev); // so the echo of our own save isn't re-applied
   const body = JSON.stringify({ config: JSON.stringify(cfg), updatedAt: Date.now(), rev });
-  return cloudFetch(`houses/${houseId}`, { method: 'PUT', body })
+  return cloudFetch(`houses/${houseId}/data`, { method: 'PUT', body })
     .then(() => { updateCloudStatus(); return true; })
-    .catch(() => {
+    .catch(err => {
+      if(err.status === 401){ handleRemovedFromHouse(); return false; }
       setCloudStatus('⚠️ Não consegui enviar para os outros aparelhos. Verifique a internet e salve de novo.');
       return false;
     });
 }
 
-// Apply a house record received from the cloud, unless it's the revision this
-// device already has. If the settings screen is open with unsaved edits,
-// defer it so they aren't wiped (closeSettings applies it later); if it's
-// open but untouched (e.g. the TV still showing the pair code), apply it
-// right away and refresh the form.
+// Apply a house record received from the cloud. The config is applied unless
+// it's the revision this device already has; if the settings screen is open
+// with unsaved edits, it's deferred so they aren't wiped (closeSettings
+// applies it later); if it's open but untouched (e.g. the TV still showing the
+// pair code), it's applied right away and the form refreshed.
 let pendingRemoteHouse = null;
+let knownMemberIds = null;
 function handleRemoteHouse(house){
-  if(!house || !house.config || !house.rev) return;
-  if(house.rev === lsGet(HOUSE_REV_KEY)) return;
+  if(!house) return;
+  renderDevices(house);
+  announceNewMembers(house.members || {});
+  const data = house.data;
+  if(!data || !data.config || !data.rev) return;
+  if(data.rev === lsGet(HOUSE_REV_KEY)) return;
   if(settingsOverlay.style.display !== 'flex'){ applyRemoteHouse(house); return; }
   if(settingsDirty){
     pendingRemoteHouse = house;
@@ -3045,6 +3173,24 @@ function handleRemoteHouse(house){
     populateDraftFromCurrentConfig();
     setCloudStatus('🔄 Atualizado agora com as mudanças de outro aparelho.');
   }
+}
+function applyRemoteHouse(house){
+  let cfg;
+  try{ cfg = JSON.parse(house.data.config); }catch(e){ return false; }
+  if(!applyImportedConfig(cfg)) return false;
+  lsSet(HOUSE_REV_KEY, house.data.rev);
+  return true;
+}
+function announceNewMembers(members){
+  const ids = Object.keys(members);
+  if(knownMemberIds){
+    const added = ids.filter(id => !knownMemberIds.includes(id));
+    if(added.length){
+      const names = added.map(id => members[id].name || 'Um aparelho').join(', ');
+      setCloudStatus(`✅ ${names} acabou de se conectar!` + (pairCodeTimer ? ' O código continua valendo para conectar outros.' : ''));
+    }
+  }
+  knownMemberIds = ids;
 }
 
 // Tracks whether the user changed anything on the settings screen since
@@ -3059,50 +3205,89 @@ let settingsDirty = false;
   ['input', 'change'].forEach(ev => card.addEventListener(ev, markDirty));
   card.addEventListener('click', (e) => { if(e.target.closest('button')) markDirty(e); });
 })();
-function applyRemoteHouse(house){
-  let cfg;
-  try{ cfg = JSON.parse(house.config); }catch(e){ return false; }
-  if(!applyImportedConfig(cfg)) return false;
-  lsSet(HOUSE_REV_KEY, house.rev);
-  return true;
+
+// Another device removed this one from the group (or it was paired before
+// per-device identities existed): stop syncing, but keep the local routine.
+function handleRemovedFromHouse(){
+  if(!getHouseId()) return;
+  stopHouseSync();
+  hidePairCode();
+  lsSet(HOUSE_ID_KEY, null);
+  lsSet(HOUSE_REV_KEY, null);
+  knownMemberIds = null;
+  updateCloudStatus();
+  setCloudStatus('⚠️ Este aparelho foi removido do grupo por outro aparelho. A rotina continua salva aqui; para voltar a sincronizar, conecte de novo com um código.');
 }
 
+// Only one read in flight at a time: if a slower, older response arrived
+// after a newer one, it would re-apply stale data. A refresh requested while
+// one is running just schedules one more read right after it.
+let refreshInFlight = null;
+let refreshAgain = false;
 function refreshFromCloud(){
   const houseId = getHouseId();
   if(!cloudEnabled() || !houseId) return Promise.resolve();
-  return cloudFetch(`houses/${houseId}`).then(handleRemoteHouse).catch(() => {});
+  if(refreshInFlight){ refreshAgain = true; return refreshInFlight; }
+  refreshInFlight = cloudFetch(`houses/${houseId}`)
+    .then(house => { if(getHouseId() === houseId) handleRemoteHouse(house); })
+    .catch(err => { if(err.status === 401 && getHouseId() === houseId) handleRemovedFromHouse(); })
+    .then(() => {
+      refreshInFlight = null;
+      if(refreshAgain){ refreshAgain = false; return refreshFromCloud(); }
+    });
+  return refreshInFlight;
+}
+
+function touchLastSeen(){
+  const houseId = getHouseId();
+  const uid = getUid();
+  if(!cloudEnabled() || !houseId || !uid) return;
+  cloudFetch(`houses/${houseId}/members/${uid}/lastSeen`, { method: 'PUT', body: JSON.stringify(Date.now()) }).catch(() => {});
 }
 
 // Live updates via the database's streaming REST API (Server-Sent Events).
 // Any change notification just triggers a full re-read — simpler than
-// applying partial patches.
+// applying partial patches. The stream carries the ID token, so it's
+// reopened before the token expires.
 let houseStream = null;
+let streamRestartTimer = null;
 function stopHouseSync(){
   if(houseStream){ houseStream.close(); houseStream = null; }
+  if(streamRestartTimer){ clearTimeout(streamRestartTimer); streamRestartTimer = null; }
 }
 function startHouseSync(){
   stopHouseSync();
   const houseId = getHouseId();
   if(!cloudEnabled() || !houseId) return;
   refreshFromCloud();
-  if(window.EventSource){
-    houseStream = new EventSource(cloudUrl(`houses/${houseId}`));
+  if(!window.EventSource) return;
+  getIdToken().then(token => {
+    if(getHouseId() !== houseId || houseStream) return;
+    houseStream = new EventSource(dbUrl(`houses/${houseId}`, token));
     ['put', 'patch'].forEach(ev => houseStream.addEventListener(ev, () => refreshFromCloud()));
-  }
+    // Token expired or access revoked: reopen with a fresh token (or find out this device was removed).
+    ['auth_revoked', 'cancel'].forEach(ev => houseStream.addEventListener(ev, () => {
+      stopHouseSync();
+      streamRestartTimer = setTimeout(startHouseSync, 5000);
+    }));
+    streamRestartTimer = setTimeout(startHouseSync, Math.max(60 * 1000, idTokenExpiresAt - Date.now() - TOKEN_MARGIN_MS));
+  }).catch(() => {});
 }
 
-// Make sure this device has a house (creating one with the current config if
-// needed), so other devices can join it.
+// Make sure this device belongs to a house (creating one with the current
+// config if needed), so other devices can join it.
 function ensureHouse(){
   const existing = getHouseId();
   if(existing) return Promise.resolve(existing);
   const houseId = randomId(24, ALNUM);
-  lsSet(HOUSE_ID_KEY, houseId);
-  return pushConfigToCloud(getCurrentConfigObject()).then(ok => {
-    if(!ok){ lsSet(HOUSE_ID_KEY, null); throw new Error('push failed'); }
-    startHouseSync();
-    return houseId;
-  });
+  return getIdToken()
+    .then(() => cloudFetch(`houses/${houseId}/members/${getUid()}`, { method: 'PUT', body: JSON.stringify(newMemberRecord()) }))
+    .then(() => { lsSet(HOUSE_ID_KEY, houseId); return pushConfigToCloud(getCurrentConfigObject()); })
+    .then(ok => {
+      if(!ok){ lsSet(HOUSE_ID_KEY, null); throw new Error('push failed'); }
+      startHouseSync();
+      return houseId;
+    });
 }
 
 // The database rules refuse to overwrite a code that is still valid, so a
@@ -3120,13 +3305,14 @@ function createPairCode(houseId, attempt){
 
 // Big, hard-to-miss result message at the top of the settings screen.
 const cloudBannerEl = document.getElementById('cloud-banner');
-function showCloudBanner(kind, title, text){
+function showCloudBanner(kind, title, text, extraNode){
   cloudBannerEl.className = kind;
   cloudBannerEl.innerHTML = '';
   const strong = document.createElement('strong');
   strong.textContent = title;
   cloudBannerEl.appendChild(strong);
   cloudBannerEl.appendChild(document.createTextNode(text));
+  if(extraNode) cloudBannerEl.appendChild(extraNode);
   cloudBannerEl.style.display = 'block';
 }
 function hideCloudBanner(){ cloudBannerEl.style.display = 'none'; }
@@ -3134,6 +3320,106 @@ function hideCloudBanner(){ cloudBannerEl.style.display = 'none'; }
 function formatClock(ms){
   const d = new Date(ms);
   return `${String(d.getHours()).padStart(2,'0')}:${String(d.getMinutes()).padStart(2,'0')}`;
+}
+function formatLastSeen(ms){
+  if(!ms) return 'nunca';
+  const diffMin = Math.floor((Date.now() - ms) / 60000);
+  if(diffMin < 2) return 'agora';
+  if(diffMin < 60) return `há ${diffMin} min`;
+  const d = new Date(ms);
+  const today = new Date(); today.setHours(0,0,0,0);
+  const dayDiff = Math.round((today - new Date(d.getFullYear(), d.getMonth(), d.getDate())) / 86400000);
+  if(dayDiff === 0) return `hoje às ${formatClock(ms)}`;
+  if(dayDiff === 1) return `ontem às ${formatClock(ms)}`;
+  return `em ${String(d.getDate()).padStart(2,'0')}/${String(d.getMonth()+1).padStart(2,'0')}`;
+}
+
+// ---- Device list, names and removal ----
+let lastMembers = {};
+function renderDevices(house){
+  const box = document.getElementById('cloud-devices-box');
+  const list = document.getElementById('cloud-devices');
+  lastMembers = (house && house.members) || {};
+  const me = getUid();
+  const ids = Object.keys(lastMembers).sort((a, b) =>
+    (a === me) ? -1 : (b === me) ? 1 : (lastMembers[a].joinedAt || 0) - (lastMembers[b].joinedAt || 0));
+  if(!getHouseId() || !ids.length){ box.style.display = 'none'; return; }
+  box.style.display = '';
+  list.innerHTML = '';
+  ids.forEach(id => {
+    const m = lastMembers[id];
+    const kind = DEVICE_KINDS[m.kind] || DEVICE_KINDS.computer;
+    const li = document.createElement('li');
+    const name = document.createElement('span');
+    name.className = 'cloud-device-name';
+    name.textContent = `${kind.icon} ${m.name || kind.name}` + (id === me ? ' (este aparelho)' : '');
+    const seen = document.createElement('span');
+    seen.className = 'cloud-device-seen';
+    seen.textContent = (id === me) ? 'agora' : `último acesso: ${formatLastSeen(m.lastSeen)}`;
+    li.appendChild(name);
+    li.appendChild(seen);
+    if(id !== me){
+      const btn = document.createElement('button');
+      btn.type = 'button';
+      btn.className = 'util-btn cloud-remove-btn';
+      btn.textContent = 'Remover';
+      btn.addEventListener('click', () => removeMembers([id]));
+      li.appendChild(btn);
+    }
+    list.appendChild(li);
+  });
+  document.getElementById('cloud-remove-others-btn').style.display = ids.length > 1 ? '' : 'none';
+}
+
+function removeMembers(ids){
+  const houseId = getHouseId();
+  if(!houseId || !ids.length) return;
+  const names = ids.map(id => `"${(lastMembers[id] && lastMembers[id].name) || 'aparelho'}"`).join(', ');
+  const question = ids.length === 1
+    ? `Remover ${names} do grupo? Esse aparelho deixa de ver e de alterar a rotina na hora.`
+    : `Remover todos os outros aparelhos (${names})? Eles deixam de ver e de alterar a rotina na hora.`;
+  if(!confirm(question)) return;
+  const patch = {};
+  ids.forEach(id => { patch[id] = null; });
+  cloudFetch(`houses/${houseId}/members`, { method: 'PATCH', body: JSON.stringify(patch) })
+    .then(() => {
+      setCloudStatus(ids.length === 1 ? `✅ ${names} foi removido do grupo.` : '✅ Todos os outros aparelhos foram removidos do grupo.');
+      return refreshFromCloud();
+    })
+    .catch(() => setCloudStatus('⚠️ Não consegui remover. Verifique a internet e tente de novo.'));
+}
+
+function saveDeviceName(rawName){
+  const name = String(rawName || '').trim().slice(0, 40);
+  if(!name){ setCloudStatus('Digite um nome para este aparelho (ex: "Celular da Mamãe").'); return; }
+  lsSet(DEVICE_NAME_KEY, name);
+  document.querySelectorAll('.cloud-device-name-input').forEach(input => { input.value = name; });
+  const houseId = getHouseId();
+  const uid = getUid();
+  if(!houseId || !uid){ setCloudStatus('✅ Nome salvo. Os outros aparelhos vão vê-lo quando você conectar.'); return; }
+  cloudFetch(`houses/${houseId}/members/${uid}/name`, { method: 'PUT', body: JSON.stringify(name) })
+    .then(() => { setCloudStatus(`✅ Nome salvo: agora os outros aparelhos veem "${name}".`); return refreshFromCloud(); })
+    .catch(() => setCloudStatus('⚠️ Não consegui salvar o nome. Verifique a internet e tente de novo.'));
+}
+// Name field + save button (used in the sync section and in the success banner).
+function buildDeviceNameEditor(){
+  const wrap = document.createElement('div');
+  wrap.className = 'sync-buttons';
+  const input = document.createElement('input');
+  input.type = 'text';
+  input.maxLength = 40;
+  input.className = 'settings-text-input cloud-device-name-input';
+  input.placeholder = 'Ex: Celular da Mamãe, TV da sala';
+  input.value = getDeviceName();
+  const btn = document.createElement('button');
+  btn.type = 'button';
+  btn.className = 'util-btn';
+  btn.style.background = 'var(--sky)';
+  btn.textContent = '💾 Salvar nome';
+  btn.addEventListener('click', () => saveDeviceName(input.value));
+  wrap.appendChild(input);
+  wrap.appendChild(btn);
+  return wrap;
 }
 
 let pairCodeTimer = null;
@@ -3159,29 +3445,14 @@ function showPairCode(){
 
       const hintEl = document.getElementById('cloud-code-hint');
       const expiresAt = Date.now() + PAIR_CODE_TTL_MS;
-      let ticks = 0;
-      let lastJoinedAt = null;
-      let joinCount = 0;
       if(pairCodeTimer) clearInterval(pairCodeTimer);
-      pairCodeTimer = setInterval(() => {
+      const tick = () => {
         const left = Math.max(0, Math.round((expiresAt - Date.now()) / 1000));
         hintEl.textContent = `Serve para conectar quantos aparelhos quiser por mais ${Math.floor(left/60)}:${String(left%60).padStart(2,'0')}. Link: ${link}`;
-        if(left <= 0){ hidePairCode(); setCloudStatus('⌛ O código expirou. Toque em "Mostrar código" para gerar outro.'); return; }
-        // Each joining device stamps joinedAt on the code; the code itself stays valid until it expires.
-        if(++ticks % 3 === 0){
-          cloudFetch(`pairCodes/${code}`).then(pc => {
-            if(!pairCodeTimer) return;
-            if(pc === null){ hidePairCode(); updateCloudStatus(); return; }
-            if(pc.joinedAt && pc.joinedAt !== lastJoinedAt){
-              lastJoinedAt = pc.joinedAt;
-              joinCount++;
-              setCloudStatus(joinCount === 1
-                ? '✅ Um aparelho acabou de se conectar! O código continua valendo para conectar outros.'
-                : `✅ ${joinCount} aparelhos já se conectaram com este código.`);
-            }
-          }).catch(() => {});
-        }
-      }, 1000);
+        if(left <= 0){ hidePairCode(); setCloudStatus('⌛ O código expirou. Toque em "Mostrar código" para gerar outro.'); }
+      };
+      pairCodeTimer = setInterval(tick, 1000);
+      tick();
     })
     .catch(() => setCloudStatus('⚠️ Não consegui gerar o código. Verifique a internet e tente de novo.'))
     .then(() => { btn.disabled = false; });
@@ -3194,44 +3465,61 @@ function joinWithCode(rawCode){
     showCloudBanner('error', `❌ ${title}`, text);
     return false;
   };
+  const invalidCode = () => fail('Código inválido ou expirado', 'No outro aparelho (ex: a TV), toque em "Mostrar código" para gerar um novo e tente de novo.');
   if(code.length !== 6) return Promise.resolve(fail('Código incompleto', 'Digite os 6 números que aparecem no outro aparelho.'));
   hideCloudBanner();
   setCloudStatus('🔗 Conectando...');
-  return cloudFetch(`pairCodes/${code}`)
+  let houseId;
+  return getIdToken()
+    .then(() => cloudFetch(`pairCodes/${code}`))
     .then(pc => {
-      if(!pc || !pc.houseId || pc.expiresAt < Date.now()){
-        return fail('Código inválido ou expirado', 'No outro aparelho (ex: a TV), toque em "Mostrar código" para gerar um novo e tente de novo.');
-      }
-      return cloudFetch(`houses/${pc.houseId}`).then(house => {
-        if(!house || !house.config){
-          return fail('Configuração não encontrada', 'No outro aparelho (ex: a TV), toque em "Mostrar código" para gerar um novo e tente de novo.');
-        }
-        hidePairCode();
-        lsSet(HOUSE_ID_KEY, pc.houseId);
-        applyRemoteHouse(house); // joining is explicit, so apply even with the settings screen open
-        pendingRemoteHouse = null;
-        if(settingsOverlay.style.display === 'flex') populateDraftFromCurrentConfig();
-        // Let the device showing the code know someone joined (the code stays valid for other devices).
-        cloudFetch(`pairCodes/${code}`, { method: 'PUT', body: JSON.stringify({ houseId: pc.houseId, expiresAt: pc.expiresAt, joinedAt: Date.now() }) }).catch(() => {});
-        startHouseSync();
-        updateCloudStatus();
-        // The QR link may open inside the camera/Lens app instead of the usual browser, and each
-        // browser keeps its own pairing — so tell the user how to connect the usual one too.
-        showCloudBanner('ok', '✅ Conectado com sucesso!',
-          `Esta tela já mostra a rotina do outro aparelho, e o que você salvar aqui aparece lá sozinho em poucos segundos. ` +
-          `Abriu dentro do app da câmera? Abra o app no navegador de sempre (ex: Chrome) e digite o código ${code.slice(0,3)} ${code.slice(3)} em "Conectar" — vale até ${formatClock(pc.expiresAt)}.`);
-        return true;
-      });
+      if(!pc || !pc.houseId || pc.expiresAt < Date.now()) return invalidCode();
+      houseId = pc.houseId;
+      // The rules only accept this while the code is valid for that house.
+      return cloudFetch(`houses/${houseId}/members/${getUid()}`, { method: 'PUT', body: JSON.stringify(newMemberRecord({ code })) })
+        .then(() => cloudFetch(`houses/${houseId}`))
+        .then(house => {
+          if(!house || !house.data || !house.data.config){
+            return fail('Configuração não encontrada', 'No outro aparelho (ex: a TV), toque em "Mostrar código" para gerar um novo e tente de novo.');
+          }
+          const previous = getHouseId();
+          if(previous && previous !== houseId){
+            // Leave the previous group so it doesn't list this device forever.
+            cloudFetch(`houses/${previous}/members/${getUid()}`, { method: 'DELETE' }).catch(() => {});
+          }
+          stopHouseSync();
+          hidePairCode();
+          lsSet(HOUSE_ID_KEY, houseId);
+          knownMemberIds = null;
+          applyRemoteHouse(house); // joining is explicit, so apply even with the settings screen open
+          pendingRemoteHouse = null;
+          if(settingsOverlay.style.display === 'flex') populateDraftFromCurrentConfig();
+          startHouseSync();
+          updateCloudStatus();
+          renderDevices(house);
+          // The QR link may open inside the camera/Lens app instead of the usual browser, and each
+          // browser is a separate device here — so tell the user how to connect the usual one too.
+          showCloudBanner('ok', '✅ Conectado com sucesso!',
+            `Esta tela já mostra a rotina do outro aparelho, e o que você salvar aqui aparece lá sozinho em poucos segundos. ` +
+            `Abriu dentro do app da câmera? Abra o app no navegador de sempre (ex: Chrome) e digite o código ${code.slice(0,3)} ${code.slice(3)} em "Conectar" — vale até ${formatClock(pc.expiresAt)}. ` +
+            `Como os outros devem ver este aparelho?`,
+            buildDeviceNameEditor());
+          return true;
+        });
     })
-    .catch(() => fail('Não consegui conectar', 'Verifique a internet e tente de novo.'));
+    .catch(err => (err && err.status === 401) ? invalidCode() : fail('Não consegui conectar', 'Verifique a internet e tente de novo.'));
 }
 
 function disconnectHouse(){
   if(!confirm('Desconectar este aparelho? A rotina continua salva aqui, mas deixa de sincronizar com os outros.')) return;
+  const houseId = getHouseId();
+  const uid = getUid();
+  if(houseId && uid) cloudFetch(`houses/${houseId}/members/${uid}`, { method: 'DELETE' }).catch(() => {});
   stopHouseSync();
   hidePairCode();
   lsSet(HOUSE_ID_KEY, null);
   lsSet(HOUSE_REV_KEY, null);
+  knownMemberIds = null;
   updateCloudStatus();
 }
 
@@ -3240,6 +3528,10 @@ document.getElementById('cloud-join-btn').addEventListener('click', () => {
   joinWithCode(document.getElementById('cloud-code-input').value);
 });
 document.getElementById('cloud-disconnect-btn').addEventListener('click', disconnectHouse);
+document.getElementById('cloud-remove-others-btn').addEventListener('click', () => {
+  removeMembers(Object.keys(lastMembers).filter(id => id !== getUid()));
+});
+document.getElementById('cloud-name-editor').appendChild(buildDeviceNameEditor());
 
 function initCloudSync(){
   if(!cloudEnabled()){
@@ -3247,8 +3539,14 @@ function initCloudSync(){
     return;
   }
   document.getElementById('cloud-sync').style.display = '';
+  if(lsGet(LEGACY_HOUSE_ID_KEY)){
+    lsSet(LEGACY_HOUSE_ID_KEY, null);
+    legacyPairingNotice = !getHouseId();
+  }
   updateCloudStatus();
   startHouseSync();
+  touchLastSeen();
+  setInterval(touchLastSeen, LAST_SEEN_INTERVAL_MS);
   setInterval(refreshFromCloud, 5 * 60 * 1000); // safety net in case the live stream silently drops
   // Without a working live stream (unsupported or disconnected), check more often.
   setInterval(() => {

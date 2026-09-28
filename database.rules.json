@@ -2,23 +2,36 @@
   "rules": {
     "houses": {
       "$houseId": {
-        ".read": "$houseId.length >= 20",
-        ".write": "$houseId.length >= 20",
-        ".validate": "newData.hasChildren(['config', 'updatedAt', 'rev'])",
-        "config": { ".validate": "newData.isString() && newData.val().length <= 100000" },
-        "updatedAt": { ".validate": "newData.isNumber()" },
-        "rev": { ".validate": "newData.isString() && newData.val().length <= 32" },
-        "$other": { ".validate": false }
+        ".read": "auth != null && data.child('members').child(auth.uid).exists()",
+        "data": {
+          ".write": "auth != null && root.child('houses').child($houseId).child('members').child(auth.uid).exists()",
+          ".validate": "newData.hasChildren(['config', 'updatedAt', 'rev'])",
+          "config": { ".validate": "newData.isString() && newData.val().length <= 100000" },
+          "updatedAt": { ".validate": "newData.isNumber()" },
+          "rev": { ".validate": "newData.isString() && newData.val().length <= 32" },
+          "$other": { ".validate": false }
+        },
+        "members": {
+          "$uid": {
+            ".write": "auth != null && (root.child('houses').child($houseId).child('members').child(auth.uid).exists() || ($uid === auth.uid && newData.exists() && (!root.child('houses').child($houseId).exists() || (root.child('pairCodes').child(newData.child('code').val() + '').child('houseId').val() === $houseId && root.child('pairCodes').child(newData.child('code').val() + '').child('expiresAt').val() > now))))",
+            ".validate": "newData.hasChildren(['name', 'kind', 'joinedAt'])",
+            "name": { ".validate": "newData.isString() && newData.val().length >= 1 && newData.val().length <= 40" },
+            "kind": { ".validate": "newData.isString() && newData.val().length <= 16" },
+            "joinedAt": { ".validate": "newData.isNumber()" },
+            "lastSeen": { ".validate": "newData.isNumber()" },
+            "code": { ".validate": "newData.isString() && newData.val().length == 6" },
+            "$other": { ".validate": false }
+          }
+        }
       }
     },
     "pairCodes": {
       "$code": {
-        ".read": "$code.length == 6",
-        ".write": "$code.length == 6 && (!data.exists() || data.child('expiresAt').val() < now || !newData.exists() || (newData.child('houseId').val() == data.child('houseId').val() && newData.child('expiresAt').val() == data.child('expiresAt').val()))",
+        ".read": "auth != null && $code.length == 6",
+        ".write": "auth != null && $code.length == 6 && ((newData.exists() && root.child('houses').child(newData.child('houseId').val() + '').child('members').child(auth.uid).exists() && (!data.exists() || data.child('expiresAt').val() < now || data.child('houseId').val() === newData.child('houseId').val())) || (!newData.exists() && root.child('houses').child(data.child('houseId').val() + '').child('members').child(auth.uid).exists()))",
         ".validate": "newData.hasChildren(['houseId', 'expiresAt'])",
         "houseId": { ".validate": "newData.isString() && newData.val().length >= 20 && newData.val().length <= 64" },
         "expiresAt": { ".validate": "newData.isNumber() && newData.val() <= now + 3600000" },
-        "joinedAt": { ".validate": "newData.isNumber()" },
         "$other": { ".validate": false }
       }
     }
