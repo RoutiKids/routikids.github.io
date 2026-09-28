@@ -159,6 +159,7 @@
     cursor:pointer;
     -webkit-tap-highlight-color: transparent;
   }
+  #limit-control.read-only .limit-btn{ visibility:hidden; }
   .limit-btn:focus{
     outline:4px solid var(--sun);
     outline-offset:2px;
@@ -844,6 +845,10 @@
   #cloud-banner .sync-buttons{ margin-top:1vh; }
   #cloud-banner .settings-text-input,
   #cloud-banner .util-btn{ font-size:clamp(16px, 1vw, 22px); }
+  #cloud-log-box{ margin:1vh 0; font-family:'Nunito', sans-serif; font-size:clamp(12px, 0.8vw, 16px); color:#6b7a90; }
+  #cloud-log-box summary{ cursor:pointer; }
+  #cloud-log{ list-style:none; padding:0; margin:0.5vh 0 0; }
+  #cloud-log li{ padding:0.2vh 0; }
   #cloud-code{
     font-family:'Baloo 2', sans-serif;
     font-weight:800;
@@ -1209,7 +1214,7 @@
 <div id="bottom-info">
   <div id="clock">--:--</div>
   <div id="limit-control">
-    <span class="limit-title">🚩 Limite</span>
+    <span class="limit-title">🚩 Horário limite</span>
     <div class="limit-unit">
       <button id="limit-hour-plus" class="limit-btn">▲</button>
       <span class="limit-value" id="limit-hour">--</span>
@@ -1282,6 +1287,10 @@
             <button type="button" id="cloud-remove-others-btn" class="util-btn" style="background:var(--coral); display:none;">🚫 Remover todos os outros aparelhos</button>
           </div>
         </div>
+        <details id="cloud-log-box">
+          <summary>🔎 Histórico da conexão</summary>
+          <ul id="cloud-log"></ul>
+        </details>
         <div class="sync-buttons">
           <button type="button" id="cloud-disconnect-btn" class="util-btn" style="background:#9aa5b1; display:none;">Desconectar este aparelho</button>
         </div>
@@ -1353,7 +1362,7 @@
       <button id="settings-save" class="settings-btn save">💾 Salvar</button>
     </div>
     <p class="settings-hint" style="margin-top:1.5vh;">⚠️ <strong>Versão de teste.</strong> Este app ainda está em fase de testes. Use só apelidos e não coloque dados sensíveis. As rotinas ficam salvas neste aparelho e, se você conectar outros aparelhos, num servidor usado só para sincronizá-los.</p>
-    <p id="app-version" style="text-align:right; font-size:0.7vw; color:#9aa5b1; margin-top:1vh;">Versão do código: 2026-09-28 18:13</p>
+    <p id="app-version" style="text-align:right; font-size:0.7vw; color:#9aa5b1; margin-top:1vh;">Versão do código: 2026-09-28 20:49</p>
   </div>
 </div>
 
@@ -1915,9 +1924,33 @@ function clearTimelinePreview(){
   timelineEl.querySelectorAll('.step.preview').forEach(el => el.remove());
   timelinePreviewKey = null;
 }
+// The deadline shown follows the same routine as the card and the list: the
+// running routine's (adjustable with the arrows) or, for any other routine
+// (browsing, between routines, day finished), its configured deadline, read-only.
+function showDeadlineFor(focus){
+  let value = limitMin;
+  let live = true;
+  if(!focus){
+    live = false;
+  } else if(!(focus.day === 0 && pointer < tasks.length && pointer >= focus.block.startIdx && pointer <= focus.block.endIdx)){
+    live = false;
+    const routine = ROUTINES.find(r => r.id === focus.block.routineId);
+    value = (routine && routine.limitMin !== undefined)
+      ? routine.limitMin
+      : (focus.day === 0 ? routineTargetAndLimit(focus.block.startIdx).limitMin : focus.block.endMin + 10);
+  }
+  const limitControl = document.getElementById('limit-control');
+  limitControl.style.visibility = focus ? '' : 'hidden';
+  limitControl.classList.toggle('read-only', !live);
+  limitControl.querySelectorAll('.limit-btn').forEach(btn => { btn.disabled = !live; });
+  limitHourEl.textContent = String(Math.floor(value / 60) % 24).padStart(2, '0');
+  limitMinEl.textContent = String(Math.round(value % 60)).padStart(2, '0');
+}
+
 function applyTimelineFocus(){
   const titleEl = document.getElementById('timeline-title');
   const focus = focusedRoutineBlock();
+  showDeadlineFor(focus);
   if(!focus){
     clearTimelinePreview();
     if(titleEl) titleEl.style.display = 'none';
@@ -2412,8 +2445,6 @@ function renderMain(){
   maybeAutoRefresh(nowMin);
   refreshLimitForCurrentRoutine(); // automatically recompute the deadline when the routine changes
   updateHeaderTitle(); // reset to the normal title by default; renderBrowsedTask() overrides it while browsing
-  limitHourEl.textContent = String(Math.floor(limitMin/60)).padStart(2,'0');
-  limitMinEl.textContent = String(Math.round(limitMin%60)).padStart(2,'0');
 
   // Visually mark completed / active tasks
   tasks.forEach((t,i) => {
@@ -3206,7 +3237,12 @@ function getUid(){
 }
 function fetchJson(url, options){
   return fetch(url, options).then(r => r.json().then(body => {
-    if(!r.ok){ const err = new Error('HTTP ' + r.status); err.status = r.status; throw err; }
+    if(!r.ok){
+      const err = new Error('HTTP ' + r.status);
+      err.status = r.status;
+      err.code = (body && body.error && (body.error.message || body.error)) || '';
+      throw err;
+    }
     return body;
   }));
 }
@@ -3223,7 +3259,14 @@ function getIdToken(force){
         err => {
           // The identity itself is gone (e.g. deleted in the console): start over with a new
           // one; the database will then treat this device as no longer being a member.
-          if(err.status === 400) lsSet(AUTH_KEY, null);
+          // Only when Google says the identity itself is gone. Other 400s (bad key,
+          // quota, transient errors) keep it, so a glitch never costs the pairing.
+          if(['TOKEN_EXPIRED', 'USER_DISABLED', 'USER_NOT_FOUND', 'INVALID_REFRESH_TOKEN'].includes(String(err.code))){
+            logCloudEvent(`Identidade deste aparelho perdida (${err.code}); uma nova será criada`);
+            lsSet(AUTH_KEY, null);
+          } else {
+            logCloudEvent(`Falha ao renovar a identidade (${err.status || 'rede'} ${err.code || ''}); tento de novo depois`);
+          }
           throw err;
         })
     : fetchJson(`${AUTH_SIGNUP_URL}?key=${FIREBASE_API_KEY}`, {
@@ -3232,6 +3275,7 @@ function getIdToken(force){
         body: JSON.stringify({ returnSecureToken: true })
       }).then(j => ({ uid: j.localId, idToken: j.idToken, refreshToken: j.refreshToken, expiresIn: j.expiresIn }));
   tokenPromise = request.then(t => {
+    if(!auth || auth.uid !== t.uid) logCloudEvent(`Nova identidade anônima criada (${String(t.uid).slice(0, 6)}…)`);
     lsSet(AUTH_KEY, JSON.stringify({ uid: t.uid, refreshToken: t.refreshToken }));
     idToken = t.idToken;
     idTokenExpiresAt = Date.now() + Number(t.expiresIn) * 1000;
@@ -3275,6 +3319,30 @@ function newMemberRecord(extra){
   return Object.assign({ name: getDeviceName(), kind: guessDeviceKind(), joinedAt: now, lastSeen: now }, extra || {});
 }
 
+// ---- Connection history (kept on this device, to diagnose lost pairings) ----
+const CLOUD_LOG_KEY = 'rotinaCloudLog_v1';
+function readCloudLog(){
+  try{ return JSON.parse(lsGet(CLOUD_LOG_KEY) || '[]'); }catch(e){ return []; }
+}
+function logCloudEvent(text){
+  const log = readCloudLog();
+  log.push({ t: Date.now(), text });
+  lsSet(CLOUD_LOG_KEY, JSON.stringify(log.slice(-20)));
+  renderCloudLog();
+}
+function renderCloudLog(){
+  const list = document.getElementById('cloud-log');
+  if(!list) return;
+  list.innerHTML = '';
+  readCloudLog().slice().reverse().forEach(e => {
+    const d = new Date(e.t);
+    const li = document.createElement('li');
+    li.textContent = `${String(d.getDate()).padStart(2,'0')}/${String(d.getMonth()+1).padStart(2,'0')} ${String(d.getHours()).padStart(2,'0')}:${String(d.getMinutes()).padStart(2,'0')} — ${e.text}`;
+    list.appendChild(li);
+  });
+  if(!list.children.length) list.innerHTML = '<li>Nada registrado ainda.</li>';
+}
+
 const cloudStatusEl = document.getElementById('cloud-status');
 let legacyPairingNotice = false;
 function setCloudStatus(text){ cloudStatusEl.textContent = text; }
@@ -3296,7 +3364,7 @@ function pushConfigToCloud(cfg){
   return cloudFetch(`houses/${houseId}/data`, { method: 'PUT', body })
     .then(() => { updateCloudStatus(); return true; })
     .catch(err => {
-      if(err.status === 401){ handleRemovedFromHouse(); return false; }
+      if(err.status === 401){ suspectRemoved('envio'); return false; }
       setCloudStatus('⚠️ Não consegui enviar para os outros aparelhos. Verifique a internet e salve de novo.');
       return false;
     });
@@ -3359,10 +3427,30 @@ let settingsDirty = false;
   card.addEventListener('click', (e) => { if(e.target.closest('button')) markDirty(e); });
 })();
 
+// The database refused this device. That normally means another device removed
+// it, but a transient glitch must never cost the pairing, so it only counts
+// after a second refusal at least 15s later.
+let removalSuspectAt = 0;
+function suspectRemoved(source){
+  if(!getHouseId()) return;
+  const now = Date.now();
+  if(removalSuspectAt && now - removalSuspectAt >= 15000){
+    removalSuspectAt = 0;
+    handleRemovedFromHouse(source);
+    return;
+  }
+  if(!removalSuspectAt){
+    removalSuspectAt = now;
+    logCloudEvent(`Acesso recusado pelo servidor (${source}); confirmando…`);
+  }
+  setTimeout(refreshFromCloud, 20000);
+}
+
 // Another device removed this one from the group (or it was paired before
 // per-device identities existed): stop syncing, but keep the local routine.
-function handleRemovedFromHouse(){
+function handleRemovedFromHouse(source){
   if(!getHouseId()) return;
+  logCloudEvent(`Desconectado: acesso recusado de novo (${source || '?'}, identidade ${String(getUid()).slice(0, 6)}…)`);
   stopHouseSync();
   hidePairCode();
   lsSet(HOUSE_ID_KEY, null);
@@ -3382,8 +3470,12 @@ function refreshFromCloud(){
   if(!cloudEnabled() || !houseId) return Promise.resolve();
   if(refreshInFlight){ refreshAgain = true; return refreshInFlight; }
   refreshInFlight = cloudFetch(`houses/${houseId}`)
-    .then(house => { if(getHouseId() === houseId) handleRemoteHouse(house); })
-    .catch(err => { if(err.status === 401 && getHouseId() === houseId) handleRemovedFromHouse(); })
+    .then(house => {
+      if(getHouseId() !== houseId) return;
+      if(removalSuspectAt){ removalSuspectAt = 0; logCloudEvent('Acesso normalizado'); }
+      handleRemoteHouse(house);
+    })
+    .catch(err => { if(err.status === 401 && getHouseId() === houseId) suspectRemoved('leitura'); })
     .then(() => {
       refreshInFlight = null;
       if(refreshAgain){ refreshAgain = false; return refreshFromCloud(); }
@@ -3440,7 +3532,11 @@ function ensureHouse(){
   const houseId = randomId(24, ALNUM);
   return getIdToken()
     .then(() => cloudFetch(`houses/${houseId}/members/${getUid()}`, { method: 'PUT', body: JSON.stringify(newMemberRecord()) }))
-    .then(() => { lsSet(HOUSE_ID_KEY, houseId); return pushConfigToCloud(getCurrentConfigObject()); })
+    .then(() => {
+      lsSet(HOUSE_ID_KEY, houseId);
+      logCloudEvent('Grupo novo criado neste aparelho');
+      return pushConfigToCloud(getCurrentConfigObject());
+    })
     .then(ok => {
       if(!ok){ lsSet(HOUSE_ID_KEY, null); throw new Error('push failed'); }
       startHouseSync();
@@ -3648,6 +3744,7 @@ function joinWithCode(rawCode){
           stopHouseSync();
           hidePairCode();
           lsSet(HOUSE_ID_KEY, houseId);
+          logCloudEvent(`Conectado a um grupo com o código ${code}`);
           knownMemberIds = null;
           applyRemoteHouse(house); // joining is explicit, so apply even with the settings screen open
           pendingRemoteHouse = null;
@@ -3673,6 +3770,7 @@ function disconnectHouse(){
     .then(ok => { if(ok) leaveHouse(); });
 }
 function leaveHouse(){
+  logCloudEvent('Desconectado por este aparelho ("Desconectar")');
   const houseId = getHouseId();
   const uid = getUid();
   if(houseId && uid) cloudFetch(`houses/${houseId}/members/${uid}`, { method: 'DELETE' }).catch(() => {});
@@ -3702,6 +3800,14 @@ function initCloudSync(){
     legacyPairingNotice = !getHouseId();
   }
   updateCloudStatus();
+  renderCloudLog();
+  // Note app opens only when the version or the pairing state changed, so
+  // routine auto-reloads don't flood the history.
+  const openSignature = `${RUNNING_VERSION}|${getHouseId() ? 'on' : 'off'}`;
+  if(lsGet('rotinaCloudLogLastOpen_v1') !== openSignature){
+    lsSet('rotinaCloudLogLastOpen_v1', openSignature);
+    logCloudEvent(`App aberto na versão ${RUNNING_VERSION} — ${getHouseId() ? 'conectado a um grupo' : 'sem grupo'}`);
+  }
   startHouseSync();
   touchLastSeen();
   setInterval(touchLastSeen, LAST_SEEN_INTERVAL_MS);

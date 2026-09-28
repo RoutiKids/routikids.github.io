@@ -19,3 +19,4 @@ Single-page app (`index.html`) served via GitHub Pages from `main`. Families sha
 - `CLOUD_DB_URL` and `FIREBASE_API_KEY` in `index.html` configure it (the API key is public by design); an empty URL hides the pairing section (the app then works on a single device).
 - New devices (nothing saved, not paired) see a welcome screen with a test/privacy note and routine templates (`ROUTINE_TEMPLATES`); existing devices never do.
 - Security rules live in `database.rules.json` and must be pasted into the Firebase console whenever they change. Anonymous auth must stay enabled, with automatic cleanup of anonymous accounts **off**.
+- A device only drops its pairing after two database refusals at least 15s apart, and only discards its anonymous identity when Auth says it is gone (not on generic 400s). Key events go to a per-device "Histórico da conexão" (localStorage) shown in the sync section, to diagnose lost pairings.
