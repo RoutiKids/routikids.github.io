@@ -14,10 +14,11 @@
     "pairCodes": {
       "$code": {
         ".read": "$code.length == 6",
-        ".write": "$code.length == 6 && (!data.exists() || data.child('expiresAt').val() < now || !newData.exists())",
+        ".write": "$code.length == 6 && (!data.exists() || data.child('expiresAt').val() < now || !newData.exists() || (newData.child('houseId').val() == data.child('houseId').val() && newData.child('expiresAt').val() == data.child('expiresAt').val()))",
         ".validate": "newData.hasChildren(['houseId', 'expiresAt'])",
         "houseId": { ".validate": "newData.isString() && newData.val().length >= 20 && newData.val().length <= 64" },
         "expiresAt": { ".validate": "newData.isNumber() && newData.val() <= now + 3600000" },
+        "joinedAt": { ".validate": "newData.isNumber()" },
         "$other": { ".validate": false }
       }
     }
