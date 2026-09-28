@@ -1269,7 +1269,7 @@
       <button id="settings-cancel" class="settings-btn cancel">Cancelar</button>
       <button id="settings-save" class="settings-btn save">💾 Salvar</button>
     </div>
-    <p style="text-align:right; font-size:0.7vw; color:#9aa5b1; margin-top:1vh;">Versão do código: 2026-09-28 08:57</p>
+    <p style="text-align:right; font-size:0.7vw; color:#9aa5b1; margin-top:1vh;">Versão do código: 2026-09-28 09:15</p>
   </div>
 </div>
 
@@ -2453,6 +2453,7 @@ function populateDraftFromCurrentConfig(){
 function openSettings(){
   settingsDirty = false;
   hideCloudBanner();
+  if(cloudEnabled() && getHouseId()) refreshFromCloud(); // so the sync status shown is current
   populateDraftFromCurrentConfig();
   document.getElementById('autolink-toggle').checked = autoLinkNext;
   document.querySelectorAll('.step-size-btn').forEach(b => {
@@ -3333,13 +3334,18 @@ function startHouseSync(){
   if(!window.EventSource) return;
   getIdToken().then(token => {
     if(getHouseId() !== houseId || houseStream) return;
-    houseStream = new EventSource(dbUrl(`houses/${houseId}`, token));
-    ['put', 'patch'].forEach(ev => houseStream.addEventListener(ev, () => refreshFromCloud()));
-    // Token expired or access revoked: reopen with a fresh token (or find out this device was removed).
-    ['auth_revoked', 'cancel'].forEach(ev => houseStream.addEventListener(ev, () => {
+    const stream = new EventSource(dbUrl(`houses/${houseId}`, token));
+    houseStream = stream;
+    const restartSoon = () => {
+      if(houseStream !== stream) return;
       stopHouseSync();
       streamRestartTimer = setTimeout(startHouseSync, 5000);
-    }));
+    };
+    ['put', 'patch'].forEach(ev => stream.addEventListener(ev, () => refreshFromCloud()));
+    // Token expired or access revoked: reopen with a fresh token (or find out this device was removed).
+    ['auth_revoked', 'cancel'].forEach(ev => stream.addEventListener(ev, restartSoon));
+    // The browser gave up on the stream for good (e.g. its reconnect hit an expired token).
+    stream.addEventListener('error', () => { if(stream.readyState === 2) restartSoon(); });
     streamRestartTimer = setTimeout(startHouseSync, Math.max(60 * 1000, idTokenExpiresAt - Date.now() - TOKEN_MARGIN_MS));
   }).catch(() => {});
 }
@@ -3621,10 +3627,22 @@ function initCloudSync(){
   touchLastSeen();
   setInterval(touchLastSeen, LAST_SEEN_INTERVAL_MS);
   setInterval(refreshFromCloud, 5 * 60 * 1000); // safety net in case the live stream silently drops
-  // Without a working live stream (unsupported or disconnected), check more often.
+  // Without a working live stream (unsupported or dead), check more often and try to reopen it.
   setInterval(() => {
-    if(!houseStream || houseStream.readyState !== 1) refreshFromCloud();
+    if(!houseStream || houseStream.readyState === 2) startHouseSync();
+    else if(houseStream.readyState !== 1) refreshFromCloud();
   }, 30 * 1000);
+  // Phones drop the live stream silently in the background (screen off, other app) and
+  // throttle timers there, so resync as soon as the app is back in front or back online.
+  let lastResync = 0;
+  const resyncNow = () => {
+    if(document.visibilityState === 'hidden' || Date.now() - lastResync < 2000) return;
+    lastResync = Date.now();
+    startHouseSync();
+  };
+  document.addEventListener('visibilitychange', resyncNow);
+  window.addEventListener('online', resyncNow);
+  window.addEventListener('pageshow', (e) => { if(e.persisted) resyncNow(); });
 
   // Opened from the pairing QR code/link: join right away and show the result.
   const params = new URLSearchParams(location.search);
