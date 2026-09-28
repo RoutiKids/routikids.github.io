@@ -738,6 +738,24 @@
     font-size:1vw;
     color:var(--navy);
   }
+  #cloud-banner{
+    display:none;
+    border-radius:14px;
+    padding:1.5vh 1.2vw;
+    margin-bottom:2vh;
+    font-family:'Nunito', sans-serif;
+    font-size:clamp(15px, 1vw, 22px);
+    color:var(--navy);
+  }
+  #cloud-banner.ok{ background:rgba(95,194,142,0.2); border:2px solid var(--mint); }
+  #cloud-banner.error{ background:rgba(255,107,107,0.15); border:2px solid var(--coral); }
+  #cloud-banner strong{
+    display:block;
+    font-family:'Baloo 2', sans-serif;
+    font-weight:800;
+    font-size:clamp(22px, 1.6vw, 34px);
+    margin-bottom:0.5vh;
+  }
   #cloud-code{
     font-family:'Baloo 2', sans-serif;
     font-weight:800;
@@ -1079,12 +1097,13 @@
 <div id="settings-overlay">
   <div class="settings-card">
     <h2>⚙️ Configurar rotina</h2>
+    <div id="cloud-banner"></div>
 
     <div id="sync-section">
       <div id="cloud-sync" style="display:none;">
         <h3>📱↔️📺 Conectar celular e TV</h3>
         <p class="settings-hint" id="cloud-status"></p>
-        <p class="settings-hint"><strong>Este aparelho já está configurado (ex: a TV)?</strong> Toque em "Mostrar código" e, no celular, leia o QR code com a câmera ou digite o código.</p>
+        <p class="settings-hint"><strong>Para conectar um celular:</strong> toque em "Mostrar código". No celular, aponte a câmera para o QR code e abra o link — ele conecta sozinho, sem digitar nada. Se preferir, digite o código no celular, em "Conectar".</p>
         <div class="sync-buttons">
           <button type="button" id="cloud-show-code-btn" class="util-btn" style="background:var(--coral);">📺 Mostrar código</button>
         </div>
@@ -1194,7 +1213,7 @@
       <button id="settings-cancel" class="settings-btn cancel">Cancelar</button>
       <button id="settings-save" class="settings-btn save">💾 Salvar</button>
     </div>
-    <p style="text-align:right; font-size:0.7vw; color:#9aa5b1; margin-top:1vh;">Versão do código: 2026-09-28 01:38</p>
+    <p style="text-align:right; font-size:0.7vw; color:#9aa5b1; margin-top:1vh;">Versão do código: 2026-09-28 02:07</p>
   </div>
 </div>
 
@@ -2366,6 +2385,7 @@ function populateDraftFromCurrentConfig(){
 }
 
 function openSettings(){
+  hideCloudBanner();
   populateDraftFromCurrentConfig();
   document.getElementById('autolink-toggle').checked = autoLinkNext;
   document.querySelectorAll('.step-size-btn').forEach(b => {
@@ -3074,6 +3094,24 @@ function createPairCode(houseId, attempt){
     });
 }
 
+// Big, hard-to-miss result message at the top of the settings screen.
+const cloudBannerEl = document.getElementById('cloud-banner');
+function showCloudBanner(kind, title, text){
+  cloudBannerEl.className = kind;
+  cloudBannerEl.innerHTML = '';
+  const strong = document.createElement('strong');
+  strong.textContent = title;
+  cloudBannerEl.appendChild(strong);
+  cloudBannerEl.appendChild(document.createTextNode(text));
+  cloudBannerEl.style.display = 'block';
+}
+function hideCloudBanner(){ cloudBannerEl.style.display = 'none'; }
+
+function formatClock(ms){
+  const d = new Date(ms);
+  return `${String(d.getHours()).padStart(2,'0')}:${String(d.getMinutes()).padStart(2,'0')}`;
+}
+
 let pairCodeTimer = null;
 function hidePairCode(){
   if(pairCodeTimer){ clearInterval(pairCodeTimer); pairCodeTimer = null; }
@@ -3098,15 +3136,25 @@ function showPairCode(){
       const hintEl = document.getElementById('cloud-code-hint');
       const expiresAt = Date.now() + PAIR_CODE_TTL_MS;
       let ticks = 0;
+      let lastJoinedAt = null;
+      let joinCount = 0;
       if(pairCodeTimer) clearInterval(pairCodeTimer);
       pairCodeTimer = setInterval(() => {
         const left = Math.max(0, Math.round((expiresAt - Date.now()) / 1000));
-        hintEl.textContent = `Ou acesse ${link} no celular. Código válido por mais ${Math.floor(left/60)}:${String(left%60).padStart(2,'0')}.`;
+        hintEl.textContent = `Serve para conectar quantos aparelhos quiser por mais ${Math.floor(left/60)}:${String(left%60).padStart(2,'0')}. Link: ${link}`;
         if(left <= 0){ hidePairCode(); setCloudStatus('⌛ O código expirou. Toque em "Mostrar código" para gerar outro.'); return; }
-        // The joining device deletes the code once it has used it.
+        // Each joining device stamps joinedAt on the code; the code itself stays valid until it expires.
         if(++ticks % 3 === 0){
           cloudFetch(`pairCodes/${code}`).then(pc => {
-            if(pc === null && pairCodeTimer){ hidePairCode(); setCloudStatus('✅ Um aparelho acabou de se conectar!'); }
+            if(!pairCodeTimer) return;
+            if(pc === null){ hidePairCode(); updateCloudStatus(); return; }
+            if(pc.joinedAt && pc.joinedAt !== lastJoinedAt){
+              lastJoinedAt = pc.joinedAt;
+              joinCount++;
+              setCloudStatus(joinCount === 1
+                ? '✅ Um aparelho acabou de se conectar! O código continua valendo para conectar outros.'
+                : `✅ ${joinCount} aparelhos já se conectaram com este código.`);
+            }
           }).catch(() => {});
         }
       }, 1000);
@@ -3117,32 +3165,41 @@ function showPairCode(){
 
 function joinWithCode(rawCode){
   const code = String(rawCode || '').replace(/\D/g, '');
-  if(code.length !== 6){ setCloudStatus('Digite os 6 números do código.'); return Promise.resolve(false); }
+  const fail = (title, text) => {
+    setCloudStatus(`❌ ${title}`);
+    showCloudBanner('error', `❌ ${title}`, text);
+    return false;
+  };
+  if(code.length !== 6) return Promise.resolve(fail('Código incompleto', 'Digite os 6 números que aparecem no outro aparelho.'));
+  hideCloudBanner();
   setCloudStatus('🔗 Conectando...');
   return cloudFetch(`pairCodes/${code}`)
     .then(pc => {
       if(!pc || !pc.houseId || pc.expiresAt < Date.now()){
-        setCloudStatus('❌ Código inválido ou expirado. Gere um novo código no outro aparelho.');
-        return false;
+        return fail('Código inválido ou expirado', 'No outro aparelho (ex: a TV), toque em "Mostrar código" para gerar um novo e tente de novo.');
       }
       return cloudFetch(`houses/${pc.houseId}`).then(house => {
         if(!house || !house.config){
-          setCloudStatus('❌ Não encontrei a configuração do outro aparelho. Gere um novo código lá.');
-          return false;
+          return fail('Configuração não encontrada', 'No outro aparelho (ex: a TV), toque em "Mostrar código" para gerar um novo e tente de novo.');
         }
         hidePairCode();
         lsSet(HOUSE_ID_KEY, pc.houseId);
         applyRemoteHouse(house); // joining is explicit, so apply even with the settings screen open
         pendingRemoteHouse = null;
         if(settingsOverlay.style.display === 'flex') populateDraftFromCurrentConfig();
-        cloudFetch(`pairCodes/${code}`, { method: 'DELETE' }).catch(() => {}); // one-time use
+        // Let the device showing the code know someone joined (the code stays valid for other devices).
+        cloudFetch(`pairCodes/${code}`, { method: 'PUT', body: JSON.stringify({ houseId: pc.houseId, expiresAt: pc.expiresAt, joinedAt: Date.now() }) }).catch(() => {});
         startHouseSync();
         updateCloudStatus();
-        setCloudStatus('✅ Conectado! Esta tela já mostra a configuração do outro aparelho.');
+        // The QR link may open inside the camera/Lens app instead of the usual browser, and each
+        // browser keeps its own pairing — so tell the user how to connect the usual one too.
+        showCloudBanner('ok', '✅ Conectado com sucesso!',
+          `Esta tela já mostra a rotina do outro aparelho, e o que você salvar aqui aparece lá sozinho. ` +
+          `Abriu dentro do app da câmera? Abra o app no navegador de sempre (ex: Chrome) e digite o código ${code.slice(0,3)} ${code.slice(3)} em "Conectar" — vale até ${formatClock(pc.expiresAt)}.`);
         return true;
       });
     })
-    .catch(() => { setCloudStatus('⚠️ Não consegui conectar. Verifique a internet e tente de novo.'); return false; });
+    .catch(() => fail('Não consegui conectar', 'Verifique a internet e tente de novo.'));
 }
 
 function disconnectHouse(){
