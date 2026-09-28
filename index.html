@@ -512,6 +512,79 @@
     outline-offset:2px;
   }
 
+  /* ---- First-use welcome screen ---- */
+  #welcome-overlay{
+    position:fixed;
+    inset:0;
+    background:rgba(29,53,87,0.9);
+    display:none;
+    align-items:center;
+    justify-content:center;
+    z-index:950;
+    padding:3vh 2vw;
+  }
+  #welcome-overlay .welcome-card h2{ font-size:clamp(24px, 2.2vw, 44px); }
+  #welcome-overlay .settings-btn{ font-size:clamp(18px, 1.4vw, 30px); }
+  .welcome-card h3{
+    font-family:'Baloo 2', sans-serif;
+    font-weight:800;
+    font-size:clamp(17px, 1.3vw, 28px);
+    color:var(--navy);
+    margin:2vh 0 0.5vh;
+  }
+  .welcome-note{
+    background:rgba(255,193,69,0.2);
+    border:2px solid var(--sun);
+    border-radius:14px;
+    padding:1.5vh 1.2vw;
+    font-family:'Nunito', sans-serif;
+    font-size:clamp(14px, 1vw, 22px);
+    color:var(--navy);
+  }
+  .welcome-card .util-btn,
+  .welcome-card .settings-text-input,
+  .welcome-card .settings-label,
+  .welcome-card .settings-hint{ font-size:clamp(14px, 1vw, 22px); }
+  #welcome-templates label{
+    display:flex;
+    align-items:center;
+    gap:1vw;
+    background:white;
+    border:2px solid rgba(29,53,87,0.1);
+    border-radius:12px;
+    padding:1vh 1vw;
+    margin-bottom:0.8vh;
+    font-family:'Nunito', sans-serif;
+    font-weight:800;
+    font-size:clamp(15px, 1.1vw, 24px);
+    color:var(--navy);
+    cursor:pointer;
+  }
+  #welcome-templates input{ width:1.4em; height:1.4em; flex:none; }
+  #welcome-templates .days{ font-weight:600; color:#6b7a90; margin-left:auto; }
+
+  /* ---- "New version available" banner ---- */
+  #update-banner{
+    position:fixed;
+    top:1.5vh;
+    left:50%;
+    transform:translateX(-50%);
+    display:none;
+    align-items:center;
+    gap:1vw;
+    background:white;
+    border:3px solid var(--mint);
+    border-radius:999px;
+    padding:0.8vh 0.8vw 0.8vh 1.5vw;
+    box-shadow:0 6px 20px rgba(29,53,87,0.25);
+    font-family:'Nunito', sans-serif;
+    font-weight:800;
+    font-size:clamp(14px, 1vw, 22px);
+    color:var(--navy);
+    z-index:1050;
+  }
+  #update-banner .util-btn{ font-size:clamp(14px, 1vw, 22px); }
+
   /* ---- In-app alert/confirm dialog (TV browsers may block native ones) ---- */
   #app-dialog-overlay{
     position:fixed;
@@ -728,38 +801,6 @@
     gap:0.8vw;
     margin:1vh 0;
   }
-  #export-output{
-    display:none;
-    width:100%;
-    height:12vh;
-    font-family:monospace;
-    font-size:0.8vw;
-    padding:0.8vh;
-    border-radius:10px;
-    border:2px solid rgba(29,53,87,0.15);
-    margin-bottom:0.8vh;
-    resize:vertical;
-  }
-  #qr-display{
-    display:none;
-    background:white;
-    border-radius:12px;
-    padding:1.5vh;
-    margin:1vh 0;
-    width:fit-content;
-  }
-  #phone-sync-banner{
-    display:none;
-    background:rgba(255,193,69,0.2);
-    border:2px solid var(--sun);
-    border-radius:12px;
-    padding:1vh 1.2vw;
-    margin:1vh 0;
-    font-family:'Baloo 2', sans-serif;
-    font-weight:700;
-    font-size:1vw;
-    color:var(--navy);
-  }
   #cloud-banner{
     display:none;
     border-radius:14px;
@@ -820,22 +861,6 @@
   #cloud-code-input{
     max-width:9em;
     letter-spacing:0.15em;
-  }
-  #github-sync{
-    margin-top:1.5vh;
-  }
-  #github-sync > summary{
-    cursor:pointer;
-    font-family:'Baloo 2', sans-serif;
-    font-weight:700;
-    font-size:1vw;
-    color:var(--navy);
-  }
-  #sync-status{
-    font-family:'Nunito', sans-serif;
-    font-size:0.9vw;
-    color:var(--navy);
-    margin-top:0.5vh;
   }
   .settings-hint{
     font-family:'Nunito', sans-serif;
@@ -1178,41 +1203,11 @@
         </div>
       </div>
 
-      <details id="github-sync">
-      <summary>🐙 Sincronizar via GitHub (método antigo)</summary>
-      <h3 style="margin-top:1vh;">📱↔️📺 Configurar pelo celular, usar na TV</h3>
-      <p class="settings-hint"><strong>Passo 1:</strong> toque em "Preparar" — gera o texto abaixo e já verifica se o arquivo é novo ou já existe no GitHub.</p>
-      <p class="settings-hint"><strong>Passo 2:</strong> toque no texto que aparecer, selecione tudo (⋯ → Selecionar tudo) e copie (⋯ → Copiar) — isso é feito à mão, é mais confiável que copiar sozinho.</p>
-      <p class="settings-hint"><strong>Passo 3:</strong> toque em "Ir pro GitHub" — se o arquivo já existir, cole por cima do conteúdo antigo lá.</p>
-      <div class="sync-buttons">
-        <button type="button" id="github-prefill-btn" class="util-btn" style="background:var(--coral);">1️⃣ Preparar</button>
-        <button type="button" id="go-github-btn" class="util-btn" style="background:#9aa5b1; display:none;">3️⃣ Ir pro GitHub</button>
-      </div>
-      <textarea id="export-output" readonly placeholder="Toque em 'Preparar' pra gerar o texto aqui..."></textarea>
-      <p class="settings-hint" id="repo-path-hint" style="font-size:0.8vw;"></p>
-      <div id="sync-status"></div>
-
-      <details style="margin-top:1.5vh;">
-        <summary style="cursor:pointer; font-family:'Baloo 2', sans-serif; font-weight:700; color:var(--navy);">🔧 Avançado (opcional): sincronizar sem copiar/colar</summary>
-        <p class="settings-hint" style="margin-top:1vh;">Preencha os dois campos abaixo pra o botão "Preparar" enviar direto pro GitHub, sem precisar copiar nem colar nada. Fica salvo só neste celular — nunca é incluído no texto exportado.</p>
-        <label class="settings-label" for="gh-repo-input">Usuário/repositório GitHub</label>
-        <input type="text" id="gh-repo-input" class="settings-text-input" placeholder="cole qualquer link do repositório (github.com/... ou .git)">
-        <label class="settings-label" for="gh-token-input" style="margin-top:0.8vh; display:block;">Token de acesso do GitHub</label>
-        <input type="password" id="gh-token-input" class="settings-text-input" placeholder="cole o token aqui">
-        <p class="settings-hint" style="font-size:0.75vw; margin-top:0.8vh;">
-          <strong>Como gerar:</strong> github.com → sua foto de perfil → Settings → Developer settings → Personal access tokens → Fine-grained tokens → Generate new token. Em "Repository access", escolha "Only select repositories" e selecione só este. Em "Permissions" → "Repository permissions" → "Contents" → escolha "Read and write". Gere e cole o token acima.
-        </p>
-      </details>
-
-      <p class="settings-hint" style="margin-top:1.5vh;"><strong>Na TV:</strong> toque em "Importar de config.json" — busca esse arquivo direto do GitHub e aplica, sem digitar nada.</p>
-      <div class="sync-buttons">
-        <button type="button" id="import-config-btn" class="util-btn" style="background:var(--mint);">📥 Importar de config.json</button>
-      </div>
-      </details>
     </div>
 
-    <label class="settings-label" for="settings-child-name">Nome da criança (opcional)</label>
-    <input type="text" id="settings-child-name" class="settings-text-input" placeholder="Ex: Luísa">
+    <label class="settings-label" for="settings-child-name">Apelido da criança (opcional)</label>
+    <input type="text" id="settings-child-name" class="settings-text-input" maxlength="30" placeholder="Ex: Lulu">
+    <p class="settings-hint">🔒 Use só um apelido — nada de nome completo, escola ou endereço.</p>
 
     <div id="step-size-row">
       <span class="settings-label">Incremento das setas de horário:</span>
@@ -1237,6 +1232,10 @@
       <p class="settings-hint">Marque cada rotina nos dias em que ela deve rodar. Pode combinar várias no mesmo dia — elas se juntam em ordem de horário. Só evite horários que se sobrepõem entre rotinas do mesmo dia.</p>
 
       <div id="routine-tabs"></div>
+      <div class="sync-buttons" id="template-add-row">
+        <select id="template-select" class="settings-select"></select>
+        <button type="button" id="template-add-btn" class="util-btn" style="background:var(--sky);">📋 Adicionar modelo</button>
+      </div>
 
       <div id="routine-edit-row">
         <input type="text" id="routine-name-input" class="settings-text-input" placeholder="Nome da rotina">
@@ -1269,8 +1268,33 @@
       <button id="settings-cancel" class="settings-btn cancel">Cancelar</button>
       <button id="settings-save" class="settings-btn save">💾 Salvar</button>
     </div>
-    <p style="text-align:right; font-size:0.7vw; color:#9aa5b1; margin-top:1vh;">Versão do código: 2026-09-28 09:15</p>
+    <p class="settings-hint" style="margin-top:1.5vh;">⚠️ <strong>Versão de teste.</strong> Este app ainda está em fase de testes. Use só apelidos e não coloque dados sensíveis. As rotinas ficam salvas neste aparelho e, se você conectar outros aparelhos, num servidor usado só para sincronizá-los.</p>
+    <p id="app-version" style="text-align:right; font-size:0.7vw; color:#9aa5b1; margin-top:1vh;">Versão do código: 2026-09-28 17:50</p>
   </div>
+</div>
+
+<div id="welcome-overlay">
+  <div class="settings-card welcome-card">
+    <h2>👋 Bem-vindo à Rotina na TV!</h2>
+    <div class="welcome-note">⚠️ <strong>Versão de teste.</strong> Este app ainda está em fase de testes. Para proteger sua família, <strong>use apenas um apelido</strong> para a criança — nada de nome completo, escola ou endereço. As rotinas ficam salvas neste aparelho e, se você conectar outros aparelhos, num servidor usado só para sincronizá-los.</div>
+    <h3>Já tem outro aparelho configurado (ex: a TV)?</h3>
+    <div class="sync-buttons">
+      <button type="button" id="welcome-connect-btn" class="util-btn" style="background:var(--mint);">🔗 Conectar com código</button>
+    </div>
+    <h3>Ou escolha por onde começar (pode marcar vários):</h3>
+    <div id="welcome-templates"></div>
+    <label class="settings-label" for="welcome-child-name">Apelido da criança (opcional)</label>
+    <input type="text" id="welcome-child-name" class="settings-text-input" maxlength="30" placeholder="Ex: Lulu">
+    <div class="settings-actions">
+      <button type="button" id="welcome-start-btn" class="settings-btn save">▶️ Começar</button>
+    </div>
+    <p class="settings-hint">Depois dá para ajustar tarefas, horários e dias em ⚙️ Configurar.</p>
+  </div>
+</div>
+
+<div id="update-banner">
+  <span>🆕 Nova versão do app disponível.</span>
+  <button type="button" id="update-now-btn" class="util-btn" style="background:var(--mint);">Atualizar agora</button>
 </div>
 
 <div id="app-dialog-overlay">
@@ -1296,22 +1320,65 @@
 </div>
 
 <script>
-// ---------- DEFAULT CONFIGURATION (used only if nothing is saved in this browser) ----------
-const DEFAULT_MORNING_TASKS = [
-  { name: "Acordar",              emoji: "🛏️", start: [7,55],  end:[8,5],  sound: { type: "melody" } },
-  { name: "Tomar café da manhã",  emoji: "🥣", start: [8,5],  end:[8,20] },
-  { name: "Trocar de roupa",      emoji: "👕", start: [8,20], end:[8,30] },
-  { name: "Escovar os dentes",    emoji: "🪥", start: [8,30], end:[8,40] },
-  { name: "Calçar sapatos e ir para a Kita", emoji: "👟", start:[8,40], end:[8,45] },
+// ---------- Routine templates (first use and "Adicionar modelo") ----------
+const WEEKDAYS = [1,2,3,4,5];
+const WEEKEND = [0,6];
+const EVERY_DAY = [0,1,2,3,4,5,6];
+const ROUTINE_TEMPLATES = [
+  { key: 'morning', name: 'Manhã', label: 'Manhã antes da escola', icon: '🌞', days: WEEKDAYS, daysLabel: 'seg–sex', tasks: [
+    { name: 'Acordar',                             emoji: '🛏️', start: [7,0],  end: [7,10], sound: { type: 'melody' } },
+    { name: 'Tomar café da manhã',                 emoji: '🥣', start: [7,10], end: [7,25] },
+    { name: 'Trocar de roupa',                     emoji: '👕', start: [7,25], end: [7,35] },
+    { name: 'Escovar os dentes',                   emoji: '🪥', start: [7,35], end: [7,40] },
+    { name: 'Calçar os sapatos e pegar a mochila', emoji: '👟', start: [7,40], end: [7,45] }
+  ]},
+  { key: 'afternoon', name: 'Tarde', label: 'Tarde / depois da escola', icon: '🎒', days: WEEKDAYS, daysLabel: 'seg–sex', tasks: [
+    { name: 'Lanche',                emoji: '🍎', start: [15,30], end: [15,45] },
+    { name: 'Lição de casa',         emoji: '📚', start: [15,45], end: [16,15] },
+    { name: 'Brincar',               emoji: '🧸', start: [16,15], end: [17,0] },
+    { name: 'Arrumar os brinquedos', emoji: '🧹', start: [17,0],  end: [17,10] }
+  ]},
+  { key: 'bedtime', name: 'Noite', label: 'Hora de dormir', icon: '🌙', days: EVERY_DAY, daysLabel: 'todos os dias', tasks: [
+    { name: 'Jantar',            emoji: '🍽️', start: [18,30], end: [19,0] },
+    { name: 'Tomar banho',       emoji: '🛁', start: [19,0],  end: [19,20] },
+    { name: 'Vestir o pijama',   emoji: '👕', start: [19,20], end: [19,25] },
+    { name: 'Escovar os dentes', emoji: '🪥', start: [19,25], end: [19,30] },
+    { name: 'Hora da história',  emoji: '📚', start: [19,30], end: [19,45] },
+    { name: 'Dormir',            emoji: '🌙', start: [19,45], end: [19,50] }
+  ]},
+  { key: 'weekend', name: 'Fim de semana', label: 'Manhã de fim de semana', icon: '🎈', days: WEEKEND, daysLabel: 'sáb–dom', tasks: [
+    { name: 'Acordar',             emoji: '🛏️', start: [8,0],  end: [8,10], sound: { type: 'melody' } },
+    { name: 'Tomar café da manhã', emoji: '🥣', start: [8,10], end: [8,30] },
+    { name: 'Trocar de roupa',     emoji: '👕', start: [8,30], end: [8,40] },
+    { name: 'Escovar os dentes',   emoji: '🪥', start: [8,40], end: [8,45] },
+    { name: 'Arrumar a cama',      emoji: '🛏️', start: [8,45], end: [8,50] }
+  ]}
 ];
-const DEFAULT_CHILD_NAME = "Gabriel";
+const BLANK_TEMPLATE = { key: 'blank', name: 'Minha rotina', icon: '📋', days: EVERY_DAY, tasks: [
+  { name: 'Nova tarefa', emoji: '⭐', start: [8,0], end: [8,10] }
+]};
+function makeTemplateRoutine(tpl, id){
+  return { id, name: tpl.name, icon: tpl.icon, tasks: JSON.parse(JSON.stringify(tpl.tasks)) };
+}
+// Full configuration from a list of templates, each routine on its template's weekdays.
+function buildConfigFromTemplates(templates, childName){
+  const routines = [];
+  const weekSchedule = { 0:[], 1:[], 2:[], 3:[], 4:[], 5:[], 6:[] };
+  templates.forEach((tpl, i) => {
+    const routine = makeTemplateRoutine(tpl, `r_${tpl.key}_${Date.now()}_${i}`);
+    routines.push(routine);
+    tpl.days.forEach(d => weekSchedule[d].push(routine.id));
+  });
+  return { childName: childName || '', onTimeIcon: DEFAULT_ONTIME_ICON, lateIcon: DEFAULT_LATE_ICON, routines, weekSchedule };
+}
+
+// ---------- DEFAULT CONFIGURATION (used only if nothing is saved in this browser) ----------
+const DEFAULT_CHILD_NAME = "";
 const DEFAULT_ONTIME_ICON = "🐆";
 const DEFAULT_LATE_ICON = "🐢";
-const DEFAULT_ROUTINES = [
-  { id: 'r_morning', name: 'Manhã', icon: '🌞', tasks: DEFAULT_MORNING_TASKS }
-];
+const DEFAULT_ROUTINES = [ makeTemplateRoutine(ROUTINE_TEMPLATES[0], 'r_morning') ];
 const DAY_NAMES = ['Dom','Seg','Ter','Qua','Qui','Sex','Sáb'];
-const DEFAULT_WEEK_SCHEDULE = { 0:['r_morning'], 1:['r_morning'], 2:['r_morning'], 3:['r_morning'], 4:['r_morning'], 5:['r_morning'], 6:['r_morning'] };
+const DEFAULT_WEEK_SCHEDULE = { 0:[], 1:['r_morning'], 2:['r_morning'], 3:['r_morning'], 4:['r_morning'], 5:['r_morning'], 6:[] };
 
 // ---------- Presets for the settings screen ----------
 const EMOJI_PRESETS = ["🛏️","🥣","👕","🪥","👟","🛁","🧸","💇","🎒","🌙","📚","🧴","🥛","🍎","🧦","🚽","🧹","🖍️","🏊","🎵","🩰","⚽","🤸","🥋","🎹","🚴","🏀","🎭"];
@@ -1559,6 +1626,7 @@ function maybeAutoRefresh(nowMin){
     safeStateSince = null;
     return;
   }
+  if(updateAvailable && isQuietForReload()){ reloadFresh(); return; }
   if(safeStateSince === null) safeStateSince = Date.now();
   const stableFor = Date.now() - safeStateSince;
   if(stableFor < AUTO_REFRESH_STABLE_MS) return;
@@ -1568,7 +1636,7 @@ function maybeAutoRefresh(nowMin){
   if(Date.now() - lastReload < AUTO_REFRESH_MIN_INTERVAL_MS) return;
 
   try{ localStorage.setItem('lastAutoRefresh', String(Date.now())); }catch(e){}
-  location.reload();
+  reloadFresh(); // a plain reload() may be served the same cached copy
 }
 
 function fmt([h,m]){
@@ -2419,9 +2487,9 @@ document.getElementById('late-icon-picker').addEventListener('click', (e) => {
 
 // Fill the settings screen "draft" from the current configuration
 // (ROUTINES/WEEK_SCHEDULE/etc) — used when opening the screen and also
-// right after importing a config.json.
-function populateDraftFromCurrentConfig(){
-  draftRoutines = ROUTINES.map(r => ({
+// right after receiving a configuration from another device.
+function configRoutineToDraft(r){
+  return {
     id: r.id,
     name: r.name,
     icon: r.icon,
@@ -2434,7 +2502,10 @@ function populateDraftFromCurrentConfig(){
       soundType: (t.sound && t.sound.type === 'melody') ? 'melody' : ((t.sound && t.sound.src) ? 'url' : 'chime'),
       soundUrl: (t.sound && t.sound.src) ? t.sound.src : ''
     }))
-  }));
+  };
+}
+function populateDraftFromCurrentConfig(){
+  draftRoutines = ROUTINES.map(configRoutineToDraft);
   draftWeekSchedule = {};
   for(let d=0; d<7; d++) draftWeekSchedule[d] = (WEEK_SCHEDULE[d] || []).slice();
   selectedRoutineIndex = 0;
@@ -2503,6 +2574,21 @@ document.addEventListener('keydown', (e) => {
     closeAppDialog(false);
   }
 });
+
+// ---------- "Adicionar modelo": add a template routine to the draft ----------
+(function setupTemplateAdder(){
+  const select = document.getElementById('template-select');
+  select.innerHTML = ROUTINE_TEMPLATES.map(t => `<option value="${t.key}">${t.icon} ${t.label} (${t.daysLabel})</option>`).join('');
+  document.getElementById('template-add-btn').addEventListener('click', () => {
+    const tpl = ROUTINE_TEMPLATES.find(t => t.key === select.value);
+    if(!tpl) return;
+    const routine = makeTemplateRoutine(tpl, `r_${tpl.key}_${Date.now()}`);
+    draftRoutines.push(configRoutineToDraft(routine));
+    tpl.days.forEach(d => { (draftWeekSchedule[d] = draftWeekSchedule[d] || []).push(routine.id); });
+    selectRoutine(draftRoutines.length - 1);
+    renderWeekMatrix();
+  });
+})();
 
 // ---------- Routine management (tabs) ----------
 let draftRoutines = [];
@@ -2886,7 +2972,7 @@ function saveSettings(){
 }
 document.getElementById('settings-cancel').addEventListener('click', closeSettings);
 
-// ---------- Export / Import configuration (phone <-> TV) ----------
+// ---------- Current configuration as a plain object (saved locally and synced) ----------
 function getCurrentConfigObject(){
   return {
     childName: CHILD_NAME,
@@ -2897,13 +2983,10 @@ function getCurrentConfigObject(){
   };
 }
 
-// Apply a configuration object received from any source (config.json
-// or import link), with basic validation.
-function applyImportedConfig(cfg, statusEl){
-  if(!cfg || !Array.isArray(cfg.routines) || cfg.routines.length === 0){
-    if(statusEl) statusEl.textContent = '❌ Configuração inválida.';
-    return false;
-  }
+// Apply a configuration object received from another device or built from
+// templates, with basic validation.
+function applyImportedConfig(cfg){
+  if(!cfg || !Array.isArray(cfg.routines) || cfg.routines.length === 0) return false;
   CHILD_NAME = cfg.childName || '';
   ONTIME_ICON = cfg.onTimeIcon || DEFAULT_ONTIME_ICON;
   LATE_ICON = cfg.lateIcon || DEFAULT_LATE_ICON;
@@ -2915,164 +2998,7 @@ function applyImportedConfig(cfg, statusEl){
   return true;
 }
 
-document.getElementById('import-config-btn').addEventListener('click', () => {
-  const statusEl = document.getElementById('sync-status');
-  statusEl.textContent = 'Buscando config.json...';
-  fetch('config.json', { cache: 'no-store' })
-    .then(r => { if(!r.ok) throw new Error('not found'); return r.json(); })
-    .then(cfg => {
-      if(applyImportedConfig(cfg, statusEl)){
-        populateDraftFromCurrentConfig(); // update the settings screen itself with what just arrived
-        statusEl.textContent = '✅ Configuração importada com sucesso!';
-        pushConfigToCloud(getCurrentConfigObject());
-      }
-    })
-    .catch(() => {
-      statusEl.textContent = '❌ Não achei um "config.json" válido nesse repositório ainda.';
-    });
-});
 document.getElementById('config-btn').addEventListener('click', openSettings);
-
-// ---------- Create/update config.json on GitHub ----------
-// Default (no advanced credentials): uses GitHub's prefilled link
-// (native feature to prefill a new file via URL parameters) —
-// the user copies the text and confirms the commit by hand.
-// Advanced (with user/repository + token filled in): talks directly to the
-// GitHub API, creates or updates the file in one tap, no copy/paste.
-const REPO_PATH_DEFAULT = 'fabiofialho1/rotina-infantil-na-tv'; // used only if the advanced field is empty
-const REPO_BRANCH = 'main';
-
-function utf8ToBase64(str){ return btoa(unescape(encodeURIComponent(str))); }
-
-const GH_SYNC_KEY = 'rotinaGithubSync_v1';
-function loadGithubSyncSettings(){
-  try{
-    const raw = localStorage.getItem(GH_SYNC_KEY);
-    if(raw) return JSON.parse(raw);
-  }catch(e){}
-  return { repo: '', token: '' };
-}
-// Accept any link format the user pastes (regular GitHub URL, .git link,
-// GitHub Pages link, with or without https://) and extract just the
-// "user/repository", which is the format the API actually needs.
-function normalizeRepoPath(input){
-  let s = (input || '').trim();
-  if(!s) return '';
-  s = s.replace(/\.git$/i, '');
-  let m;
-  m = s.match(/^git@github\.com:([^\/]+)\/([^\/]+?)\/?$/i);
-  if(m) return `${m[1]}/${m[2]}`;
-  m = s.match(/^(?:https?:\/\/)?([^.\/]+)\.github\.io\/([^\/?#]+)/i); // GitHub Pages link (user.github.io/repo)
-  if(m) return `${m[1]}/${m[2]}`;
-  m = s.match(/^(?:https?:\/\/)?(?:www\.)?github\.com\/([^\/?#]+)\/([^\/?#]+)/i); // regular github.com link
-  if(m) return `${m[1]}/${m[2]}`;
-  m = s.match(/^([^\/]+)\/([^\/]+?)\/?$/); // already in user/repository format
-  if(m) return `${m[1]}/${m[2]}`;
-  return s; // not recognized — return as is
-}
-
-function saveGithubSyncSettings(){
-  try{
-    localStorage.setItem(GH_SYNC_KEY, JSON.stringify({
-      repo: document.getElementById('gh-repo-input').value.trim(),
-      token: document.getElementById('gh-token-input').value.trim()
-    }));
-  }catch(e){}
-}
-(function initGithubSyncFields(){
-  const saved = loadGithubSyncSettings();
-  document.getElementById('gh-repo-input').value = saved.repo || '';
-  document.getElementById('gh-token-input').value = saved.token || '';
-  document.getElementById('gh-repo-input').addEventListener('input', saveGithubSyncSettings);
-  document.getElementById('gh-token-input').addEventListener('input', saveGithubSyncSettings);
-  // On blur, clean up/adjust the text to the right format on screen —
-  // so the user sees it worked, no matter what they pasted.
-  document.getElementById('gh-repo-input').addEventListener('blur', (e) => {
-    const cleaned = normalizeRepoPath(e.target.value);
-    e.target.value = cleaned;
-    saveGithubSyncSettings();
-  });
-})();
-
-function getRepoPath(){
-  const custom = normalizeRepoPath(document.getElementById('gh-repo-input').value);
-  return custom || REPO_PATH_DEFAULT;
-}
-document.getElementById('repo-path-hint').textContent = `Repositório configurado: ${getRepoPath()} (branch ${REPO_BRANCH})`;
-
-let pendingGithubUrl = null; // stores the right link (new or edit) until the user confirms they copied it
-
-// Send directly via the GitHub API (create or update), using a token — without
-// opening any screen, no copy/paste.
-function syncViaGithubApi(){
-  const repo = getRepoPath();
-  const token = document.getElementById('gh-token-input').value.trim();
-  const statusEl = document.getElementById('sync-status');
-  const json = JSON.stringify(getCurrentConfigObject(), null, 2);
-  const apiUrl = `https://api.github.com/repos/${repo}/contents/config.json`;
-  const headers = { 'Authorization': `token ${token}`, 'Accept': 'application/vnd.github+json' };
-
-  statusEl.textContent = '🔧 Sincronizando direto com o GitHub...';
-  fetch(apiUrl, { headers, cache: 'no-store' })
-    .then(r => (r.status === 404) ? null : r.json())
-    .then(existing => {
-      const body = { message: 'Atualiza config.json (app Rotina)', content: utf8ToBase64(json), branch: REPO_BRANCH };
-      if(existing && existing.sha) body.sha = existing.sha;
-      return fetch(apiUrl, {
-        method: 'PUT',
-        headers: { ...headers, 'Content-Type': 'application/json' },
-        body: JSON.stringify(body)
-      });
-    })
-    .then(r => {
-      if(!r.ok) return r.json().then(e => { throw new Error(e.message || ('HTTP ' + r.status)); });
-      statusEl.textContent = '✅ Sincronizado com o GitHub com sucesso! Na TV, toque em "Importar de config.json".';
-    })
-    .catch(err => {
-      statusEl.textContent = '❌ Erro ao sincronizar: ' + err.message + '. Confere o repositório/token, ou use o fluxo manual abaixo.';
-    });
-}
-
-// Step 1: generate the text, show it on screen to copy by hand, and find the
-// right GitHub link (new file or edit the existing one). If advanced
-// credentials are filled in, use the API directly instead.
-document.getElementById('github-prefill-btn').addEventListener('click', () => {
-  const repo = getRepoPath();
-  const token = document.getElementById('gh-token-input').value.trim();
-  if(token){
-    syncViaGithubApi();
-    return;
-  }
-
-  const json = JSON.stringify(getCurrentConfigObject(), null, 2);
-  const statusEl = document.getElementById('sync-status');
-  const ta = document.getElementById('export-output');
-  const goBtn = document.getElementById('go-github-btn');
-
-  ta.value = json;
-  ta.style.display = 'block';
-  goBtn.style.display = 'none';
-  statusEl.textContent = 'Verificando se o config.json já existe no GitHub...';
-
-  fetch('config.json', { cache: 'no-store' })
-    .then(r => r.ok)
-    .catch(() => false)
-    .then(exists => {
-      if(!exists){
-        pendingGithubUrl = `https://github.com/${repo}/new/${REPO_BRANCH}?filename=config.json&value=${encodeURIComponent(json)}`;
-        statusEl.textContent = '✅ Texto pronto acima (arquivo ainda não existe, esse link já vai criar preenchido). Toque em "Ir pro GitHub".';
-      } else {
-        pendingGithubUrl = `https://github.com/${repo}/edit/${REPO_BRANCH}/config.json`;
-        statusEl.textContent = '✅ Texto pronto acima. Toque nele, selecione tudo e copie — depois toque em "Ir pro GitHub" e cole por cima do conteúdo antigo.';
-      }
-      goBtn.style.display = 'inline-block';
-    });
-});
-
-// Step 3: only navigate once the user has had a chance to copy the text.
-document.getElementById('go-github-btn').addEventListener('click', () => {
-  if(pendingGithubUrl) window.location.href = pendingGithubUrl;
-});
 
 // ---------- Cloud sync (pairing by code, one anonymous identity per device) ----------
 // All paired devices (TV, phones) share one "house" in a Firebase Realtime
@@ -3613,10 +3539,7 @@ document.getElementById('cloud-remove-others-btn').addEventListener('click', () 
 document.getElementById('cloud-name-editor').appendChild(buildDeviceNameEditor());
 
 function initCloudSync(){
-  if(!cloudEnabled()){
-    document.getElementById('github-sync').open = true; // only sync option available
-    return;
-  }
+  if(!cloudEnabled()) return;
   document.getElementById('cloud-sync').style.display = '';
   if(lsGet(LEGACY_HOUSE_ID_KEY)){
     lsSet(LEGACY_HOUSE_ID_KEY, null);
@@ -3656,10 +3579,82 @@ function initCloudSync(){
   }
 }
 
+// ---------- App updates ----------
+// Every 10 minutes (and when the app comes back to the foreground) fetch the
+// published index.html with a unique URL — bypassing the browser/CDN caches —
+// and compare its "Versão do código" stamp with the one running. When newer,
+// show a banner, and reload by itself at the next safe moment (no task
+// running, no settings screen, dialog or welcome screen open).
+const RUNNING_VERSION = (document.getElementById('app-version').textContent.match(/\d{4}-\d{2}-\d{2} \d{2}:\d{2}/) || [''])[0];
+let updateAvailable = false;
+let lastUpdateCheck = 0;
+function freshAppUrl(){ return location.pathname + '?_cb=' + Date.now(); }
+function reloadFresh(){ location.replace(freshAppUrl()); }
+function checkForUpdate(){
+  if(location.protocol === 'file:' || !RUNNING_VERSION || updateAvailable) return;
+  lastUpdateCheck = Date.now();
+  fetch(freshAppUrl(), { cache: 'no-store' })
+    .then(r => r.ok ? r.text() : '')
+    .then(html => {
+      const m = html.match(/Versão do código: (\d{4}-\d{2}-\d{2} \d{2}:\d{2})/);
+      if(m && m[1] > RUNNING_VERSION){
+        updateAvailable = true;
+        document.getElementById('update-banner').style.display = 'flex';
+      }
+    })
+    .catch(() => {});
+}
+function isQuietForReload(){
+  return settingsOverlay.style.display !== 'flex'
+    && document.getElementById('welcome-overlay').style.display !== 'flex'
+    && document.getElementById('app-dialog-overlay').style.display !== 'flex';
+}
+document.getElementById('update-now-btn').addEventListener('click', reloadFresh);
+setTimeout(checkForUpdate, 60 * 1000);
+setInterval(checkForUpdate, 10 * 60 * 1000);
+document.addEventListener('visibilitychange', () => {
+  if(document.visibilityState === 'visible' && Date.now() - lastUpdateCheck > 60 * 1000) checkForUpdate();
+});
+
+// ---------- First use: welcome screen with templates ----------
+function renderWelcomeTemplates(){
+  const defaults = ['morning', 'bedtime'];
+  const options = ROUTINE_TEMPLATES.map(t =>
+    `<label><input type="checkbox" value="${t.key}"${defaults.includes(t.key) ? ' checked' : ''}> ${t.icon} ${t.label} <span class="days">${t.daysLabel}</span></label>`);
+  options.push(`<label><input type="checkbox" value="blank"> ✏️ Começar do zero <span class="days">uma rotina vazia para montar do seu jeito</span></label>`);
+  document.getElementById('welcome-templates').innerHTML = options.join('');
+}
+function hideWelcome(){ document.getElementById('welcome-overlay').style.display = 'none'; }
+function showWelcome(){
+  renderWelcomeTemplates();
+  document.getElementById('welcome-overlay').style.display = 'flex';
+  document.getElementById('welcome-start-btn').focus();
+}
+document.getElementById('welcome-start-btn').addEventListener('click', () => {
+  const keys = [...document.querySelectorAll('#welcome-templates input:checked')].map(i => i.value);
+  const templates = keys.map(k => k === 'blank' ? BLANK_TEMPLATE : ROUTINE_TEMPLATES.find(t => t.key === k)).filter(Boolean);
+  if(!templates.length) templates.push(BLANK_TEMPLATE);
+  const nickname = document.getElementById('welcome-child-name').value.trim().slice(0, 30);
+  applyImportedConfig(buildConfigFromTemplates(templates, nickname));
+  hideWelcome();
+});
+document.getElementById('welcome-connect-btn').addEventListener('click', () => {
+  hideWelcome();
+  openSettings();
+  document.getElementById('cloud-code-input').focus();
+});
+// First use = nothing saved on this device and not paired. Not shown when opened from a pairing QR link.
+function maybeShowWelcome(){
+  if(stored || (cloudEnabled() && getHouseId())) return;
+  if(new URLSearchParams(location.search).get('parear')) return;
+  showWelcome();
+}
+
 // Now that everything (DOM, functions, settings screen) exists, build the
 // actual routine from the configuration saved in this browser (or the
 // default, if it's the first time).
 initSchedule(TASKS);
+maybeShowWelcome();
 initCloudSync();
 
 function safeRender(){
