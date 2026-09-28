@@ -1,0 +1,25 @@
+{
+  "rules": {
+    "houses": {
+      "$houseId": {
+        ".read": "$houseId.length >= 20",
+        ".write": "$houseId.length >= 20",
+        ".validate": "newData.hasChildren(['config', 'updatedAt', 'rev'])",
+        "config": { ".validate": "newData.isString() && newData.val().length <= 100000" },
+        "updatedAt": { ".validate": "newData.isNumber()" },
+        "rev": { ".validate": "newData.isString() && newData.val().length <= 32" },
+        "$other": { ".validate": false }
+      }
+    },
+    "pairCodes": {
+      "$code": {
+        ".read": "$code.length == 6",
+        ".write": "$code.length == 6 && (!data.exists() || data.child('expiresAt').val() < now || !newData.exists())",
+        ".validate": "newData.hasChildren(['houseId', 'expiresAt'])",
+        "houseId": { ".validate": "newData.isString() && newData.val().length >= 20 && newData.val().length <= 64" },
+        "expiresAt": { ".validate": "newData.isNumber() && newData.val() <= now + 3600000" },
+        "$other": { ".validate": false }
+      }
+    }
+  }
+}

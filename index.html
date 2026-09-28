@@ -11,7 +11,9 @@
   // anywhere else (Claude preview, file opened locally, etc.) it is harmless,
   // so it doesn't break those other ways of viewing the page.
   if(location.hostname.endsWith('github.io') && !location.search.includes('_cb=')){
-    location.replace(location.pathname + '?_cb=' + Date.now());
+    // Keep any existing query params (e.g. ?parear=CODE from the pairing QR code) and hash.
+    const sep = location.search ? '&' : '?';
+    location.replace(location.pathname + location.search + sep + '_cb=' + Date.now() + location.hash);
   }
 })();
 </script>
@@ -736,6 +738,34 @@
     font-size:1vw;
     color:var(--navy);
   }
+  #cloud-code{
+    font-family:'Baloo 2', sans-serif;
+    font-weight:800;
+    font-size:clamp(32px, 4vw, 72px);
+    letter-spacing:0.15em;
+    color:var(--navy);
+  }
+  #cloud-qr{
+    background:white;
+    border-radius:12px;
+    padding:1.5vh;
+    margin:1vh 0;
+    width:fit-content;
+  }
+  #cloud-code-input{
+    max-width:9em;
+    letter-spacing:0.15em;
+  }
+  #github-sync{
+    margin-top:1.5vh;
+  }
+  #github-sync > summary{
+    cursor:pointer;
+    font-family:'Baloo 2', sans-serif;
+    font-weight:700;
+    font-size:1vw;
+    color:var(--navy);
+  }
   #sync-status{
     font-family:'Nunito', sans-serif;
     font-size:0.9vw;
@@ -1051,7 +1081,31 @@
     <h2>⚙️ Configurar rotina</h2>
 
     <div id="sync-section">
-      <h3>📱↔️📺 Configurar pelo celular, usar na TV</h3>
+      <div id="cloud-sync" style="display:none;">
+        <h3>📱↔️📺 Conectar celular e TV</h3>
+        <p class="settings-hint" id="cloud-status"></p>
+        <p class="settings-hint"><strong>Este aparelho já está configurado (ex: a TV)?</strong> Toque em "Mostrar código" e, no celular, leia o QR code com a câmera ou digite o código.</p>
+        <div class="sync-buttons">
+          <button type="button" id="cloud-show-code-btn" class="util-btn" style="background:var(--coral);">📺 Mostrar código</button>
+        </div>
+        <div id="cloud-code-box" style="display:none;">
+          <div id="cloud-code"></div>
+          <div id="cloud-qr"></div>
+          <p class="settings-hint" id="cloud-code-hint"></p>
+        </div>
+        <p class="settings-hint" style="margin-top:1.5vh;"><strong>Recebeu um código de outro aparelho?</strong> Digite aqui:</p>
+        <div class="sync-buttons">
+          <input type="text" id="cloud-code-input" class="settings-text-input" inputmode="numeric" autocomplete="off" maxlength="6" placeholder="000000">
+          <button type="button" id="cloud-join-btn" class="util-btn" style="background:var(--mint);">🔗 Conectar</button>
+        </div>
+        <div class="sync-buttons">
+          <button type="button" id="cloud-disconnect-btn" class="util-btn" style="background:#9aa5b1; display:none;">Desconectar este aparelho</button>
+        </div>
+      </div>
+
+      <details id="github-sync">
+      <summary>🐙 Sincronizar via GitHub (método antigo)</summary>
+      <h3 style="margin-top:1vh;">📱↔️📺 Configurar pelo celular, usar na TV</h3>
       <p class="settings-hint"><strong>Passo 1:</strong> toque em "Preparar" — gera o texto abaixo e já verifica se o arquivo é novo ou já existe no GitHub.</p>
       <p class="settings-hint"><strong>Passo 2:</strong> toque no texto que aparecer, selecione tudo (⋯ → Selecionar tudo) e copie (⋯ → Copiar) — isso é feito à mão, é mais confiável que copiar sozinho.</p>
       <p class="settings-hint"><strong>Passo 3:</strong> toque em "Ir pro GitHub" — se o arquivo já existir, cole por cima do conteúdo antigo lá.</p>
@@ -1079,6 +1133,7 @@
       <div class="sync-buttons">
         <button type="button" id="import-config-btn" class="util-btn" style="background:var(--mint);">📥 Importar de config.json</button>
       </div>
+      </details>
     </div>
 
     <label class="settings-label" for="settings-child-name">Nome da criança (opcional)</label>
@@ -1139,7 +1194,7 @@
       <button id="settings-cancel" class="settings-btn cancel">Cancelar</button>
       <button id="settings-save" class="settings-btn save">💾 Salvar</button>
     </div>
-    <p style="text-align:right; font-size:0.7vw; color:#9aa5b1; margin-top:1vh;">Versão do código: 2026-09-26 23:00</p>
+    <p style="text-align:right; font-size:0.7vw; color:#9aa5b1; margin-top:1vh;">Versão do código: 2026-09-28 01:30</p>
   </div>
 </div>
 
@@ -2320,6 +2375,11 @@ function openSettings(){
 }
 function closeSettings(){
   settingsOverlay.style.display = 'none';
+  if(pendingRemoteHouse){
+    const house = pendingRemoteHouse;
+    pendingRemoteHouse = null;
+    handleRemoteHouse(house);
+  }
 }
 
 // ---------- Routine management (tabs) ----------
@@ -2677,13 +2737,16 @@ document.getElementById('settings-save').addEventListener('click', () => {
   }));
   const newName = settingsChildNameInput.value.trim();
 
-  saveStoredConfig({
+  const savedConfig = {
     childName: newName,
     onTimeIcon: draftOnTimeIcon,
     lateIcon: draftLateIcon,
     routines: newRoutines,
     weekSchedule: draftWeekSchedule
-  });
+  };
+  saveStoredConfig(savedConfig);
+  pendingRemoteHouse = null; // this save wins over any remote change received while editing
+  pushConfigToCloud(savedConfig);
 
   ROUTINES = newRoutines;
   WEEK_SCHEDULE = draftWeekSchedule;
@@ -2735,6 +2798,7 @@ document.getElementById('import-config-btn').addEventListener('click', () => {
       if(applyImportedConfig(cfg, statusEl)){
         populateDraftFromCurrentConfig(); // update the settings screen itself with what just arrived
         statusEl.textContent = '✅ Configuração importada com sucesso!';
+        pushConfigToCloud(getCurrentConfigObject());
       }
     })
     .catch(() => {
@@ -2884,10 +2948,245 @@ document.getElementById('go-github-btn').addEventListener('click', () => {
   if(pendingGithubUrl) window.location.href = pendingGithubUrl;
 });
 
+// ---------- Cloud sync (pairing by code, no accounts) ----------
+// All paired devices (TV, phones) share one "house" record in a Firebase
+// Realtime Database, addressed by a long random house id that works as the
+// secret (see database.rules.json). A short-lived 6-digit pair code maps to
+// that house id, so a new device can join without typing the long id.
+// Every save uploads the whole config; the last save wins.
+const CLOUD_DB_URL = ''; // e.g. 'https://<project>-default-rtdb.firebaseio.com' — empty = cloud sync off
+const HOUSE_ID_KEY = 'rotinaHouseId_v1';
+const HOUSE_REV_KEY = 'rotinaHouseRev_v1'; // revision of the config this device last applied or sent
+const PAIR_CODE_TTL_MS = 10 * 60 * 1000;
+const ALNUM = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
+
+function cloudEnabled(){ return !!CLOUD_DB_URL; }
+function cloudUrl(path){ return `${CLOUD_DB_URL.replace(/\/+$/, '')}/${path}.json`; }
+function lsGet(key){ try{ return localStorage.getItem(key); }catch(e){ return null; } }
+function lsSet(key, value){
+  try{
+    if(value === null) localStorage.removeItem(key);
+    else localStorage.setItem(key, value);
+  }catch(e){}
+}
+function randomId(len, alphabet){
+  const bytes = new Uint8Array(len);
+  crypto.getRandomValues(bytes);
+  return Array.from(bytes, b => alphabet[b % alphabet.length]).join('');
+}
+function getHouseId(){ return lsGet(HOUSE_ID_KEY); }
+
+function cloudFetch(path, options){
+  return fetch(cloudUrl(path), Object.assign({ cache: 'no-store' }, options))
+    .then(r => { if(!r.ok) throw new Error('HTTP ' + r.status); return r.json(); });
+}
+
+const cloudStatusEl = document.getElementById('cloud-status');
+function setCloudStatus(text){ cloudStatusEl.textContent = text; }
+function updateCloudStatus(){
+  const connected = !!getHouseId();
+  setCloudStatus(connected
+    ? '✅ Conectado — o que for salvo aqui aparece sozinho nos outros aparelhos conectados.'
+    : 'Este aparelho ainda não está conectado a nenhum outro.');
+  document.getElementById('cloud-disconnect-btn').style.display = connected ? '' : 'none';
+}
+
+function pushConfigToCloud(cfg){
+  const houseId = getHouseId();
+  if(!cloudEnabled() || !houseId) return Promise.resolve(false);
+  const rev = randomId(12, ALNUM);
+  lsSet(HOUSE_REV_KEY, rev); // so the echo of our own save isn't re-applied
+  const body = JSON.stringify({ config: JSON.stringify(cfg), updatedAt: Date.now(), rev });
+  return cloudFetch(`houses/${houseId}`, { method: 'PUT', body })
+    .then(() => { updateCloudStatus(); return true; })
+    .catch(() => {
+      setCloudStatus('⚠️ Não consegui enviar para os outros aparelhos. Verifique a internet e salve de novo.');
+      return false;
+    });
+}
+
+// Apply a house record received from the cloud, unless it's the revision this
+// device already has. While the settings screen is open, defer it so the
+// user's unsaved edits aren't wiped (closeSettings applies it later).
+let pendingRemoteHouse = null;
+function handleRemoteHouse(house){
+  if(!house || !house.config || !house.rev) return;
+  if(house.rev === lsGet(HOUSE_REV_KEY)) return;
+  if(settingsOverlay.style.display === 'flex'){ pendingRemoteHouse = house; return; }
+  applyRemoteHouse(house);
+}
+function applyRemoteHouse(house){
+  let cfg;
+  try{ cfg = JSON.parse(house.config); }catch(e){ return false; }
+  if(!applyImportedConfig(cfg)) return false;
+  lsSet(HOUSE_REV_KEY, house.rev);
+  return true;
+}
+
+function refreshFromCloud(){
+  const houseId = getHouseId();
+  if(!cloudEnabled() || !houseId) return Promise.resolve();
+  return cloudFetch(`houses/${houseId}`).then(handleRemoteHouse).catch(() => {});
+}
+
+// Live updates via the database's streaming REST API (Server-Sent Events).
+// Any change notification just triggers a full re-read — simpler than
+// applying partial patches.
+let houseStream = null;
+function stopHouseSync(){
+  if(houseStream){ houseStream.close(); houseStream = null; }
+}
+function startHouseSync(){
+  stopHouseSync();
+  const houseId = getHouseId();
+  if(!cloudEnabled() || !houseId) return;
+  refreshFromCloud();
+  if(window.EventSource){
+    houseStream = new EventSource(cloudUrl(`houses/${houseId}`));
+    ['put', 'patch'].forEach(ev => houseStream.addEventListener(ev, () => refreshFromCloud()));
+  }
+}
+
+// Make sure this device has a house (creating one with the current config if
+// needed), so other devices can join it.
+function ensureHouse(){
+  const existing = getHouseId();
+  if(existing) return Promise.resolve(existing);
+  const houseId = randomId(24, ALNUM);
+  lsSet(HOUSE_ID_KEY, houseId);
+  return pushConfigToCloud(getCurrentConfigObject()).then(ok => {
+    if(!ok){ lsSet(HOUSE_ID_KEY, null); throw new Error('push failed'); }
+    startHouseSync();
+    return houseId;
+  });
+}
+
+// The database rules refuse to overwrite a code that is still valid, so a
+// collision just means trying another random code.
+function createPairCode(houseId, attempt){
+  const code = randomId(6, '0123456789');
+  const body = JSON.stringify({ houseId, expiresAt: Date.now() + PAIR_CODE_TTL_MS });
+  return cloudFetch(`pairCodes/${code}`, { method: 'PUT', body })
+    .then(() => code)
+    .catch(err => {
+      if((attempt || 0) < 3) return createPairCode(houseId, (attempt || 0) + 1);
+      throw err;
+    });
+}
+
+let pairCodeTimer = null;
+function hidePairCode(){
+  if(pairCodeTimer){ clearInterval(pairCodeTimer); pairCodeTimer = null; }
+  document.getElementById('cloud-code-box').style.display = 'none';
+}
+function showPairCode(){
+  const btn = document.getElementById('cloud-show-code-btn');
+  btn.disabled = true;
+  setCloudStatus('⏳ Gerando código...');
+  ensureHouse()
+    .then(houseId => createPairCode(houseId))
+    .then(code => {
+      updateCloudStatus();
+      const link = `${location.origin}${location.pathname}?parear=${code}`;
+      document.getElementById('cloud-code').textContent = `${code.slice(0,3)} ${code.slice(3)}`;
+      const qrEl = document.getElementById('cloud-qr');
+      qrEl.innerHTML = '';
+      if(typeof QRCode !== 'undefined') new QRCode(qrEl, { text: link, width: 180, height: 180 });
+      qrEl.style.display = (typeof QRCode !== 'undefined') ? '' : 'none';
+      document.getElementById('cloud-code-box').style.display = '';
+
+      const hintEl = document.getElementById('cloud-code-hint');
+      const expiresAt = Date.now() + PAIR_CODE_TTL_MS;
+      let ticks = 0;
+      if(pairCodeTimer) clearInterval(pairCodeTimer);
+      pairCodeTimer = setInterval(() => {
+        const left = Math.max(0, Math.round((expiresAt - Date.now()) / 1000));
+        hintEl.textContent = `Ou acesse ${link} no celular. Código válido por mais ${Math.floor(left/60)}:${String(left%60).padStart(2,'0')}.`;
+        if(left <= 0){ hidePairCode(); setCloudStatus('⌛ O código expirou. Toque em "Mostrar código" para gerar outro.'); return; }
+        // The joining device deletes the code once it has used it.
+        if(++ticks % 3 === 0){
+          cloudFetch(`pairCodes/${code}`).then(pc => {
+            if(pc === null && pairCodeTimer){ hidePairCode(); setCloudStatus('✅ Um aparelho acabou de se conectar!'); }
+          }).catch(() => {});
+        }
+      }, 1000);
+    })
+    .catch(() => setCloudStatus('⚠️ Não consegui gerar o código. Verifique a internet e tente de novo.'))
+    .then(() => { btn.disabled = false; });
+}
+
+function joinWithCode(rawCode){
+  const code = String(rawCode || '').replace(/\D/g, '');
+  if(code.length !== 6){ setCloudStatus('Digite os 6 números do código.'); return Promise.resolve(false); }
+  setCloudStatus('🔗 Conectando...');
+  return cloudFetch(`pairCodes/${code}`)
+    .then(pc => {
+      if(!pc || !pc.houseId || pc.expiresAt < Date.now()){
+        setCloudStatus('❌ Código inválido ou expirado. Gere um novo código no outro aparelho.');
+        return false;
+      }
+      return cloudFetch(`houses/${pc.houseId}`).then(house => {
+        if(!house || !house.config){
+          setCloudStatus('❌ Não encontrei a configuração do outro aparelho. Gere um novo código lá.');
+          return false;
+        }
+        hidePairCode();
+        lsSet(HOUSE_ID_KEY, pc.houseId);
+        applyRemoteHouse(house); // joining is explicit, so apply even with the settings screen open
+        pendingRemoteHouse = null;
+        if(settingsOverlay.style.display === 'flex') populateDraftFromCurrentConfig();
+        cloudFetch(`pairCodes/${code}`, { method: 'DELETE' }).catch(() => {}); // one-time use
+        startHouseSync();
+        updateCloudStatus();
+        setCloudStatus('✅ Conectado! Esta tela já mostra a configuração do outro aparelho.');
+        return true;
+      });
+    })
+    .catch(() => { setCloudStatus('⚠️ Não consegui conectar. Verifique a internet e tente de novo.'); return false; });
+}
+
+function disconnectHouse(){
+  if(!confirm('Desconectar este aparelho? A rotina continua salva aqui, mas deixa de sincronizar com os outros.')) return;
+  stopHouseSync();
+  hidePairCode();
+  lsSet(HOUSE_ID_KEY, null);
+  lsSet(HOUSE_REV_KEY, null);
+  updateCloudStatus();
+}
+
+document.getElementById('cloud-show-code-btn').addEventListener('click', showPairCode);
+document.getElementById('cloud-join-btn').addEventListener('click', () => {
+  joinWithCode(document.getElementById('cloud-code-input').value);
+});
+document.getElementById('cloud-disconnect-btn').addEventListener('click', disconnectHouse);
+
+function initCloudSync(){
+  if(!cloudEnabled()){
+    document.getElementById('github-sync').open = true; // only sync option available
+    return;
+  }
+  document.getElementById('cloud-sync').style.display = '';
+  updateCloudStatus();
+  startHouseSync();
+  setInterval(refreshFromCloud, 5 * 60 * 1000); // safety net in case the live stream silently drops
+
+  // Opened from the pairing QR code/link: join right away and show the result.
+  const params = new URLSearchParams(location.search);
+  const code = params.get('parear');
+  if(code){
+    params.delete('parear');
+    const query = params.toString();
+    history.replaceState(null, '', location.pathname + (query ? '?' + query : '') + location.hash);
+    openSettings();
+    joinWithCode(code);
+  }
+}
+
 // Now that everything (DOM, functions, settings screen) exists, build the
 // actual routine from the configuration saved in this browser (or the
 // default, if it's the first time).
 initSchedule(TASKS);
+initCloudSync();
 
 function safeRender(){
   try{ render(); }catch(e){ /* never let the loop hang because of a one-off error */ }
