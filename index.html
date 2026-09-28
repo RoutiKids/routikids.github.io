@@ -1087,32 +1087,115 @@
   .settings-btn.cancel{ background:#9aa5b1; }
   .settings-btn.save{ background:var(--mint); }
 
-  /* ---- Narrow screens (phones, mostly in portrait) ----
-     Prevents the clock + deadline from colliding with the sound button:
-     in those cases, that group moves up to the top-right corner, leaving
-     the footer with only the sound button. */
-  @media (max-width: 700px), (orientation: portrait){
+  /* ---- Timeline heading: which routine the list is showing ---- */
+  .timeline-title{
+    font-family:'Baloo 2', sans-serif;
+    font-weight:800;
+    font-size:1.4vw;
+    color:var(--navy);
+    opacity:0.8;
+    padding:0 0.4vw;
+    flex-shrink:0;
+  }
+  .step.preview{ opacity:0.7; }
+
+  /* ---- Phones and other narrow or short screens ----
+     The TV layout (two columns, fixed footer, sizes in vw) gets cramped and
+     overlaps on a phone. Here everything stacks in one scrolling column:
+     buttons, title, a bar with clock + deadline + sound button, the current
+     task card, then the list. */
+  @media (orientation: portrait), (max-width: 700px), (max-height: 500px){
+    html, body{ overflow-y:auto; overflow-x:hidden; }
+    body{
+      height:auto;
+      min-height:100vh;
+      padding:12px 14px 24px;
+    }
+    #util-buttons{
+      position:static;
+      order:1;
+      flex-wrap:wrap;
+      justify-content:center;
+      gap:8px;
+      margin-bottom:8px;
+    }
+    #util-buttons .util-btn{ font-size:13px; padding:7px 12px; }
+    header{ order:2; padding-top:0; margin-bottom:8px; }
+    header h1{ font-size:24px; text-align:center; }
     #bottom-info{
-      top:7vh;
-      bottom:auto;
-      right:1.5vw;
-      left:auto;
+      position:static;
+      order:3;
+      justify-content:center;
+      flex-wrap:wrap;
+      gap:10px;
+      margin-bottom:12px;
+    }
+    #clock{ font-size:22px; padding:6px 14px; }
+    #limit-control{ padding:6px 12px; gap:6px; }
+    #limit-control .limit-title{ font-size:14px; }
+    .limit-value, .limit-colon{ font-size:20px; min-width:26px; }
+    .limit-btn{ width:30px; height:30px; font-size:13px; }
+    main{
+      order:4;
+      display:flex;
       flex-direction:column;
-      align-items:flex-end;
-      gap:0.8vh;
+      gap:16px;
+      flex:none;
     }
-    #clock{
-      font-size:3.2vw;
-      padding:0.6vh 2vw;
-    }
-    #limit-control{
-      padding:0.6vh 2vw;
-    }
-    #limit-control .limit-title{ font-size:2.6vw; }
-    .limit-value, .limit-colon{ font-size:3vw; }
-    .limit-btn{ width:4vw; height:4vw; min-width:22px; min-height:22px; font-size:2.2vw; }
-    header{ padding-top:1vh; }
-    header h1{ font-size:4.2vw; }
+    #hero{ padding:22px 16px; border-radius:24px; overflow:visible; }
+    #hero-emoji{ font-size:72px; }
+    #hero-label{ font-size:28px; }
+    #hero-sub{ font-size:16px; }
+    #minutes-left{ font-size:56px; }
+    #minutes-left .unit{ font-size:18px; margin-left:4px; }
+    #segments{ gap:6px; }
+    .seg{ width:34px; height:34px; font-size:13px; border-radius:8px; }
+    #finish-early-btn, #start-next-btn{ font-size:18px; padding:12px 22px; }
+    #browse-controls{ gap:12px; }
+    #browse-controls button{ font-size:20px; padding:10px 22px; }
+    #timeline{ overflow:visible; gap:8px; }
+    .timeline-title{ font-size:18px; padding:0 4px; }
+    .step{ padding:10px 12px; gap:12px; border-radius:14px; }
+    .step .emoji{ font-size:30px; }
+    .step .name{ font-size:18px; }
+    .step .time{ font-size:14px; }
+    .check{ font-size:22px; }
+    .outcome-badge{ font-size:22px; }
+    .outcome-badge.star{ font-size:28px; }
+    .reorder-controls{ gap:4px; }
+    .reorder-btn{ width:34px; height:30px; font-size:14px; }
+    #sound-toggle{ position:static; width:52px; height:52px; min-width:52px; min-height:52px; font-size:22px; }
+
+    /* Settings screen: readable sizes instead of vw-based ones (16px inputs also avoid iOS zoom) */
+    #settings-overlay, #welcome-overlay{ padding:8px; }
+    .settings-card{ padding:18px 14px; max-height:94vh; border-radius:18px; }
+    .settings-card h2{ font-size:22px; }
+    .settings-label{ font-size:15px; }
+    .settings-text-input, .settings-time-input, .settings-select{ font-size:16px; padding:8px 10px; }
+    .settings-card .util-btn{ font-size:14px; padding:8px 14px; }
+    .settings-hint{ font-size:13px; }
+    #sync-section, #routines-section{ padding:12px; }
+    #sync-section h3, #routines-section h3, #routine-tasks-heading{ font-size:18px; }
+    .step-size-btn{ font-size:14px; padding:6px 12px; }
+    #autolink-row{ font-size:14px; }
+    #autolink-row input{ width:20px; height:20px; }
+    .routine-tab, #routine-add-btn, #routine-delete-btn{ font-size:14px; padding:6px 12px; }
+    #routine-icon-picker button, .emoji-picker button{ font-size:20px; padding:4px 6px; }
+    #week-matrix{ font-size:13px; }
+    #week-matrix input[type="checkbox"]{ width:22px; height:22px; }
+    #conflict-warning{ font-size:13px; padding:8px 10px; }
+    .apply-all-days-btn{ font-size:12px; padding:3px 8px; }
+    .task-row{ padding:12px 10px; }
+    .task-row .emoji-preview{ font-size:26px; width:40px; height:40px; }
+    .task-time-group{ font-size:14px; gap:6px; }
+    .time-stepper .time-value{ font-size:16px; min-width:44px; }
+    .time-step-btn{ width:32px; height:26px; font-size:12px; }
+    .task-row .remove-task-btn{ width:34px; height:34px; }
+    .task-row .row-reorder button{ width:30px; height:26px; font-size:12px; }
+    .settings-add-btn{ font-size:16px; padding:10px 18px; }
+    .settings-btn{ font-size:17px; padding:10px 20px; }
+    #app-version{ font-size:11px !important; }
+    #cloud-sync .settings-label{ font-size:14px; }
   }
 </style>
 </head>
@@ -1139,8 +1222,9 @@
       <button id="limit-min-minus" class="limit-btn">▼</button>
     </div>
   </div>
+  <!-- Fixed to the bottom-right corner on the TV; part of this bar on phones -->
+  <button id="sound-toggle" title="Ligar/desligar som">🔊</button>
 </div>
-<button id="sound-toggle" title="Ligar/desligar som">🔊</button>
 <div id="celebration-layer"></div>
 <div id="encourage-banner"></div>
 
@@ -1269,7 +1353,7 @@
       <button id="settings-save" class="settings-btn save">💾 Salvar</button>
     </div>
     <p class="settings-hint" style="margin-top:1.5vh;">⚠️ <strong>Versão de teste.</strong> Este app ainda está em fase de testes. Use só apelidos e não coloque dados sensíveis. As rotinas ficam salvas neste aparelho e, se você conectar outros aparelhos, num servidor usado só para sincronizá-los.</p>
-    <p id="app-version" style="text-align:right; font-size:0.7vw; color:#9aa5b1; margin-top:1vh;">Versão do código: 2026-09-28 17:50</p>
+    <p id="app-version" style="text-align:right; font-size:0.7vw; color:#9aa5b1; margin-top:1vh;">Versão do código: 2026-09-28 18:13</p>
   </div>
 </div>
 
@@ -1783,7 +1867,8 @@ function updateHeaderTitle(){
 
 // ---------- Timeline construction (rebuilt whenever the order changes) ----------
 function rebuildTimelineDOM(){
-  timelineEl.innerHTML = '';
+  timelineEl.innerHTML = '<div class="timeline-title" id="timeline-title"></div>';
+  timelinePreviewKey = null;
   tasks.forEach((t, i) => {
     const div = document.createElement('div');
     div.className = 'step';
@@ -1809,6 +1894,73 @@ function rebuildTimelineDOM(){
   });
 }
 // (the initial timeline construction happens in initSchedule() at the end of the file)
+
+// ---------- The side list shows only the routine shown on the left ----------
+// It follows the hero card: the routine being browsed with the arrows (on
+// any day), else the routine of the current/next task, else (day finished)
+// the last routine of the day. Other days' routines are drawn as read-only
+// preview rows, rebuilt only when the browsed routine changes.
+let timelinePreviewKey = null;
+function focusedRoutineBlock(){
+  if(browseDay !== null && browseRoutineIdx !== null){
+    const block = routineBlocksForDay(browseDay)[browseRoutineIdx];
+    if(block) return { day: browseDay, block };
+  }
+  const blocks = routineBlocksForDay(0);
+  if(!blocks.length) return null;
+  const idx = Math.min(pointer, tasks.length - 1);
+  return { day: 0, block: blocks.find(b => idx >= b.startIdx && idx <= b.endIdx) || blocks[blocks.length - 1] };
+}
+function clearTimelinePreview(){
+  timelineEl.querySelectorAll('.step.preview').forEach(el => el.remove());
+  timelinePreviewKey = null;
+}
+function applyTimelineFocus(){
+  const titleEl = document.getElementById('timeline-title');
+  const focus = focusedRoutineBlock();
+  if(!focus){
+    clearTimelinePreview();
+    if(titleEl) titleEl.style.display = 'none';
+    return;
+  }
+  const { day, block } = focus;
+  const r = ROUTINES.find(r => r.id === block.routineId);
+  const weekday = WEEKDAY_FULL[(new Date().getDay() + day) % 7];
+  const dayPrefix = day === 0 ? '' : (day === 1 ? 'Amanhã · ' : `${weekday[0].toUpperCase()}${weekday.slice(1)} · `);
+  if(titleEl){
+    titleEl.textContent = `${dayPrefix}${r ? `${r.icon} ${r.name}` : '📋 Rotina'}`;
+    titleEl.style.display = '';
+  }
+  tasks.forEach((t, i) => {
+    const el = document.getElementById('step-' + i);
+    if(el) el.style.display = (day === 0 && i >= block.startIdx && i <= block.endIdx) ? '' : 'none';
+  });
+  if(day === 0){ clearTimelinePreview(); return; }
+  const key = `${day}:${block.startIdx}:${block.endIdx}`;
+  if(key === timelinePreviewKey) return;
+  clearTimelinePreview();
+  tasksForBrowseDay(day).slice(block.startIdx, block.endIdx + 1).forEach(t => {
+    const div = document.createElement('div');
+    div.className = 'step preview';
+    const emoji = document.createElement('div');
+    emoji.className = 'emoji';
+    emoji.textContent = t.emoji;
+    const info = document.createElement('div');
+    info.className = 'info';
+    const name = document.createElement('div');
+    name.className = 'name';
+    name.textContent = t.name;
+    const time = document.createElement('div');
+    time.className = 'time';
+    time.textContent = `${fmtMin(t.startMin)} – ${fmtMin(t.endMin)}`;
+    info.appendChild(name);
+    info.appendChild(time);
+    div.appendChild(emoji);
+    div.appendChild(info);
+    timelineEl.appendChild(div);
+  });
+  timelinePreviewKey = key;
+}
 
 // ---------- SOUND (generated beep, no external files) ----------
 let soundEnabled = false; // starts off; user turns it on with the button
@@ -2249,6 +2401,10 @@ timelineEl.addEventListener('click', (e) => {
 
 // ---------- Main render ----------
 function render(){
+  renderMain();
+  applyTimelineFocus();
+}
+function renderMain(){
   checkDayRollover();
   const now = new Date();
   clockEl.textContent = String(now.getHours()).padStart(2,'0')+':'+String(now.getMinutes()).padStart(2,'0')+':'+String(now.getSeconds()).padStart(2,'0');
