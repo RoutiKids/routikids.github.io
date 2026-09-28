@@ -10,7 +10,7 @@ Single-page app (`index.html`) served via GitHub Pages from `main`. `config.json
 
 ## Versioning
 
-- On every change to `index.html`, update the "Versão do código: YYYY-MM-DD HH:MM" line (near the bottom of the settings screen) to the current date/time in America/Sao_Paulo. The owner uses it to confirm on the TV that the latest version is live.
+- On every change to `index.html`, update the "Versão do código: YYYY-MM-DD HH:MM" line (near the bottom of the settings screen) to the current date/time in Europe/Berlin (the owner lives in Germany). The owner uses it to confirm on the TV that the latest version is live.
 
 ## Cloud sync (pairing)
 
