@@ -45,7 +45,7 @@
 <meta name="color-scheme" content="light dark">
 <title>Routikids</title>
 <!-- The code version lives here (read by the app and by the update check); bump it on every change. -->
-<meta name="app-version" content="Versão do código: 2026-09-29 21:59">
+<meta name="app-version" content="Versão do código: 2026-09-29 22:24">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@500;700;800&family=Nunito:wght@600;800&display=swap" rel="stylesheet">
@@ -1753,6 +1753,16 @@
       <span class="settings-label" style="margin-top:1vh; display:block;" data-i18n="child_color_label"></span>
       <div id="child-color-picker"></div>
       <label id="child-pictures-row"><input type="checkbox" id="child-pictures-only"> <span data-i18n="pictures_only"></span></label>
+      <span class="settings-label" style="margin-top:1vh; display:block;" data-i18n="confirm_default_label"></span>
+      <select id="child-confirm-default" class="settings-select"></select>
+      <div class="sync-buttons" style="margin-top:0.8vh;">
+        <span class="settings-label" style="margin:0;" data-i18n="confirm_seconds_label"></span>
+        <select id="child-confirm-seconds" class="settings-select"></select>
+      </div>
+      <div class="sync-buttons">
+        <span class="settings-label" style="margin:0;" data-i18n="extra_min_label"></span>
+        <select id="child-extra-min" class="settings-select"></select>
+      </div>
       <label id="child-visible-row"><input type="checkbox" id="child-visible"> <span data-i18n="show_child"></span></label>
       <p class="settings-hint" data-i18n="show_child_hint"></p>
       <div class="sync-buttons">
@@ -2021,6 +2031,14 @@ const I18N = {
     save_anyway: "Salvar mesmo assim",
     welcome_title: "👋 Bem-vindo ao {app}!",
     tagline: "a rotina das crianças, passo a passo",
+    confirm_hint_wait: "Esperando a resposta…",
+    confirm_hint_more: "Sem resposta, ganha mais {extra} minutos em {seconds}s",
+    extra_min_label: "Minutos extras quando a resposta é \"Não\":",
+    confirm_seconds_label: "Tempo para responder:",
+    confirm_default_wait: "Esperar uma resposta (até o horário limite)",
+    confirm_default_more: "Dar mais tempo (uma vez)",
+    confirm_default_yes: "Contar como feita",
+    confirm_default_label: "Quando o tempo acabar e ninguém responder \"Terminou?\":",
     show_child_hint: "Desligado: a coluna some da TV, sem sons nem perguntas. As rotinas ficam guardadas.",
     show_child: "Mostrar a rotina desta criança na tela",
     remove_child_q: "Remover {name} e todas as rotinas? Isso não pode ser desfeito.",
@@ -2299,6 +2317,14 @@ const I18N = {
     save_anyway: "Save anyway",
     welcome_title: "👋 Welcome to {app}!",
     tagline: "kids' routines, step by step",
+    confirm_hint_wait: "Waiting for an answer…",
+    confirm_hint_more: "No answer: {extra} more minutes in {seconds}s",
+    extra_min_label: "Extra minutes when the answer is \"No\":",
+    confirm_seconds_label: "Time to answer:",
+    confirm_default_wait: "Wait for an answer (until the deadline)",
+    confirm_default_more: "Give more time (once)",
+    confirm_default_yes: "Count it as done",
+    confirm_default_label: "When time runs out and nobody answers \"Finished?\":",
     show_child_hint: "Off: the column disappears from the TV, with no sounds or questions. The routines are kept.",
     show_child: "Show this child's routine on the screen",
     remove_child_q: "Remove {name} and all their routines? This can't be undone.",
@@ -2577,6 +2603,14 @@ const I18N = {
     save_anyway: "Trotzdem speichern",
     welcome_title: "👋 Willkommen bei {app}!",
     tagline: "die Kinder-Routine, Schritt für Schritt",
+    confirm_hint_wait: "Warte auf eine Antwort…",
+    confirm_hint_more: "Ohne Antwort gibt es in {seconds} s {extra} Minuten mehr",
+    extra_min_label: "Zusätzliche Minuten bei „Nein“:",
+    confirm_seconds_label: "Zeit zum Antworten:",
+    confirm_default_wait: "Auf eine Antwort warten (bis zur Frist)",
+    confirm_default_more: "Mehr Zeit geben (einmal)",
+    confirm_default_yes: "Als erledigt zählen",
+    confirm_default_label: "Wenn die Zeit abläuft und niemand „Fertig?“ beantwortet:",
     show_child_hint: "Aus: Die Spalte verschwindet vom Fernseher, ohne Töne oder Fragen. Die Routinen bleiben gespeichert.",
     show_child: "Die Routine dieses Kindes anzeigen",
     remove_child_q: "{name} und alle Routinen entfernen? Das kann nicht rückgängig gemacht werden.",
@@ -2893,7 +2927,11 @@ function normalizeConfig(cfg){
     icon: c.icon || CHILD_ICONS[i % CHILD_ICONS.length],
     color: CHILD_COLORS.includes(c.color) ? c.color : CHILD_COLORS[i % CHILD_COLORS.length],
     picturesOnly: !!c.picturesOnly,
-    hidden: !!c.hidden
+    hidden: !!c.hidden,
+    // "Finished?" with no answer: 'yes' (count as done), 'more' (extra time once) or 'wait'
+    confirmDefault: ['yes', 'more', 'wait'].includes(c.confirmDefault) ? c.confirmDefault : 'yes',
+    confirmSeconds: [10, 20, 30, 60].includes(c.confirmSeconds) ? c.confirmSeconds : 10,
+    extraMin: [3, 5, 10].includes(c.extraMin) ? c.extraMin : 5
   }));
   if(cfg.children.every(c => c.hidden)) cfg.children[0].hidden = false; // someone is always shown
   const ids = cfg.children.map(c => c.id);
@@ -4018,7 +4056,7 @@ function cascadeAfterPointer(){
 }
 
 function extendCurrentTask(){
-  const extra = 5;
+  const extra = activeChild().extraMin || 5;
   tasks[pointer].baseDurationMin += extra;
   tasks[pointer].redMin += extra;
   tasks[pointer].endMin += extra; // extend only the end; the start doesn't change
@@ -4060,7 +4098,7 @@ let awaitingStart = false; // true = next task waiting for a tap on "Start"
 
 function markTaskDone(actualEndMin){
   tasks[pointer].endMin = actualEndMin;
-  tasks[pointer].outcome = tasks[pointer].redMin > 0 ? 'late' : 'onTime';
+  tasks[pointer].outcome = (tasks[pointer].redMin > 0 || tasks[pointer].closedLate) ? 'late' : 'onTime';
   if(tasks[pointer].outcome === 'onTime') celebrate();
   else encourage();
   pointer++;
@@ -4083,8 +4121,11 @@ const confirmOverlay = document.getElementById('confirm-overlay');
 const confirmCardEl = document.querySelector('.confirm-card');
 const confirmTaskName = document.getElementById('confirm-task-name');
 const confirmTimerBar = document.getElementById('confirm-timer-bar');
-const confirmSecondsEl = document.getElementById('confirm-seconds');
-const CONFIRM_MS = 10000;
+
+// The dialog follows the child's settings: time to answer, and what happens
+// with no answer (activeChild().confirmDefault).
+function activeChild(){ return CHILDREN.find(c => c.id === ACTIVE_CHILD_ID) || {}; }
+function confirmMs(){ return (activeChild().confirmSeconds || 10) * 1000; }
 let confirmState = null; // {deadline}
 let lastTickSecond = null;
 
@@ -4094,7 +4135,12 @@ let confirmOwner = null;
 function openConfirm(){
   if(confirmOwner && confirmOwner !== ACTIVE_CHILD_ID) return;
   confirmOwner = ACTIVE_CHILD_ID;
-  confirmState = { deadline: Date.now() + CONFIRM_MS };
+  const mode = activeChild().confirmDefault || 'yes';
+  confirmState = { deadline: mode === 'wait' ? Infinity : Date.now() + confirmMs(), mode };
+  const seconds = `<span id="confirm-seconds">${confirmMs() / 1000}</span>`;
+  document.querySelector('.confirm-hint').innerHTML = mode === 'wait' ? tr('confirm_hint_wait')
+    : tr(mode === 'more' ? 'confirm_hint_more' : 'confirm_hint', { seconds, extra: activeChild().extraMin || 5 });
+  document.querySelector('.confirm-timer-wrap').style.display = mode === 'wait' ? 'none' : '';
   lastTickSecond = null;
   const child = SLOTS.length > 1 && CHILDREN.find(c => c.id === ACTIVE_CHILD_ID);
   confirmTaskName.textContent = child ? `${tasks[pointer].name} (${child.icon} ${child.name})` : tasks[pointer].name;
@@ -4317,17 +4363,31 @@ function renderMain(){
     openConfirm();
   }
   if(confirmState){
-    if(Date.now() >= confirmState.deadline){
-      resolveConfirm('sim'); // no answer within 10s -> assume completed
-      return;
-    }
-    const msLeft = Math.max(0, confirmState.deadline - Date.now());
-    const secLeft = Math.ceil(msLeft/1000);
-    confirmSecondsEl.textContent = secLeft;
-    confirmTimerBar.style.width = (msLeft/CONFIRM_MS*100) + '%';
-    if(secLeft <= 3){
-      confirmCardEl.classList.add('urgent');
-      if(secLeft !== lastTickSecond){ beep(700, 0.12, 0); lastTickSecond = secLeft; }
+    // No answer in time: what the child's settings say. "More time" only once
+    // per task (then it closes as late); "wait" only until the routine's
+    // deadline, so an empty room never blocks the rest of the day.
+    const cur = tasks[pointer];
+    if(confirmState.mode === 'wait'){
+      if(nowMin >= hardLimitMin()){ cur.closedLate = true; resolveConfirm('sim'); return; } // unanswered: counts as late
+    } else {
+      if(Date.now() >= confirmState.deadline){
+        if(confirmState.mode === 'more' && !cur.autoExtended){
+          cur.autoExtended = true;
+          resolveConfirm('nao');
+        } else {
+          resolveConfirm('sim');
+        }
+        return;
+      }
+      const msLeft = Math.max(0, confirmState.deadline - Date.now());
+      const secLeft = Math.ceil(msLeft/1000);
+      const secEl = document.getElementById('confirm-seconds');
+      if(secEl) secEl.textContent = secLeft;
+      confirmTimerBar.style.width = (msLeft/confirmMs()*100) + '%';
+      if(secLeft <= 3){
+        confirmCardEl.classList.add('urgent');
+        if(secLeft !== lastTickSecond){ beep(700, 0.12, 0); lastTickSecond = secLeft; }
+      }
     }
   }
 
@@ -4603,6 +4663,10 @@ function renderChildEditor(){
   document.getElementById('child-color-picker').innerHTML = CHILD_COLORS.map(col =>
     `<button type="button" data-color="${col}" class="${c.color === col ? 'selected' : ''}" style="background:var(--${col});" aria-label="${col}"></button>`).join('');
   document.getElementById('child-pictures-only').checked = !!c.picturesOnly;
+  const opts = (list, value) => list.map(([v, label]) => `<option value="${v}"${String(v) === String(value) ? ' selected' : ''}>${label}</option>`).join('');
+  document.getElementById('child-confirm-default').innerHTML = opts([['yes', tr('confirm_default_yes')], ['more', tr('confirm_default_more')], ['wait', tr('confirm_default_wait')]], c.confirmDefault || 'yes');
+  document.getElementById('child-confirm-seconds').innerHTML = opts([10, 20, 30, 60].map(n => [n, `${n} s`]), c.confirmSeconds || 10);
+  document.getElementById('child-extra-min').innerHTML = opts([3, 5, 10].map(n => [n, `${n} min`]), c.extraMin || 5);
   const visible = document.getElementById('child-visible');
   visible.checked = !c.hidden;
   visible.disabled = !c.hidden && draftChildren.filter(x => !x.hidden).length <= 1; // the last one shown stays
@@ -4625,7 +4689,7 @@ function addDraftChild(){
   const usedColors = draftChildren.map(c => c.color);
   const id = 'c' + Date.now().toString(36);
   draftChildren.push({
-    id, name: '', picturesOnly: false,
+    id, name: '', picturesOnly: false, confirmDefault: 'yes', confirmSeconds: 10, extraMin: 5,
     icon: CHILD_ICONS.find(e => !used.includes(e)) || CHILD_ICONS[0],
     color: CHILD_COLORS.find(col => !usedColors.includes(col)) || CHILD_COLORS[0]
   });
@@ -4658,6 +4722,9 @@ document.getElementById('child-color-picker').addEventListener('click', (e) => {
   renderChildEditor();
 });
 document.getElementById('child-pictures-only').addEventListener('change', (e) => { draftChild().picturesOnly = e.target.checked; });
+document.getElementById('child-confirm-default').addEventListener('change', (e) => { draftChild().confirmDefault = e.target.value; });
+document.getElementById('child-confirm-seconds').addEventListener('change', (e) => { draftChild().confirmSeconds = parseInt(e.target.value, 10); });
+document.getElementById('child-extra-min').addEventListener('change', (e) => { draftChild().extraMin = parseInt(e.target.value, 10); });
 document.getElementById('child-visible').addEventListener('change', (e) => {
   draftChild().hidden = !e.target.checked;
   renderChildTabs();
@@ -5328,9 +5395,13 @@ function updateCloudStatus(){
   if(!connected) renderDevices(null);
 }
 
+// A read that started before this device's last save may bring back the older
+// config: it must not undo the save (times from this device's clock only).
+let lastConfigPushAt = 0;
 function pushConfigToCloud(cfg){
   const houseId = getHouseId();
   if(!cloudEnabled() || !houseId) return Promise.resolve(false);
+  lastConfigPushAt = Date.now();
   const rev = randomId(12, ALNUM);
   lsSet(HOUSE_REV_KEY, rev); // so the echo of our own save isn't re-applied
   const body = JSON.stringify({ config: JSON.stringify(cfg), updatedAt: Date.now(), rev });
@@ -5350,9 +5421,9 @@ function pushConfigToCloud(cfg){
 // pair code), it's applied right away and the form refreshed.
 let pendingRemoteHouse = null;
 let knownMemberIds = null;
-function handleRemoteHouse(house){
+function handleRemoteHouse(house, readStartedAt){
   if(!house) return;
-  handleRemoteConfig(house);
+  handleRemoteConfig(house, readStartedAt);
   // One progress entry per child (houses/<id>/progress/<childId>).
   forEachChild(() => {
     const remote = house.progress && house.progress[ACTIVE_CHILD_ID];
@@ -5363,9 +5434,10 @@ function handleRemoteHouse(house){
     if(progressSeq > remoteSeq && !testMode && !progressPublishTimer) publishProgress();
   });
 }
-function handleRemoteConfig(house){
+function handleRemoteConfig(house, readStartedAt){
   renderDevices(house);
   announceNewMembers(house.members || {});
+  if(readStartedAt !== undefined && readStartedAt < lastConfigPushAt) return; // stale read (see pushConfigToCloud)
   const data = house.data;
   if(!data || !data.config || !data.rev) return;
   if(data.rev === lsGet(HOUSE_REV_KEY)) return;
@@ -5455,11 +5527,12 @@ function refreshFromCloud(){
   const houseId = getHouseId();
   if(!cloudEnabled() || !houseId) return Promise.resolve();
   if(refreshInFlight){ refreshAgain = true; return refreshInFlight; }
+  const readStartedAt = Date.now();
   refreshInFlight = cloudFetch(`houses/${houseId}`)
     .then(house => {
       if(getHouseId() !== houseId) return;
       if(removalSuspectAt){ removalSuspectAt = 0; logCloudEvent(tr('log_recovered')); }
-      handleRemoteHouse(house);
+      handleRemoteHouse(house, readStartedAt);
     })
     .catch(err => { if(err.status === 401 && getHouseId() === houseId) suspectRemoved(tr('source_read')); })
     .then(() => {
