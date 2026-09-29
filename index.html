@@ -45,7 +45,7 @@
 <meta name="color-scheme" content="light dark">
 <title>Routikids</title>
 <!-- The code version lives here (read by the app and by the update check); bump it on every change. -->
-<meta name="app-version" content="Versão do código: 2026-09-29 21:19">
+<meta name="app-version" content="Versão do código: 2026-09-29 21:37">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@500;700;800&family=Nunito:wght@600;800&display=swap" rel="stylesheet">
@@ -530,15 +530,25 @@
     transition:background 0.6s ease;
   }
   .kid-hero.done{ background:var(--mint); color:white; }
-  .kid-emoji{ font-size:calc(var(--w) * 0.17); line-height:1; }
+  .kid-emoji{ font-size:calc(var(--w) * 0.24); line-height:1; }
   .kid-info{ display:flex; flex-direction:column; align-items:flex-start; min-width:0; }
-  .kid-label{ font-family:'Baloo 2', sans-serif; font-weight:800; font-size:calc(var(--w) * 0.055); line-height:1.05; }
+  .kid-label{ font-family:'Baloo 2', sans-serif; font-weight:800; font-size:calc(var(--w) * 0.065); line-height:1.05; }
   .kid-sub{ font-size:calc(var(--w) * 0.026); opacity:0.75; margin-top:0.3vh; }
-  .kid-minutes{ font-family:'Baloo 2', sans-serif; font-weight:800; font-size:calc(var(--w) * 0.085); line-height:1; color:var(--coral); }
+  .kid-minutes{ font-family:'Baloo 2', sans-serif; font-weight:800; font-size:calc(var(--w) * 0.12); line-height:1; color:var(--coral); }
   .kid-minutes .unit{ font-size:calc(var(--w) * 0.03); margin-left:0.3vw; }
   .kid-hero.done .kid-minutes{ color:white; }
-  .kid-segments{ display:flex; flex-wrap:wrap; gap:calc(var(--w) * 0.008); margin:0.6vh 0; }
-  .kid-segments .seg{ width:calc(var(--w) * 0.045); height:calc(var(--w) * 0.045); min-width:0; min-height:0; border-radius:calc(var(--w) * 0.01); font-size:calc(var(--w) * 0.02); }
+  /* The minute blocks: a full-width row, as big as fits (--segs = how many), never tiny */
+  .kid-segments{ grid-column:1 / -1; display:flex; flex-wrap:wrap; justify-content:center; gap:calc(var(--w) * 0.01); margin-top:0.4vh; }
+  .kid-segments:empty{ display:none; }
+  .kid-segments .seg{
+    --size:max(calc(var(--w) * 0.055), min(calc(var(--w) * 0.09), calc(var(--w) * 0.78 / var(--segs, 10))));
+    width:var(--size);
+    height:var(--size);
+    min-width:0;
+    min-height:0;
+    border-radius:calc(var(--size) * 0.22);
+    font-size:calc(var(--size) * 0.42);
+  }
   .kid-hero.done .seg{ background:rgba(255,255,255,0.3); color:white; }
   .kid-finish, .kid-start{
     font-family:'Baloo 2', sans-serif;
@@ -571,7 +581,7 @@
   .kid-hero.done .kid-browse button{ background:rgba(255,255,255,0.3); color:white; }
   .kid-finish:focus, .kid-start:focus{ outline:4px solid var(--sun); outline-offset:2px; }
   .kid-hero.done .kid-finish{ display:none; }
-  .kid-timeline{ flex:1; display:flex; flex-direction:column; gap:0.8vh; overflow-y:auto; scrollbar-width:none; margin-top:1.2vh; min-height:0; }
+  .kid-timeline{ position:relative; flex:1; display:flex; flex-direction:column; gap:0.8vh; overflow-y:auto; scrollbar-width:none; margin-top:1.2vh; min-height:0; }
   .kid-timeline::-webkit-scrollbar{ display:none; }
   .kid-timeline .timeline-title{ font-size:calc(var(--w) * 0.03); padding:0; color:var(--navy); }
   .kid-timeline .step{ background:white; background:color-mix(in srgb, var(--c) 10%, white); opacity:0.85; }
@@ -3925,6 +3935,7 @@ let lastSegTaskIndex = -1;
 function buildSegments(totalMin, redMin=0){
   segmentsEl.innerHTML = '';
   const n = Math.max(1, Math.round(totalMin));
+  segmentsEl.style.setProperty('--segs', n);
   const redCount = Math.round(redMin);
   for(let i=0;i<n;i++){
     const seg = document.createElement('div');
@@ -4156,6 +4167,15 @@ function renderMain(){
     if(i < pointer) el.classList.add('finished');
     else if(i === pointer) el.classList.add('active');
   });
+  // A column's list may not fit: keep the current task in view (scrolled once per task).
+  if(panelEl && timelineEl.dataset.scrolledTo !== String(pointer)){
+    const el = stepEl(Math.min(pointer, tasks.length - 1));
+    if(el && timelineEl.scrollHeight > timelineEl.clientHeight){
+      const prev = stepEl(pointer - 1); // keep the last task done in view, above the current one
+      timelineEl.scrollTop = Math.max(0, (prev && prev.style.display !== 'none' ? prev : el).offsetTop);
+      timelineEl.dataset.scrolledTo = String(pointer);
+    }
+  }
 
   const idle = (pointer >= tasks.length) || (!awaitingStart && tasks[pointer] && nowMin < tasks[pointer].startMin);
 
@@ -6136,7 +6156,11 @@ function fitPanels(){
     p.style.setProperty('--w', Math.max(200, w) + 'px');
   });
 }
-window.addEventListener('resize', fitPanels);
+// Heights change when the web font arrives or the screen size changes:
+// scroll the columns' lists to the current task again.
+function rescrollPanels(){ kidsGrid.querySelectorAll('.kid-timeline').forEach(t => { delete t.dataset.scrolledTo; }); }
+window.addEventListener('resize', () => { fitPanels(); rescrollPanels(); });
+if(document.fonts && document.fonts.ready) document.fonts.ready.then(rescrollPanels);
 function buildPanels(){
   const multi = SLOTS.length > 1;
   document.body.classList.toggle('multi', multi);
@@ -6160,7 +6184,6 @@ function buildPanels(){
           <div class="kid-label"></div>
           <div class="kid-sub"></div>
           <div class="kid-minutes"></div>
-          <div class="kid-segments"></div>
           <button type="button" class="kid-finish"></button>
           <button type="button" class="kid-start"></button>
           <div class="kid-browse">
@@ -6168,6 +6191,7 @@ function buildPanels(){
             <button type="button" class="kid-next">▶</button>
           </div>
         </div>
+        <div class="kid-segments"></div>
       </div>
       <div class="kid-timeline"></div>`;
     const q = sel => panel.querySelector(sel);
