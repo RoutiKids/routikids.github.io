@@ -40,7 +40,7 @@
 <meta charset="UTF-8">
 <title>Routikids</title>
 <!-- The code version lives here (read by the app and by the update check); bump it on every change. -->
-<meta name="app-version" content="Versão do código: 2026-09-29 05:38">
+<meta name="app-version" content="Versão do código: 2026-09-29 06:41">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@500;700;800&family=Nunito:wght@600;800&display=swap" rel="stylesheet">
@@ -618,6 +618,95 @@
   #welcome-templates input{ width:1.4em; height:1.4em; flex:none; }
   #welcome-templates .days{ font-weight:600; color:#6b7a90; margin-left:auto; }
 
+  /* ---- "Put it on the TV" screen and quick guide ---- */
+  #tvsetup-overlay, #guide-overlay{
+    position:fixed;
+    inset:0;
+    background:rgba(29,53,87,0.9);
+    display:none;
+    align-items:center;
+    justify-content:center;
+    padding:3vh 2vw;
+  }
+  #tvsetup-overlay{ z-index:960; }
+  #guide-overlay{ z-index:980; }
+  .info-card h2{ font-size:clamp(24px, 2.2vw, 44px); }
+  .info-card h3{
+    font-family:'Baloo 2', sans-serif;
+    font-weight:800;
+    font-size:clamp(17px, 1.3vw, 28px);
+    color:var(--navy);
+    margin:2vh 0 0.5vh;
+  }
+  .info-card .util-btn, .info-card .settings-hint{ font-size:clamp(14px, 1vw, 22px); }
+  .info-card .settings-btn{ font-size:clamp(17px, 1.3vw, 28px); }
+  .info-text{
+    font-family:'Nunito', sans-serif;
+    font-size:clamp(15px, 1.05vw, 22px);
+    line-height:1.45;
+    color:var(--navy);
+  }
+  .info-text p{ margin:0.6vh 0; }
+  .info-text ol, .info-text ul{ padding-left:1.4em; margin:0.6vh 0; }
+  .info-text li{ margin-bottom:0.5vh; }
+  .big-url, .big-code{
+    font-family:'Baloo 2', sans-serif;
+    font-weight:800;
+    color:var(--navy);
+    background:white;
+    border:2px solid rgba(29,53,87,0.1);
+    border-radius:14px;
+    padding:1vh 1vw;
+    margin:0.8vh 0;
+    text-align:center;
+  }
+  .big-url{ font-size:clamp(22px, 2.2vw, 44px); overflow-wrap:anywhere; user-select:all; }
+  .big-code{ font-size:clamp(34px, 4vw, 72px); letter-spacing:0.15em; }
+  .tvsetup-status{
+    font-family:'Nunito', sans-serif;
+    font-weight:800;
+    font-size:clamp(16px, 1.2vw, 26px);
+    color:var(--navy);
+    margin:1vh 0;
+  }
+  .tvsetup-status.ok{ color:#2a9d8f; }
+  .brand-tabs{ display:flex; flex-wrap:wrap; gap:8px; margin:0.5vh 0 1vh; }
+  .brand-tab{
+    font-family:'Nunito', sans-serif;
+    font-weight:800;
+    font-size:clamp(14px, 0.95vw, 20px);
+    padding:6px 14px;
+    border-radius:999px;
+    border:2px solid rgba(29,53,87,0.15);
+    background:white;
+    color:var(--navy);
+    cursor:pointer;
+  }
+  .brand-tab.selected{ background:var(--sky); color:white; border-color:var(--sky); }
+  .brand-tab:focus{ outline:4px solid var(--sun); outline-offset:2px; }
+  .brand-body{ background:white; border-radius:12px; padding:1vh 1.2vw; }
+  .brand-remote{ background:rgba(78,168,222,0.12); border-radius:10px; padding:0.8vh 0.8vw; }
+  #welcome-code-input{ max-width:9em; letter-spacing:0.15em; }
+  #welcome-code-status:empty{ display:none; }
+  #welcome-tv-intro{
+    display:flex;
+    align-items:center;
+    gap:1.5vw;
+    background:white;
+    border:2px solid rgba(29,53,87,0.1);
+    border-radius:14px;
+    padding:1.5vh 1.2vw;
+    margin-top:1.5vh;
+  }
+  #welcome-qr{ flex:none; }
+  #welcome-qr:empty{ display:none; }
+  .welcome-tv-text{
+    font-family:'Nunito', sans-serif;
+    font-size:clamp(15px, 1.15vw, 24px);
+    line-height:1.4;
+    color:var(--navy);
+  }
+
   /* ---- "New version available" banner ---- */
   #update-banner{
     position:fixed;
@@ -881,7 +970,7 @@
   }
   #cloud-devices li{
     display:flex;
-    flex-wrap:wrap;
+    flex-wrap:nowrap;
     align-items:center;
     gap:0.4vh 1vw;
     background:white;
@@ -893,9 +982,10 @@
     font-size:clamp(14px, 0.95vw, 20px);
     color:var(--navy);
   }
-  .cloud-device-name{ font-weight:800; flex:1 1 auto; }
+  .cloud-device-info{ display:flex; flex-direction:column; flex:1 1 auto; min-width:0; }
+  .cloud-device-name{ font-weight:800; overflow-wrap:anywhere; }
   .cloud-device-seen{ color:#6b7a90; font-size:0.9em; }
-  .cloud-remove-btn{ background:var(--coral); font-size:clamp(13px, 0.9vw, 18px); }
+  .cloud-remove-btn{ flex:none; background:var(--coral); font-size:clamp(13px, 0.9vw, 18px); }
   #cloud-banner .sync-buttons{ margin-top:1vh; }
   #cloud-banner .settings-text-input,
   #cloud-banner .util-btn{ font-size:clamp(16px, 1vw, 22px); }
@@ -1226,7 +1316,9 @@
     #sound-toggle{ position:static; width:52px; height:52px; min-width:52px; min-height:52px; font-size:22px; }
 
     /* Settings screen: readable sizes instead of vw-based ones (16px inputs also avoid iOS zoom) */
-    #settings-overlay, #welcome-overlay{ padding:8px; }
+    #settings-overlay, #welcome-overlay, #tvsetup-overlay, #guide-overlay{ padding:8px; }
+    .brand-body{ padding:8px 12px; }
+    .brand-remote{ padding:6px 8px; }
     .settings-card{ padding:18px 14px; max-height:94vh; border-radius:18px; }
     .settings-card h2{ font-size:22px; }
     .settings-label{ font-size:15px; }
@@ -1315,6 +1407,10 @@
   <div class="settings-card">
     <h2 data-i18n="settings_title"></h2>
     <div class="lang-picker"></div>
+    <div class="sync-buttons">
+      <button type="button" id="settings-tv-btn" class="util-btn" style="background:var(--coral);" data-i18n="take_to_tv_btn"></button>
+      <button type="button" id="settings-guide-btn" class="util-btn" style="background:var(--sky);" data-i18n="open_guide"></button>
+    </div>
     <div id="cloud-banner"></div>
 
     <div id="sync-section">
@@ -1429,18 +1525,80 @@
     <h2 data-i18n="welcome_title"></h2>
     <p class="welcome-tagline" data-i18n="tagline"></p>
     <div class="welcome-note" data-i18n-html="welcome_note"></div>
-    <h3 data-i18n="welcome_have_device"></h3>
+    <div class="sync-buttons" style="margin-top:1.5vh;">
+      <button type="button" id="welcome-guide-btn" class="util-btn" style="background:var(--sky);" data-i18n="open_guide"></button>
+    </div>
+    <div id="welcome-tv-intro">
+      <div id="welcome-qr"></div>
+      <p class="welcome-tv-text" id="welcome-tv-text"></p>
+    </div>
+    <div id="welcome-code-section">
+      <h3 id="welcome-code-title"></h3>
+      <div class="sync-buttons">
+        <input type="text" id="welcome-code-input" class="settings-text-input" inputmode="numeric" autocomplete="off" maxlength="7" placeholder="000000">
+        <button type="button" id="welcome-code-btn" class="util-btn" style="background:var(--mint);" data-i18n="connect"></button>
+      </div>
+      <p class="settings-hint" id="welcome-code-status"></p>
+    </div>
+    <div class="sync-buttons" id="welcome-setup-here-row">
+      <button type="button" id="welcome-setup-here-btn" class="util-btn" style="background:#9aa5b1;" data-i18n="welcome_setup_here"></button>
+    </div>
+    <div id="welcome-setup-section">
+      <h3 data-i18n="welcome_choose"></h3>
+      <div id="welcome-templates"></div>
+      <label class="settings-label" for="welcome-child-name" data-i18n="nickname_label"></label>
+      <input type="text" id="welcome-child-name" class="settings-text-input" maxlength="30" data-i18n-placeholder="nickname_placeholder">
+      <div class="settings-actions">
+        <button type="button" id="welcome-start-btn" class="settings-btn save" data-i18n="welcome_start"></button>
+      </div>
+      <p class="settings-hint" data-i18n="welcome_later"></p>
+    </div>
+  </div>
+</div>
+
+<div id="tvsetup-overlay">
+  <div class="settings-card info-card">
+    <h2 data-i18n="tvsetup_title"></h2>
+    <p class="info-text" data-i18n="tvsetup_intro"></p>
+    <p class="info-text" style="margin-top:1.5vh;" data-i18n-html="tvsetup_step1"></p>
+    <div class="big-url" id="tvsetup-url"></div>
     <div class="sync-buttons">
-      <button type="button" id="welcome-connect-btn" class="util-btn" style="background:var(--mint);" data-i18n="welcome_connect"></button>
+      <button type="button" id="tvsetup-copy-btn" class="util-btn" style="background:var(--sky);" data-i18n="copy_link"></button>
+      <button type="button" id="tvsetup-share-btn" class="util-btn" style="background:var(--sky);" data-i18n="share_link"></button>
     </div>
-    <h3 data-i18n="welcome_choose"></h3>
-    <div id="welcome-templates"></div>
-    <label class="settings-label" for="welcome-child-name" data-i18n="nickname_label"></label>
-    <input type="text" id="welcome-child-name" class="settings-text-input" maxlength="30" data-i18n-placeholder="nickname_placeholder">
+    <p class="info-text" style="margin-top:1.5vh;" data-i18n-html="tvsetup_step2"></p>
+    <div class="big-code" id="tvsetup-code">··· ···</div>
+    <p class="settings-hint" data-i18n="tvsetup_code_hint"></p>
+    <div class="tvsetup-status" id="tvsetup-status"></div>
+    <div class="sync-buttons">
+      <button type="button" id="tvsetup-retry-btn" class="util-btn" style="background:var(--coral); display:none;" data-i18n="try_again"></button>
+    </div>
+    <h3 data-i18n="tvsetup_brand_q"></h3>
+    <div id="tvsetup-brands" class="info-text"></div>
     <div class="settings-actions">
-      <button type="button" id="welcome-start-btn" class="settings-btn save" data-i18n="welcome_start"></button>
+      <button type="button" id="tvsetup-guide-btn" class="settings-btn cancel" data-i18n="open_guide"></button>
+      <button type="button" id="tvsetup-close-btn" class="settings-btn save"></button>
     </div>
-    <p class="settings-hint" data-i18n="welcome_later"></p>
+    <p class="settings-hint" id="tvsetup-later-hint" style="margin-top:1.5vh;" data-i18n="tvsetup_later_hint"></p>
+  </div>
+</div>
+
+<div id="guide-overlay">
+  <div class="settings-card info-card">
+    <h2 data-i18n="guide_title"></h2>
+    <h3 data-i18n="guide_what_title"></h3>
+    <div class="info-text" data-i18n-html="guide_what_html"></div>
+    <h3 data-i18n="guide_tv_title"></h3>
+    <div class="info-text" id="guide-tv"></div>
+    <h3 data-i18n="tvsetup_brand_q"></h3>
+    <div id="guide-brands" class="info-text"></div>
+    <h3 data-i18n="guide_tips_title"></h3>
+    <div class="info-text" data-i18n-html="guide_tips_html"></div>
+    <h3 data-i18n="guide_privacy_title"></h3>
+    <div class="info-text" data-i18n-html="guide_privacy_html"></div>
+    <div class="settings-actions">
+      <button type="button" id="guide-close-btn" class="settings-btn save" data-i18n="close"></button>
+    </div>
   </div>
 </div>
 
@@ -1573,10 +1731,58 @@ const I18N = {
     save_anyway: "Salvar mesmo assim",
     welcome_title: "👋 Bem-vindo ao {app}!",
     tagline: "a rotina das crianças, passo a passo",
+    brand_googletv_models: "Vale para a maioria das TVs Sony, TCL, Philips e Xiaomi e para o Chromecast com Google TV.",
+    welcome_setup_here: "Sem celular? Configurar aqui na TV",
+    welcome_tv_intro_html: "<strong>📱 Comece pelo celular:</strong> aponte a câmera do celular para o QR code ou abra <strong>{url}</strong> nele e monte a rotina. No fim, o celular mostra um código para digitar aqui.",
+    welcome_have_code_other: "Já tem a rotina em outro aparelho? Digite o código que aparece nele:",
+    welcome_have_code: "Digite aqui o código que aparece no celular:",
+    welcome_joined: "✅ Conectado! A rotina configurada no outro aparelho já está aqui.",
+    open_guide: "📖 Guia rápido",
+    take_to_tv_btn: "📺 Levar para a TV",
+    tvsetup_title: "📺 Agora leve para a TV",
+    tvsetup_intro: "A rotina está pronta neste aparelho. Na TV, ela fica grande e fácil de ver para a criança — e o que você mudar aqui aparece lá sozinho.",
+    tvsetup_step1: "<strong>1.</strong> Na TV, abra o navegador e digite este endereço:",
+    tvsetup_step2: "<strong>2.</strong> Na tela de boas-vindas da TV, digite este código:",
+    tvsetup_code_hint: "O código se renova sozinho enquanto esta tela estiver aberta.",
+    tvsetup_preparing: "⏳ Preparando o código…",
+    tvsetup_waiting: "⏳ Aguardando a TV…",
+    tvsetup_connected: "✅ {names} conectado! Pronto — já pode fechar esta tela.",
+    tvsetup_failed: "⚠️ Não consegui gerar o código. Verifique a internet e tente de novo.",
+    try_again: "Tentar de novo",
+    tvsetup_brand_q: "Como abro o navegador na minha TV?",
+    tvsetup_later: "Fazer depois",
+    tvsetup_done: "Concluir",
+    tvsetup_later_hint: "Dá para fazer isso depois em ⚙️ Configurar → \"📺 Levar para a TV\".",
+    copy_link: "📋 Copiar",
+    copied: "✅ Copiado!",
+    share_link: "📤 Enviar",
+    close: "Fechar",
+    brand_googletv: "Sony · TCL · Google TV / Android TV",
+    brand_samsung: "Samsung",
+    brand_lg: "LG",
+    brand_firetv: "Fire TV",
+    brand_other: "Outra / não sei",
+    brand_googletv_steps: "<ol><li>Na tela inicial, abra a <strong>Play Store</strong> (em \"Apps\").</li><li>Procure <strong>\"TV Bro\"</strong> (navegador gratuito) e instale.</li><li>Abra o TV Bro e digite o endereço na barra de cima.</li></ol>",
+    brand_googletv_remote: "💡 Mais fácil: instale no celular o app <strong>Google TV</strong>, toque em \"Controle remoto\" e use o ícone de teclado para digitar na TV.",
+    brand_samsung_steps: "<ol><li>Aperte o botão <strong>Home</strong> (casinha) do controle.</li><li>Abra o app <strong>\"Internet\"</strong>, que já vem instalado (se não aparecer, procure em \"Apps\").</li><li>Selecione a barra de endereço e digite o endereço.</li></ol>",
+    brand_samsung_remote: "💡 Mais fácil: em muitos modelos, o app <strong>SmartThings</strong> no celular tem um controle remoto com teclado.",
+    brand_lg_steps: "<ol><li>Aperte o botão <strong>Home</strong> do controle.</li><li>Abra o app <strong>\"Web Browser\"</strong>, que já vem instalado.</li><li>Selecione a barra de endereço e digite o endereço.</li></ol>",
+    brand_lg_remote: "💡 Mais fácil: em muitos modelos, o app <strong>LG ThinQ</strong> no celular funciona como controle remoto com teclado.",
+    brand_firetv_steps: "<ol><li>Na tela inicial, abra a <strong>busca</strong> (lupa) e procure <strong>\"Silk\"</strong>.</li><li>Instale o <strong>Silk Browser</strong> (gratuito, da Amazon).</li><li>Abra o Silk e digite o endereço.</li></ol>",
+    brand_firetv_remote: "💡 Mais fácil: o app <strong>Amazon Fire TV</strong> no celular tem controle remoto com teclado.",
+    brand_other_steps: "<ul><li>Procure na TV um app chamado <strong>\"Navegador\"</strong>, <strong>\"Internet\"</strong> ou <strong>\"Browser\"</strong> e digite o endereço nele (ex.: Hisense, Panasonic).</li><li><strong>Roku</strong> (inclusive TCL com Roku) não tem navegador: use um Chromecast, um Fire TV Stick ou um notebook.</li><li>Sem navegador na TV? Ligue um <strong>notebook na TV pelo cabo HDMI</strong> e abra o endereço nele, em tela cheia.</li></ul>",
+    brand_note: "Os nomes dos menus podem variar conforme o modelo da TV.",
+    guide_title: "📖 Guia rápido",
+    guide_what_title: "O que é o Routikids?",
+    guide_what_html: "<p>Uma rotina visual para crianças, feita para ficar <strong>na TV</strong>: a tarefa da vez aparece grande, com os minutos que faltam em blocos coloridos, e a lista ao lado mostra o que vem depois.</p><ul><li>✔ Ao terminar uma tarefa, toque em <strong>\"Já terminei\"</strong> — vocês decidem se quem toca é a criança ou um adulto. Se o tempo acabar antes, o app pergunta se a tarefa foi concluída.</li><li>🎉 Tarefa no tempo = comemoração; atrasou = um incentivo carinhoso.</li><li>📱 Os pais configuram tarefas, horários e dias <strong>pelo celular</strong>, e a TV se atualiza sozinha.</li></ul>",
+    guide_tv_title: "Como levar para a TV",
+    guide_tv_html: "<ol><li>Configure a rotina no celular (os modelos prontos ajudam).</li><li>Na TV, abra o navegador e digite <strong>{url}</strong>.</li><li>Na tela de boas-vindas da TV, digite o código que aparece no celular em ⚙️ Configurar → \"📺 Levar para a TV\".</li></ol>",
+    guide_tips_title: "Dicas",
+    guide_tips_html: "<ul><li>🔊 <strong>Som:</strong> o navegador só libera o som depois de um toque — na TV, toque uma vez no botão 🔇.</li><li>⭐ <strong>Favoritos:</strong> salve o endereço nos favoritos do navegador da TV para abrir direto nas próximas vezes.</li><li>🌙 <strong>Protetor de tela:</strong> se a TV escurecer ou mostrar fotos depois de alguns minutos, desative ou aumente o tempo do protetor de tela nas configurações da TV.</li><li>🧪 <strong>Teste:</strong> \"Testar agora\" roda a rotina com tarefas de 1 minuto; \"Sair do teste\" volta ao normal.</li></ul>",
+    guide_privacy_title: "Privacidade",
+    guide_privacy_html: "<p>Use só um apelido para a criança. As rotinas ficam salvas no aparelho e, se você conectar outros aparelhos, num servidor usado só para sincronizá-los. Em ⚙️ Configurar você vê e remove os aparelhos conectados.</p>",
     welcome_note: "⚠️ <strong>Versão de teste.</strong> Este app ainda está em fase de testes. Para proteger sua família, <strong>use apenas um apelido</strong> para a criança — nada de nome completo, escola ou endereço. As rotinas ficam salvas neste aparelho e, se você conectar outros aparelhos, num servidor usado só para sincronizá-los.",
-    welcome_have_device: "Já tem outro aparelho configurado (ex: a TV)?",
-    welcome_connect: "🔗 Conectar com código",
-    welcome_choose: "Ou escolha por onde começar (pode marcar vários):",
+    welcome_choose: "Escolha por onde começar (pode marcar vários):",
     welcome_start: "▶️ Começar",
     welcome_later: "Depois dá para ajustar tarefas, horários e dias em ⚙️ Configurar.",
     welcome_blank: "✏️ Começar do zero",
@@ -1776,10 +1982,58 @@ const I18N = {
     save_anyway: "Save anyway",
     welcome_title: "👋 Welcome to {app}!",
     tagline: "kids' routines, step by step",
+    brand_googletv_models: "Works for most Sony, TCL, Philips and Xiaomi TVs and for Chromecast with Google TV.",
+    welcome_setup_here: "No phone? Set it up here on the TV",
+    welcome_tv_intro_html: "<strong>📱 Start on your phone:</strong> point the phone camera at the QR code or open <strong>{url}</strong> on it and set up the routine. At the end, the phone shows a code to type here.",
+    welcome_have_code_other: "Already have the routine on another device? Type the code shown there:",
+    welcome_have_code: "Type the code shown on the phone here:",
+    welcome_joined: "✅ Connected! The routine set up on the other device is now here.",
+    open_guide: "📖 Quick guide",
+    take_to_tv_btn: "📺 Put it on the TV",
+    tvsetup_title: "📺 Now put it on the TV",
+    tvsetup_intro: "The routine is ready on this device. On the TV it is big and easy for your child to see — and whatever you change here shows up there by itself.",
+    tvsetup_step1: "<strong>1.</strong> On the TV, open the web browser and type this address:",
+    tvsetup_step2: "<strong>2.</strong> On the TV's welcome screen, type this code:",
+    tvsetup_code_hint: "The code renews itself while this screen is open.",
+    tvsetup_preparing: "⏳ Preparing the code…",
+    tvsetup_waiting: "⏳ Waiting for the TV…",
+    tvsetup_connected: "✅ {names} connected! All set — you can close this screen.",
+    tvsetup_failed: "⚠️ Couldn't create the code. Check the internet and try again.",
+    try_again: "Try again",
+    tvsetup_brand_q: "How do I open the browser on my TV?",
+    tvsetup_later: "Later",
+    tvsetup_done: "Done",
+    tvsetup_later_hint: "You can do this later in ⚙️ Settings → \"📺 Put it on the TV\".",
+    copy_link: "📋 Copy",
+    copied: "✅ Copied!",
+    share_link: "📤 Share",
+    close: "Close",
+    brand_googletv: "Sony · TCL · Google TV / Android TV",
+    brand_samsung: "Samsung",
+    brand_lg: "LG",
+    brand_firetv: "Fire TV",
+    brand_other: "Other / not sure",
+    brand_googletv_steps: "<ol><li>On the home screen, open the <strong>Play Store</strong> (under \"Apps\").</li><li>Search for <strong>\"TV Bro\"</strong> (a free browser) and install it.</li><li>Open TV Bro and type the address in the bar at the top.</li></ol>",
+    brand_googletv_remote: "💡 Easier: install the <strong>Google TV</strong> app on your phone, tap \"Remote\" and use the keyboard icon to type on the TV.",
+    brand_samsung_steps: "<ol><li>Press the <strong>Home</strong> button (little house) on the remote.</li><li>Open the <strong>\"Internet\"</strong> app, which comes pre-installed (if you don't see it, look under \"Apps\").</li><li>Select the address bar and type the address.</li></ol>",
+    brand_samsung_remote: "💡 Easier: on many models, the <strong>SmartThings</strong> app on your phone has a remote with a keyboard.",
+    brand_lg_steps: "<ol><li>Press the <strong>Home</strong> button on the remote.</li><li>Open the pre-installed <strong>\"Web Browser\"</strong> app.</li><li>Select the address bar and type the address.</li></ol>",
+    brand_lg_remote: "💡 Easier: on many models, the <strong>LG ThinQ</strong> app on your phone works as a remote with a keyboard.",
+    brand_firetv_steps: "<ol><li>On the home screen, open <strong>search</strong> (magnifier) and look for <strong>\"Silk\"</strong>.</li><li>Install the <strong>Silk Browser</strong> (free, by Amazon).</li><li>Open Silk and type the address.</li></ol>",
+    brand_firetv_remote: "💡 Easier: the <strong>Amazon Fire TV</strong> app on your phone has a remote with a keyboard.",
+    brand_other_steps: "<ul><li>Look on the TV for an app called <strong>\"Browser\"</strong>, <strong>\"Internet\"</strong> or <strong>\"Web\"</strong> and type the address there (e.g. Hisense, Panasonic).</li><li><strong>Roku</strong> (including TCL Roku TVs) has no browser: use a Chromecast, a Fire TV Stick or a laptop.</li><li>No browser on the TV? Connect a <strong>laptop to the TV with an HDMI cable</strong> and open the address there, full screen.</li></ul>",
+    brand_note: "Menu names may vary by TV model.",
+    guide_title: "📖 Quick guide",
+    guide_what_title: "What is Routikids?",
+    guide_what_html: "<p>A visual routine for kids, made to live <strong>on the TV</strong>: the current task is shown big, with the minutes left as colourful blocks, and the list next to it shows what comes next.</p><ul><li>✔ When a task is finished, tap <strong>\"I'm done\"</strong> — you decide whether your child or an adult does the tapping. If time runs out first, the app asks whether the task was finished.</li><li>🎉 On time = a celebration; late = a gentle encouragement.</li><li>📱 Parents set up tasks, times and days <strong>on the phone</strong>, and the TV updates by itself.</li></ul>",
+    guide_tv_title: "How to put it on the TV",
+    guide_tv_html: "<ol><li>Set up the routine on your phone (the ready-made templates help).</li><li>On the TV, open the browser and type <strong>{url}</strong>.</li><li>On the TV's welcome screen, type the code shown on your phone under ⚙️ Settings → \"📺 Put it on the TV\".</li></ol>",
+    guide_tips_title: "Tips",
+    guide_tips_html: "<ul><li>🔊 <strong>Sound:</strong> browsers only allow sound after a tap — on the TV, press the 🔇 button once.</li><li>⭐ <strong>Bookmark:</strong> save the address in the TV browser's bookmarks to open it directly next time.</li><li>🌙 <strong>Screensaver:</strong> if the TV dims or shows photos after a few minutes, turn off the screensaver or make its delay longer in the TV settings.</li><li>🧪 <strong>Test:</strong> \"Test now\" runs the routine with 1-minute tasks; \"Exit test\" goes back to normal.</li></ul>",
+    guide_privacy_title: "Privacy",
+    guide_privacy_html: "<p>Use only a nickname for your child. Routines are stored on the device and, if you connect other devices, on a server used only to sync them. In ⚙️ Settings you can see and remove connected devices.</p>",
     welcome_note: "⚠️ <strong>Test version.</strong> This app is still being tested. To protect your family, <strong>use only a nickname</strong> for your child — no full name, school or address. Routines are stored on this device and, if you connect other devices, on a server used only to sync them.",
-    welcome_have_device: "Already set up another device (e.g. the TV)?",
-    welcome_connect: "🔗 Connect with a code",
-    welcome_choose: "Or choose where to start (you can pick several):",
+    welcome_choose: "Choose where to start (you can pick several):",
     welcome_start: "▶️ Let's go",
     welcome_later: "You can adjust tasks, times and days later in ⚙️ Settings.",
     welcome_blank: "✏️ Start from scratch",
@@ -1979,10 +2233,58 @@ const I18N = {
     save_anyway: "Trotzdem speichern",
     welcome_title: "👋 Willkommen bei {app}!",
     tagline: "die Kinder-Routine, Schritt für Schritt",
+    brand_googletv_models: "Gilt für die meisten Fernseher von Sony, TCL, Philips und Xiaomi sowie für Chromecast mit Google TV.",
+    welcome_setup_here: "Kein Handy? Hier am Fernseher einrichten",
+    welcome_tv_intro_html: "<strong>📱 Fang auf dem Handy an:</strong> Richte die Handykamera auf den QR-Code oder öffne dort <strong>{url}</strong> und richte die Routine ein. Am Ende zeigt das Handy einen Code, den du hier eingibst.",
+    welcome_have_code_other: "Routine schon auf einem anderen Gerät? Gib den dort angezeigten Code ein:",
+    welcome_have_code: "Gib hier den Code ein, den das Handy anzeigt:",
+    welcome_joined: "✅ Verbunden! Die auf dem anderen Gerät eingerichtete Routine ist jetzt hier.",
+    open_guide: "📖 Kurzanleitung",
+    take_to_tv_btn: "📺 Auf den Fernseher bringen",
+    tvsetup_title: "📺 Jetzt auf den Fernseher bringen",
+    tvsetup_intro: "Die Routine ist auf diesem Gerät fertig. Auf dem Fernseher ist sie groß und für dein Kind gut sichtbar – und was du hier änderst, erscheint dort automatisch.",
+    tvsetup_step1: "<strong>1.</strong> Öffne auf dem Fernseher den Webbrowser und gib diese Adresse ein:",
+    tvsetup_step2: "<strong>2.</strong> Gib auf dem Willkommensbildschirm des Fernsehers diesen Code ein:",
+    tvsetup_code_hint: "Der Code erneuert sich von selbst, solange dieser Bildschirm offen ist.",
+    tvsetup_preparing: "⏳ Code wird vorbereitet…",
+    tvsetup_waiting: "⏳ Warte auf den Fernseher…",
+    tvsetup_connected: "✅ {names} verbunden! Fertig – du kannst diesen Bildschirm schließen.",
+    tvsetup_failed: "⚠️ Code konnte nicht erstellt werden. Prüfe die Internetverbindung und versuche es erneut.",
+    try_again: "Erneut versuchen",
+    tvsetup_brand_q: "Wie öffne ich den Browser auf meinem Fernseher?",
+    tvsetup_later: "Später",
+    tvsetup_done: "Fertig",
+    tvsetup_later_hint: "Das geht auch später unter ⚙️ Einstellungen → „📺 Auf den Fernseher bringen“.",
+    copy_link: "📋 Kopieren",
+    copied: "✅ Kopiert!",
+    share_link: "📤 Teilen",
+    close: "Schließen",
+    brand_googletv: "Sony · TCL · Google TV / Android TV",
+    brand_samsung: "Samsung",
+    brand_lg: "LG",
+    brand_firetv: "Fire TV",
+    brand_other: "Andere / weiß nicht",
+    brand_googletv_steps: "<ol><li>Öffne auf dem Startbildschirm den <strong>Play Store</strong> (unter „Apps“).</li><li>Suche nach <strong>„TV Bro“</strong> (kostenloser Browser) und installiere ihn.</li><li>Öffne TV Bro und gib die Adresse oben in die Leiste ein.</li></ol>",
+    brand_googletv_remote: "💡 Einfacher: Installiere die App <strong>Google TV</strong> auf dem Handy, tippe auf „Fernbedienung“ und nutze das Tastatur-Symbol, um auf dem Fernseher zu tippen.",
+    brand_samsung_steps: "<ol><li>Drücke die <strong>Home</strong>-Taste (Häuschen) auf der Fernbedienung.</li><li>Öffne die vorinstallierte App <strong>„Internet“</strong> (falls nicht sichtbar, unter „Apps“ suchen).</li><li>Wähle die Adressleiste und gib die Adresse ein.</li></ol>",
+    brand_samsung_remote: "💡 Einfacher: Bei vielen Modellen hat die App <strong>SmartThings</strong> auf dem Handy eine Fernbedienung mit Tastatur.",
+    brand_lg_steps: "<ol><li>Drücke die <strong>Home</strong>-Taste auf der Fernbedienung.</li><li>Öffne die vorinstallierte App <strong>„Web Browser“</strong>.</li><li>Wähle die Adressleiste und gib die Adresse ein.</li></ol>",
+    brand_lg_remote: "💡 Einfacher: Bei vielen Modellen funktioniert die App <strong>LG ThinQ</strong> auf dem Handy als Fernbedienung mit Tastatur.",
+    brand_firetv_steps: "<ol><li>Öffne auf dem Startbildschirm die <strong>Suche</strong> (Lupe) und suche nach <strong>„Silk“</strong>.</li><li>Installiere den <strong>Silk Browser</strong> (kostenlos, von Amazon).</li><li>Öffne Silk und gib die Adresse ein.</li></ol>",
+    brand_firetv_remote: "💡 Einfacher: Die App <strong>Amazon Fire TV</strong> auf dem Handy hat eine Fernbedienung mit Tastatur.",
+    brand_other_steps: "<ul><li>Suche auf dem Fernseher eine App namens <strong>„Browser“</strong>, <strong>„Internet“</strong> oder <strong>„Web“</strong> und gib dort die Adresse ein (z. B. Hisense, Panasonic).</li><li><strong>Roku</strong> (auch TCL-Fernseher mit Roku) hat keinen Browser: Nimm einen Chromecast, einen Fire TV Stick oder einen Laptop.</li><li>Kein Browser auf dem Fernseher? Verbinde einen <strong>Laptop per HDMI-Kabel</strong> mit dem Fernseher und öffne die Adresse dort im Vollbild.</li></ul>",
+    brand_note: "Menünamen können je nach Fernsehermodell abweichen.",
+    guide_title: "📖 Kurzanleitung",
+    guide_what_title: "Was ist Routikids?",
+    guide_what_html: "<p>Eine sichtbare Tagesroutine für Kinder, gemacht für den <strong>Fernseher</strong>: Die aktuelle Aufgabe wird groß angezeigt, die verbleibenden Minuten als bunte Kästchen, und die Liste daneben zeigt, was als Nächstes kommt.</p><ul><li>✔ Ist eine Aufgabe erledigt, tippe auf <strong>„Fertig!“</strong> – ihr entscheidet, ob das Kind oder ein Erwachsener tippt. Läuft die Zeit vorher ab, fragt die App, ob die Aufgabe erledigt wurde.</li><li>🎉 Pünktlich = Feier; zu spät = eine liebe Ermutigung.</li><li>📱 Eltern stellen Aufgaben, Zeiten und Tage <strong>auf dem Handy</strong> ein, und der Fernseher aktualisiert sich von selbst.</li></ul>",
+    guide_tv_title: "So kommt es auf den Fernseher",
+    guide_tv_html: "<ol><li>Richte die Routine auf dem Handy ein (die fertigen Vorlagen helfen).</li><li>Öffne auf dem Fernseher den Browser und gib <strong>{url}</strong> ein.</li><li>Gib auf dem Willkommensbildschirm des Fernsehers den Code ein, den das Handy unter ⚙️ Einstellungen → „📺 Auf den Fernseher bringen“ anzeigt.</li></ol>",
+    guide_tips_title: "Tipps",
+    guide_tips_html: "<ul><li>🔊 <strong>Ton:</strong> Browser erlauben Ton erst nach einem Tippen – drücke auf dem Fernseher einmal die 🔇-Taste.</li><li>⭐ <strong>Lesezeichen:</strong> Speichere die Adresse als Lesezeichen im Browser des Fernsehers, um sie beim nächsten Mal direkt zu öffnen.</li><li>🌙 <strong>Bildschirmschoner:</strong> Wird der Fernseher nach ein paar Minuten dunkel oder zeigt Fotos, schalte den Bildschirmschoner in den Einstellungen des Fernsehers aus oder verlängere die Zeit.</li><li>🧪 <strong>Test:</strong> „Jetzt testen“ lässt die Routine mit 1-Minuten-Aufgaben laufen; „Test beenden“ kehrt zum Normalbetrieb zurück.</li></ul>",
+    guide_privacy_title: "Datenschutz",
+    guide_privacy_html: "<p>Verwende nur einen Spitznamen für dein Kind. Die Routinen werden auf dem Gerät gespeichert und, wenn du weitere Geräte verbindest, auf einem Server, der nur zum Synchronisieren dient. Unter ⚙️ Einstellungen siehst und entfernst du verbundene Geräte.</p>",
     welcome_note: "⚠️ <strong>Testversion.</strong> Diese App wird noch getestet. Zum Schutz deiner Familie <strong>verwende nur einen Spitznamen</strong> für dein Kind – keinen vollen Namen, keine Schule, keine Adresse. Die Routinen werden auf diesem Gerät gespeichert und, wenn du weitere Geräte verbindest, auf einem Server, der nur zum Synchronisieren dient.",
-    welcome_have_device: "Schon ein anderes Gerät eingerichtet (z. B. den Fernseher)?",
-    welcome_connect: "🔗 Mit Code verbinden",
-    welcome_choose: "Oder wähle einen Startpunkt (mehrere möglich):",
+    welcome_choose: "Wähle einen Startpunkt (mehrere möglich):",
     welcome_start: "▶️ Los geht's",
     welcome_later: "Aufgaben, Zeiten und Tage kannst du später unter ⚙️ Einstellungen anpassen.",
     welcome_blank: "✏️ Bei null anfangen",
@@ -4158,6 +4460,7 @@ function announceNewMembers(members){
     if(added.length){
       const names = added.map(id => members[id].name || tr('a_device')).join(', ');
       setCloudStatus(tr('cloud_joined', { names }) + (pairCodeTimer ? tr('cloud_code_still_valid') : ''));
+      if(tvSetupIsOpen()) markTvSetupConnected(names);
     }
   }
   knownMemberIds = ids;
@@ -4359,8 +4662,11 @@ function renderDevices(house){
     const seen = document.createElement('span');
     seen.className = 'cloud-device-seen';
     seen.textContent = (id === me) ? tr('seen_now') : tr('last_access', { when: formatLastSeen(m.lastSeen) });
-    li.appendChild(name);
-    li.appendChild(seen);
+    const info = document.createElement('div');
+    info.className = 'cloud-device-info';
+    info.appendChild(name);
+    info.appendChild(seen);
+    li.appendChild(info);
     if(id !== me){
       const btn = document.createElement('button');
       btn.type = 'button';
@@ -4461,9 +4767,11 @@ function showPairCode(){
     .then(() => { btn.disabled = false; });
 }
 
+let lastJoinError = '';
 function joinWithCode(rawCode){
   const code = String(rawCode || '').replace(/\D/g, '');
   const fail = (title, text) => {
+    lastJoinError = `❌ ${title} ${text}`;
     setCloudStatus(`❌ ${title}`);
     showCloudBanner('error', `❌ ${title}`, text);
     return false;
@@ -4616,6 +4924,8 @@ function checkForUpdate(){
 function isQuietForReload(){
   return settingsOverlay.style.display !== 'flex'
     && document.getElementById('welcome-overlay').style.display !== 'flex'
+    && document.getElementById('tvsetup-overlay').style.display !== 'flex'
+    && document.getElementById('guide-overlay').style.display !== 'flex'
     && document.getElementById('app-dialog-overlay').style.display !== 'flex';
 }
 document.getElementById('update-now-btn').addEventListener('click', reloadFresh);
@@ -4636,11 +4946,39 @@ function renderWelcomeTemplates(){
 function hideWelcome(){ document.getElementById('welcome-overlay').style.display = 'none'; }
 function showWelcome(){
   renderWelcomeTemplates();
+  // A TV is normally set up from the phone, so its first step is typing the code
+  // the phone shows; the templates stay behind "No phone? Set it up here".
+  // Other devices start with the templates and offer the code below them.
+  const cloud = cloudEnabled();
+  const onTv = cloud && guessDeviceKind() === 'tv';
+  const card = document.querySelector('#welcome-overlay .settings-card');
+  const codeSection = document.getElementById('welcome-code-section');
+  const setupSection = document.getElementById('welcome-setup-section');
+  if(onTv) document.getElementById('welcome-setup-here-row').before(codeSection); else setupSection.after(codeSection);
+  codeSection.style.display = cloud ? '' : 'none';
+  document.getElementById('welcome-code-title').textContent = tr(onTv ? 'welcome_have_code' : 'welcome_have_code_other');
+  document.getElementById('welcome-tv-intro').style.display = onTv ? '' : 'none';
+  document.getElementById('welcome-setup-here-row').style.display = onTv ? '' : 'none';
+  setupSection.style.display = onTv ? 'none' : '';
+  if(onTv){
+    document.getElementById('welcome-tv-text').innerHTML = tr('welcome_tv_intro_html', { url: appAddress() });
+    const qrEl = document.getElementById('welcome-qr');
+    qrEl.innerHTML = '';
+    if(typeof QRCode !== 'undefined') new QRCode(qrEl, { text: appUrl(), width: 150, height: 150 });
+  }
   document.getElementById('welcome-overlay').style.display = 'flex';
-  // Focus "start" for TV remotes, but keep the card scrolled to the top (title, language picker).
-  document.getElementById('welcome-start-btn').focus({ preventScroll: true });
-  document.querySelector('#welcome-overlay .settings-card').scrollTop = 0;
+  // Focus for TV remotes, but keep the card scrolled to the top (title, language picker).
+  document.getElementById(onTv ? 'welcome-code-input' : 'welcome-start-btn').focus({ preventScroll: true });
+  card.scrollTop = 0;
 }
+document.getElementById('welcome-setup-here-btn').addEventListener('click', () => {
+  document.getElementById('welcome-setup-here-row').style.display = 'none';
+  const setupSection = document.getElementById('welcome-setup-section');
+  setupSection.style.display = '';
+  const first = setupSection.querySelector('input');
+  first.focus({ preventScroll: true });
+  setupSection.scrollIntoView({ block: 'start', behavior: 'smooth' });
+});
 document.getElementById('welcome-start-btn').addEventListener('click', () => {
   const keys = [...document.querySelectorAll('#welcome-templates input:checked')].map(i => i.value);
   const templates = keys.map(k => k === 'blank' ? BLANK_TEMPLATE : ROUTINE_TEMPLATES.find(t => t.key === k)).filter(Boolean);
@@ -4648,12 +4986,166 @@ document.getElementById('welcome-start-btn').addEventListener('click', () => {
   const nickname = document.getElementById('welcome-child-name').value.trim().slice(0, 30);
   applyImportedConfig(buildConfigFromTemplates(templates, nickname));
   hideWelcome();
+  // Set up on the phone first? Then the next step is taking it to the TV.
+  if(cloudEnabled() && guessDeviceKind() !== 'tv') openTvSetup();
 });
-document.getElementById('welcome-connect-btn').addEventListener('click', () => {
-  hideWelcome();
-  openSettings();
-  document.getElementById('cloud-code-input').focus();
+// A TV (or any device) joining a routine already set up on another device.
+function welcomeJoin(){
+  const input = document.getElementById('welcome-code-input');
+  const btn = document.getElementById('welcome-code-btn');
+  const status = document.getElementById('welcome-code-status');
+  btn.disabled = true;
+  status.textContent = tr('connecting');
+  joinWithCode(input.value).then(ok => {
+    btn.disabled = false;
+    hideCloudBanner();
+    if(ok){
+      status.textContent = '';
+      hideWelcome();
+      appAlert(tr('welcome_joined'));
+    } else {
+      status.textContent = lastJoinError;
+    }
+  });
+}
+document.getElementById('welcome-code-btn').addEventListener('click', welcomeJoin);
+document.getElementById('welcome-code-input').addEventListener('keydown', (e) => {
+  if(e.key === 'Enter'){ e.preventDefault(); welcomeJoin(); }
 });
+document.getElementById('welcome-guide-btn').addEventListener('click', openGuide);
+
+// ---------- Quick guide and "put it on the TV" screen ----------
+// Address to type on the TV, without "https://" (shorter to type with a remote).
+function appAddress(){
+  return (location.host + location.pathname).replace(/index\.html$/, '').replace(/\/$/, '');
+}
+function appUrl(){ return location.origin + location.pathname.replace(/index\.html$/, ''); }
+
+const TV_BRANDS = ['googletv', 'samsung', 'lg', 'firetv', 'other'];
+function renderBrandGuide(container){
+  container.innerHTML = '';
+  const tabs = document.createElement('div');
+  tabs.className = 'brand-tabs';
+  const body = document.createElement('div');
+  body.className = 'brand-body';
+  const show = (brand) => {
+    tabs.querySelectorAll('.brand-tab').forEach(b => b.classList.toggle('selected', b.dataset.brand === brand));
+    body.innerHTML = (brand === 'googletv' ? `<p class="settings-hint" style="margin:0 0 0.8vh;">${tr('brand_googletv_models')}</p>` : '')
+      + tr(`brand_${brand}_steps`)
+      + (brand !== 'other' ? `<p class="brand-remote">${tr(`brand_${brand}_remote`)}</p>` : '')
+      + `<p class="settings-hint" style="margin:0.8vh 0 0;">${tr('brand_note')}</p>`;
+  };
+  TV_BRANDS.forEach(brand => {
+    const b = document.createElement('button');
+    b.type = 'button';
+    b.className = 'brand-tab';
+    b.dataset.brand = brand;
+    b.textContent = tr(`brand_${brand}`);
+    b.addEventListener('click', () => show(brand));
+    tabs.appendChild(b);
+  });
+  container.appendChild(tabs);
+  container.appendChild(body);
+  show(TV_BRANDS[0]);
+}
+
+function openGuide(){
+  document.getElementById('guide-tv').innerHTML = tr('guide_tv_html', { url: appAddress() });
+  renderBrandGuide(document.getElementById('guide-brands'));
+  const overlay = document.getElementById('guide-overlay');
+  overlay.style.display = 'flex';
+  overlay.querySelector('.settings-card').scrollTop = 0;
+  document.getElementById('guide-close-btn').focus({ preventScroll: true });
+}
+document.getElementById('guide-close-btn').addEventListener('click', () => {
+  document.getElementById('guide-overlay').style.display = 'none';
+});
+document.getElementById('settings-guide-btn').addEventListener('click', openGuide);
+document.getElementById('tvsetup-guide-btn').addEventListener('click', openGuide);
+
+// Phone-first setup: show the address to type on the TV and a pairing code that
+// renews itself while this screen is open; announceNewMembers reports the TV joining.
+let tvSetupTimer = null;
+let tvSetupConnected = false;
+function tvSetupIsOpen(){ return document.getElementById('tvsetup-overlay').style.display === 'flex'; }
+function setTvSetupStatus(text, ok){
+  const el = document.getElementById('tvsetup-status');
+  el.textContent = text;
+  el.classList.toggle('ok', !!ok);
+}
+function updateTvSetupCloseBtn(){
+  document.getElementById('tvsetup-close-btn').textContent = tr(tvSetupConnected ? 'tvsetup_done' : 'tvsetup_later');
+  document.getElementById('tvsetup-later-hint').style.display = tvSetupConnected ? 'none' : '';
+}
+function refreshTvSetupCode(){
+  clearTimeout(tvSetupTimer);
+  const retry = document.getElementById('tvsetup-retry-btn');
+  retry.style.display = 'none';
+  if(!tvSetupConnected) setTvSetupStatus(tr('tvsetup_preparing'));
+  ensureHouse()
+    .then(houseId => createPairCode(houseId))
+    .then(code => {
+      if(!tvSetupIsOpen()) return;
+      document.getElementById('tvsetup-code').textContent = `${code.slice(0,3)} ${code.slice(3)}`;
+      if(!tvSetupConnected) setTvSetupStatus(tr('tvsetup_waiting'));
+      tvSetupTimer = setTimeout(refreshTvSetupCode, PAIR_CODE_TTL_MS - 30 * 1000);
+    })
+    .catch(() => {
+      if(!tvSetupIsOpen()) return;
+      document.getElementById('tvsetup-code').textContent = '··· ···';
+      setTvSetupStatus(tr('tvsetup_failed'));
+      retry.style.display = '';
+    });
+}
+function markTvSetupConnected(names){
+  tvSetupConnected = true;
+  setTvSetupStatus(tr('tvsetup_connected', { names }), true);
+  updateTvSetupCloseBtn();
+}
+function openTvSetup(){
+  tvSetupConnected = false;
+  document.getElementById('tvsetup-url').textContent = appAddress();
+  document.getElementById('tvsetup-share-btn').style.display = navigator.share ? '' : 'none';
+  document.getElementById('tvsetup-code').textContent = '··· ···';
+  renderBrandGuide(document.getElementById('tvsetup-brands'));
+  updateTvSetupCloseBtn();
+  const overlay = document.getElementById('tvsetup-overlay');
+  overlay.style.display = 'flex';
+  overlay.querySelector('.settings-card').scrollTop = 0;
+  document.getElementById('tvsetup-close-btn').focus({ preventScroll: true });
+  refreshTvSetupCode();
+}
+function closeTvSetup(){
+  clearTimeout(tvSetupTimer);
+  tvSetupTimer = null;
+  document.getElementById('tvsetup-overlay').style.display = 'none';
+}
+document.getElementById('tvsetup-close-btn').addEventListener('click', closeTvSetup);
+document.getElementById('tvsetup-retry-btn').addEventListener('click', refreshTvSetupCode);
+document.getElementById('tvsetup-copy-btn').addEventListener('click', () => {
+  const btn = document.getElementById('tvsetup-copy-btn');
+  const done = () => {
+    btn.textContent = tr('copied');
+    setTimeout(() => { btn.textContent = tr('copy_link'); }, 2000);
+  };
+  const fallback = () => {
+    const range = document.createRange();
+    range.selectNodeContents(document.getElementById('tvsetup-url'));
+    const sel = window.getSelection();
+    sel.removeAllRanges();
+    sel.addRange(range);
+    try{ if(document.execCommand('copy')) done(); }catch(e){}
+  };
+  if(navigator.clipboard && navigator.clipboard.writeText){
+    navigator.clipboard.writeText(appUrl()).then(done, fallback);
+  } else fallback();
+});
+document.getElementById('tvsetup-share-btn').addEventListener('click', () => {
+  navigator.share({ title: APP_NAME, url: appUrl() }).catch(() => {});
+});
+const settingsTvBtn = document.getElementById('settings-tv-btn');
+settingsTvBtn.style.display = (cloudEnabled() && guessDeviceKind() !== 'tv') ? '' : 'none';
+settingsTvBtn.addEventListener('click', openTvSetup);
 // First use = nothing saved on this device and not paired. Not shown when opened from a pairing QR link.
 function maybeShowWelcome(){
   if(stored || (cloudEnabled() && getHouseId())) return;
