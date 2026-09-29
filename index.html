@@ -2,6 +2,26 @@
 <html lang="pt-BR">
 <head>
 <script>
+// Moving from the old address: the page left there forwards this device's
+// saved data (routine, pairing, identity, language) in the URL fragment,
+// which is never sent to any server. Import it once — unless this address
+// already has its own data — and drop it from the URL.
+(function(){
+  const m = location.hash.match(/^#migrate=([A-Za-z0-9_-]+)/);
+  if(!m) return;
+  try{
+    const json = decodeURIComponent(escape(atob(m[1].replace(/-/g, '+').replace(/_/g, '/'))));
+    const data = JSON.parse(json);
+    const hasOwnData = localStorage.getItem('rotinaConfig_v2') || localStorage.getItem('rotinaHouseId_v2');
+    if(!hasOwnData){
+      Object.keys(data).forEach(k => {
+        if(/^rotina/.test(k) && typeof data[k] === 'string') localStorage.setItem(k, data[k]);
+      });
+    }
+  }catch(e){}
+  history.replaceState(null, '', location.pathname + location.search);
+})();
+
 // Always force fetching the newest version from the server: if the URL lacks
 // our cache-busting parameter, redirect to itself with a unique value, which
 // forces the browser to ignore any cached copy (on the TV or GitHub Pages)
@@ -18,9 +38,9 @@
 })();
 </script>
 <meta charset="UTF-8">
-<title>Tickido</title>
+<title>Routikids</title>
 <!-- The code version lives here (read by the app and by the update check); bump it on every change. -->
-<meta name="app-version" content="Versão do código: 2026-09-28 21:56">
+<meta name="app-version" content="Versão do código: 2026-09-29 05:38">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@500;700;800&family=Nunito:wght@600;800&display=swap" rel="stylesheet">
@@ -552,6 +572,13 @@
     padding:3vh 2vw;
   }
   #welcome-overlay .welcome-card h2{ font-size:clamp(24px, 2.2vw, 44px); }
+  .welcome-tagline{
+    font-family:'Nunito', sans-serif;
+    font-weight:700;
+    font-size:clamp(15px, 1.1vw, 24px);
+    color:#6b7a90;
+    margin:-0.5vh 0 1.5vh;
+  }
   #welcome-overlay .settings-btn{ font-size:clamp(18px, 1.4vw, 30px); }
   .welcome-card h3{
     font-family:'Baloo 2', sans-serif;
@@ -1400,6 +1427,7 @@
   <div class="settings-card welcome-card">
     <div class="lang-picker"></div>
     <h2 data-i18n="welcome_title"></h2>
+    <p class="welcome-tagline" data-i18n="tagline"></p>
     <div class="welcome-note" data-i18n-html="welcome_note"></div>
     <h3 data-i18n="welcome_have_device"></h3>
     <div class="sync-buttons">
@@ -1451,7 +1479,7 @@
 // The language is per device: chosen by the user, else the device language
 // for new devices; devices that already had a routine before this existed
 // stay in Portuguese.
-const APP_NAME = 'Tickido'; // provisional name
+const APP_NAME = 'Routikids';
 const LANG_KEY = 'rotinaLang_v1';
 const LANG_LOCALES = { pt: 'pt-BR', en: 'en-US', de: 'de-DE' };
 const LANG_LABELS = { pt: '🇧🇷 Português', en: '🇬🇧 English', de: '🇩🇪 Deutsch' };
@@ -1544,6 +1572,7 @@ const I18N = {
     overlap_confirm: "Horários sobrepostos encontrados:\n{list}\n\nSalvar mesmo assim?",
     save_anyway: "Salvar mesmo assim",
     welcome_title: "👋 Bem-vindo ao {app}!",
+    tagline: "a rotina das crianças, passo a passo",
     welcome_note: "⚠️ <strong>Versão de teste.</strong> Este app ainda está em fase de testes. Para proteger sua família, <strong>use apenas um apelido</strong> para a criança — nada de nome completo, escola ou endereço. As rotinas ficam salvas neste aparelho e, se você conectar outros aparelhos, num servidor usado só para sincronizá-los.",
     welcome_have_device: "Já tem outro aparelho configurado (ex: a TV)?",
     welcome_connect: "🔗 Conectar com código",
@@ -1746,6 +1775,7 @@ const I18N = {
     overlap_confirm: "Overlapping times found:\n{list}\n\nSave anyway?",
     save_anyway: "Save anyway",
     welcome_title: "👋 Welcome to {app}!",
+    tagline: "kids' routines, step by step",
     welcome_note: "⚠️ <strong>Test version.</strong> This app is still being tested. To protect your family, <strong>use only a nickname</strong> for your child — no full name, school or address. Routines are stored on this device and, if you connect other devices, on a server used only to sync them.",
     welcome_have_device: "Already set up another device (e.g. the TV)?",
     welcome_connect: "🔗 Connect with a code",
@@ -1948,6 +1978,7 @@ const I18N = {
     overlap_confirm: "Überschneidende Zeiten gefunden:\n{list}\n\nTrotzdem speichern?",
     save_anyway: "Trotzdem speichern",
     welcome_title: "👋 Willkommen bei {app}!",
+    tagline: "die Kinder-Routine, Schritt für Schritt",
     welcome_note: "⚠️ <strong>Testversion.</strong> Diese App wird noch getestet. Zum Schutz deiner Familie <strong>verwende nur einen Spitznamen</strong> für dein Kind – keinen vollen Namen, keine Schule, keine Adresse. Die Routinen werden auf diesem Gerät gespeichert und, wenn du weitere Geräte verbindest, auf einem Server, der nur zum Synchronisieren dient.",
     welcome_have_device: "Schon ein anderes Gerät eingerichtet (z. B. den Fernseher)?",
     welcome_connect: "🔗 Mit Code verbinden",
@@ -2086,7 +2117,7 @@ function tr(key, vars){
 }
 function applyStaticTranslations(){
   document.documentElement.lang = LANG_LOCALES[LANG];
-  document.title = APP_NAME;
+  document.title = `${APP_NAME} — ${tr('tagline')}`;
   const htmlVars = { app: APP_NAME, task: '<span id="confirm-task-name"></span>', seconds: '<span id="confirm-seconds">30</span>' };
   document.querySelectorAll('[data-i18n]').forEach(el => { el.textContent = tr(el.dataset.i18n, { app: APP_NAME }); });
   document.querySelectorAll('[data-i18n-html]').forEach(el => { el.innerHTML = tr(el.dataset.i18nHtml, htmlVars); });
@@ -4606,7 +4637,9 @@ function hideWelcome(){ document.getElementById('welcome-overlay').style.display
 function showWelcome(){
   renderWelcomeTemplates();
   document.getElementById('welcome-overlay').style.display = 'flex';
-  document.getElementById('welcome-start-btn').focus();
+  // Focus "start" for TV remotes, but keep the card scrolled to the top (title, language picker).
+  document.getElementById('welcome-start-btn').focus({ preventScroll: true });
+  document.querySelector('#welcome-overlay .settings-card').scrollTop = 0;
 }
 document.getElementById('welcome-start-btn').addEventListener('click', () => {
   const keys = [...document.querySelectorAll('#welcome-templates input:checked')].map(i => i.value);
