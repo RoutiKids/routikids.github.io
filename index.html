@@ -45,7 +45,7 @@
 <meta name="color-scheme" content="light dark">
 <title>Routikids</title>
 <!-- The code version lives here (read by the app and by the update check); bump it on every change. -->
-<meta name="app-version" content="Versão do código: 2026-09-29 23:29">
+<meta name="app-version" content="Versão do código: 2026-09-29 23:35">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@500;700;800&family=Nunito:wght@600;800&display=swap" rel="stylesheet">
@@ -2039,7 +2039,7 @@ const I18N = {
     browse_next_title: "Ver próxima rotina",
     move_earlier: "Mover mais cedo",
     move_later: "Mover mais tarde",
-    page_title_child: "🌞 Rotina de {name}",
+    page_title_child: "{icon} Rotina de {name}",
     today: "Hoje",
     tomorrow: "Amanhã",
     tomorrow_preview: "Amanhã: {names}, começa às {time}",
@@ -2349,7 +2349,7 @@ const I18N = {
     browse_next_title: "Next routine",
     move_earlier: "Move earlier",
     move_later: "Move later",
-    page_title_child: "🌞 {name}'s routine",
+    page_title_child: "{icon} {name}'s routine",
     today: "Today",
     tomorrow: "Tomorrow",
     tomorrow_preview: "Tomorrow: {names}, starts at {time}",
@@ -2659,7 +2659,7 @@ const I18N = {
     browse_next_title: "Nächste Routine",
     move_earlier: "Früher",
     move_later: "Später",
-    page_title_child: "🌞 Routine von {name}",
+    page_title_child: "{icon} Routine von {name}",
     today: "Heute",
     tomorrow: "Morgen",
     tomorrow_preview: "Morgen: {names}, beginnt um {time}",
@@ -3781,7 +3781,10 @@ let panelEl = null; // the child's column (several children), or null (main scre
 function stepEl(i){ return timelineEl.querySelector(`.step[data-step="${i}"]`); }
 
 function updateHeaderTitle(){
-  pageTitleEl.textContent = CHILD_NAME ? tr('page_title_child', { name: CHILD_NAME }) : `🌞 ${APP_NAME}`;
+  // The child shown (not always the first one: the others may be hidden), with their picture.
+  const child = activeChild();
+  const icon = child.icon || '🌞';
+  pageTitleEl.textContent = child.name ? tr('page_title_child', { name: child.name, icon }) : `${icon} ${APP_NAME}`;
 }
 
 // ---------- Timeline construction (rebuilt whenever the order changes) ----------
