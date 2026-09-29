@@ -1,6 +1,10 @@
-# rotina-infantil-na-tv
+# Routikids
 
-Single-page app (`index.html`) served via GitHub Pages from `main`. Families share the same URL; each device keeps its routine in `localStorage`, and paired devices sync through Firebase (below).
+Single-page app (`index.html`) served via GitHub Pages from `main` at **https://routikids.github.io/**. Families share the same URL; each device keeps its routine in `localStorage`, and paired devices sync through Firebase (below).
+
+## Old address
+
+The app used to live at `fabiofialho1.github.io/rotina-infantil-na-tv/` (repository `fabiofialho1/rotina-infantil-na-tv`), which now only hosts a redirect page. It forwards each device's `rotina*` localStorage keys here in a `#migrate=` URL fragment (and keeps `?parear=CODE`). The small script at the top of `<head>` imports that data when this device has none of its own and removes the fragment: keep it, and keep the `rotina*` key names.
 
 ## Language conventions
 
@@ -19,6 +23,7 @@ Single-page app (`index.html`) served via GitHub Pages from `main`. Families sha
 - Devices pair with a 6-digit code (or QR link `?parear=CODE`) and then share one "house" in a Firebase Realtime Database, via its REST API (no SDK). Live updates come over Server-Sent Events.
 - Each device signs in anonymously through the Firebase Auth REST API (no accounts). Only devices listed in `houses/<id>/members` can read or write that house, so removing a member cuts its access for real. Config lives in `houses/<id>/data`.
 - `CLOUD_DB_URL` and `FIREBASE_API_KEY` in `index.html` configure it (the API key is public by design); an empty URL hides the pairing section (the app then works on a single device).
-- New devices (nothing saved, not paired) see a welcome screen with a test/privacy note and routine templates (`ROUTINE_TEMPLATES`); existing devices never do.
+- New devices (nothing saved, not paired) see a welcome screen with a test/privacy note, a field for a pairing code (focused on TVs) and routine templates (`ROUTINE_TEMPLATES`); existing devices never do.
+- Phone-first setup: after "Começar" on a non-TV device, the "📺 Agora leve para a TV" screen (`openTvSetup`) shows the address to type on the TV, a pairing code that renews itself while open, and per-brand steps (`renderBrandGuide`); it turns into "TV conectada" when `announceNewMembers` sees the TV join. It also opens from settings. The "📖 Guia rápido" (`openGuide`) explains the app and the same TV steps.
 - Security rules live in `database.rules.json` and must be pasted into the Firebase console whenever they change. Anonymous auth must stay enabled, with automatic cleanup of anonymous accounts **off**.
 - A device only drops its pairing after two database refusals at least 15s apart, and only discards its anonymous identity when Auth says it is gone (not on generic 400s). Key events go to a per-device "Histórico da conexão" (localStorage) shown in the sync section, to diagnose lost pairings.
