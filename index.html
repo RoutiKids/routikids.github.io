@@ -45,7 +45,7 @@
 <meta name="color-scheme" content="light dark">
 <title>Routikids</title>
 <!-- The code version lives here (read by the app and by the update check); bump it on every change. -->
-<meta name="app-version" content="Versão do código: 2026-09-29 22:43">
+<meta name="app-version" content="Versão do código: 2026-09-29 23:08">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@500;700;800&family=Nunito:wght@600;800&display=swap" rel="stylesheet">
@@ -1181,6 +1181,19 @@
     padding:1.5vh 1.2vw;
     margin-bottom:2vh;
   }
+  #audio-section{
+    background:rgba(255,127,110,0.08);
+    border:2px solid rgba(255,127,110,0.3);
+    border-radius:16px;
+    padding:1.5vh 1.2vw;
+    margin:2vh 0;
+  }
+  #audio-list{ list-style:none; margin:0.5vh 0 0; padding:0; }
+  #audio-list li{ display:flex; align-items:center; gap:0.6vw; margin:0.6vh 0; }
+  #audio-list li .settings-text-input{ flex:1; min-width:0; margin:0; }
+  #audio-list li button{ font-size:clamp(16px, 1.2vw, 26px); padding:0.4vh 0.8vw; border-radius:10px; border:2px solid rgba(29,53,87,0.15); background:white; cursor:pointer; }
+  #audio-list li button:disabled{ opacity:0.4; cursor:default; }
+  #audio-record-btn.recording{ animation:none; background:#d62828 !important; }
   #children-section{
     background:rgba(185,131,255,0.08);
     border:2px solid rgba(185,131,255,0.3);
@@ -1209,7 +1222,7 @@
   #child-visible-row,
   #child-pictures-row{ display:flex; align-items:center; gap:0.6vw; font-family:'Nunito', sans-serif; font-weight:700; font-size:clamp(14px, 1vw, 22px); color:var(--navy); margin:1vh 0; cursor:pointer; }
   #child-pictures-row input, #child-visible-row input{ width:1.4em; height:1.4em; }
-  #children-section h3,
+  #children-section h3, #audio-section h3,
   #sync-section h3, #backup-section h3{
     font-family:'Baloo 2', sans-serif;
     font-weight:800;
@@ -1617,8 +1630,8 @@
     .settings-text-input, .settings-time-input, .settings-select{ font-size:16px; padding:8px 10px; }
     .settings-card .util-btn{ font-size:14px; padding:8px 14px; }
     .settings-hint{ font-size:13px; }
-    #sync-section, #routines-section, #backup-section, #children-section{ padding:12px; }
-    #sync-section h3, #routines-section h3, #backup-section h3, #children-section h3, #routine-tasks-heading{ font-size:18px; }
+    #sync-section, #routines-section, #backup-section, #children-section, #audio-section{ padding:12px; }
+    #sync-section h3, #routines-section h3, #backup-section h3, #children-section h3, #audio-section h3, #routine-tasks-heading{ font-size:18px; }
     .step-size-btn{ font-size:14px; padding:6px 12px; }
     #autolink-row{ font-size:14px; }
     #autolink-row input{ width:20px; height:20px; }
@@ -1777,6 +1790,19 @@
     <label class="settings-label" style="margin-top:1vh; display:block;" data-i18n="late_icon"></label>
     <div class="emoji-picker" id="late-icon-picker"></div>
 
+    <div id="audio-section">
+      <h3 data-i18n="audio_title"></h3>
+      <p class="settings-hint" data-i18n="audio_hint"></p>
+      <input type="text" id="audio-name-input" class="settings-text-input" maxlength="30" data-i18n-placeholder="audio_name_ph">
+      <div class="sync-buttons">
+        <button type="button" id="audio-record-btn" class="util-btn" style="background:var(--coral);"></button>
+        <button type="button" id="audio-upload-btn" class="util-btn" style="background:var(--sky);" data-i18n="audio_upload"></button>
+      </div>
+      <p class="settings-hint" id="audio-status"></p>
+      <ul id="audio-list"></ul>
+    </div>
+    <input type="file" id="audio-file-input" accept="audio/*" style="display:none;">
+
     <div id="children-section">
       <h3 data-i18n="children_title"></h3>
       <p class="settings-hint" data-i18n="children_hint"></p>
@@ -1791,6 +1817,14 @@
       <label id="child-pictures-row"><input type="checkbox" id="child-pictures-only"> <span data-i18n="pictures_only"></span></label>
       <span class="settings-label" style="margin-top:1vh; display:block;" data-i18n="runner_label"></span>
       <div class="emoji-picker" id="child-runner-picker"></div>
+      <div class="sync-buttons" style="margin-top:0.8vh;">
+        <span class="settings-label" style="margin:0;" data-i18n="hurry_audio_label"></span>
+        <select id="child-hurry-audio" class="settings-select"></select>
+      </div>
+      <div class="sync-buttons">
+        <span class="settings-label" style="margin:0;" data-i18n="cheer_audio_label"></span>
+        <select id="child-cheer-audio" class="settings-select"></select>
+      </div>
       <span class="settings-label" style="margin-top:1vh; display:block;" data-i18n="confirm_default_label"></span>
       <select id="child-confirm-default" class="settings-select"></select>
       <div class="sync-buttons" style="margin-top:0.8vh;">
@@ -2068,6 +2102,30 @@ const I18N = {
     welcome_title: "👋 Bem-vindo ao {app}!",
     tagline: "a rotina das crianças, passo a passo",
     runner_label: "Figura quando é hora de acelerar:",
+    audio_title: "🎙️ Áudios da família",
+    audio_hint: "Grave uma frase curta (até 15 segundos) ou envie um arquivo de áudio. Os áudios ficam guardados na hora e aparecem nas opções de som das tarefas e de cada criança. Com os aparelhos conectados, ficam no banco de dados da família e só os seus aparelhos têm acesso.",
+    audio_name_ph: "Nome do áudio, ex.: Parabéns da mamãe",
+    audio_record: "🎙️ Gravar",
+    audio_stop: "⏹️ Parar ({n})",
+    audio_upload: "📁 Enviar arquivo",
+    audio_play: "Ouvir",
+    audio_recording: "Gravando... fale perto do microfone.",
+    audio_sending: "Guardando o áudio...",
+    audio_saved: "✅ Áudio guardado. Já pode escolher nas opções de som.",
+    audio_saved_local: "✅ Áudio guardado neste aparelho. Conecte os aparelhos para ele chegar na TV.",
+    audio_saved_retry: "✅ Áudio guardado neste aparelho. Ele vai para os outros aparelhos assim que a internet voltar.",
+    audio_full: "Limite de {n} áudios. Apague um para gravar outro.",
+    audio_too_big: "⚠️ Arquivo grande demais (máximo {kb} KB). Escolha um áudio mais curto.",
+    audio_bad_file: "⚠️ Não deu para usar este arquivo. Escolha um arquivo de áudio.",
+    audio_no_mic: "⚠️ Este navegador não permite gravar. Tente pelo celular ou envie um arquivo.",
+    audio_mic_denied: "⚠️ Sem acesso ao microfone. Permita o microfone para este site e tente de novo.",
+    audio_cant_play: "⚠️ Este aparelho não conseguiu tocar o áudio.",
+    audio_delete_q: "Apagar o áudio \"{name}\"? Onde ele era usado, volta o som padrão.",
+    audio_default_name: "Áudio {n}",
+    hurry_audio_label: "Som na hora de acelerar:",
+    hurry_audio_default: "🔊 Ronco do motor (padrão)",
+    cheer_audio_label: "Som de parabéns (tarefa no tempo):",
+    cheer_audio_default: "👏 Aplausos (padrão)",
     finish_short: "Terminei",
     confirm_hint_wait: "Esperando a resposta…",
     confirm_hint_more: "Sem resposta, ganha mais {extra} minutos em {seconds}s",
@@ -2354,6 +2412,30 @@ const I18N = {
     welcome_title: "👋 Welcome to {app}!",
     tagline: "kids' routines, step by step",
     runner_label: "Picture when it's time to hurry:",
+    audio_title: "🎙️ Family audios",
+    audio_hint: "Record a short phrase (up to 15 seconds) or send an audio file. Audios are saved right away and show up in the sound options of the tasks and of each child. With paired devices, they're kept in the family's database and only your devices can reach them.",
+    audio_name_ph: "Audio name, e.g. Well done from Mom",
+    audio_record: "🎙️ Record",
+    audio_stop: "⏹️ Stop ({n})",
+    audio_upload: "📁 Send a file",
+    audio_play: "Listen",
+    audio_recording: "Recording... speak close to the microphone.",
+    audio_sending: "Saving the audio...",
+    audio_saved: "✅ Audio saved. You can pick it in the sound options now.",
+    audio_saved_local: "✅ Audio saved on this device. Pair the devices so it reaches the TV.",
+    audio_saved_retry: "✅ Audio saved on this device. It goes to the other devices as soon as the internet is back.",
+    audio_full: "Limit of {n} audios. Delete one to record another.",
+    audio_too_big: "⚠️ File too big (at most {kb} KB). Pick a shorter audio.",
+    audio_bad_file: "⚠️ This file can't be used. Pick an audio file.",
+    audio_no_mic: "⚠️ This browser can't record. Try on a phone or send a file.",
+    audio_mic_denied: "⚠️ No access to the microphone. Allow the microphone for this site and try again.",
+    audio_cant_play: "⚠️ This device couldn't play the audio.",
+    audio_delete_q: "Delete the audio \"{name}\"? Wherever it was used, the default sound comes back.",
+    audio_default_name: "Audio {n}",
+    hurry_audio_label: "Sound when it's time to hurry:",
+    hurry_audio_default: "🔊 Engine roar (default)",
+    cheer_audio_label: "Well done sound (task on time):",
+    cheer_audio_default: "👏 Applause (default)",
     finish_short: "Done",
     confirm_hint_wait: "Waiting for an answer…",
     confirm_hint_more: "No answer: {extra} more minutes in {seconds}s",
@@ -2640,6 +2722,30 @@ const I18N = {
     welcome_title: "👋 Willkommen bei {app}!",
     tagline: "die Kinder-Routine, Schritt für Schritt",
     runner_label: "Bild, wenn es schneller gehen soll:",
+    audio_title: "🎙️ Audios der Familie",
+    audio_hint: "Nimm einen kurzen Satz auf (bis zu 15 Sekunden) oder schicke eine Audiodatei. Audios werden sofort gespeichert und erscheinen in den Tonoptionen der Aufgaben und jedes Kindes. Mit verbundenen Geräten liegen sie in der Datenbank der Familie, und nur eure Geräte haben Zugriff.",
+    audio_name_ph: "Name des Audios, z. B. Super von Mama",
+    audio_record: "🎙️ Aufnehmen",
+    audio_stop: "⏹️ Stopp ({n})",
+    audio_upload: "📁 Datei schicken",
+    audio_play: "Anhören",
+    audio_recording: "Aufnahme läuft... nah am Mikrofon sprechen.",
+    audio_sending: "Audio wird gespeichert...",
+    audio_saved: "✅ Audio gespeichert. Du kannst es jetzt in den Tonoptionen wählen.",
+    audio_saved_local: "✅ Audio auf diesem Gerät gespeichert. Verbinde die Geräte, damit es auf den Fernseher kommt.",
+    audio_saved_retry: "✅ Audio auf diesem Gerät gespeichert. Es geht an die anderen Geräte, sobald das Internet wieder da ist.",
+    audio_full: "Höchstens {n} Audios. Lösche eins, um ein neues aufzunehmen.",
+    audio_too_big: "⚠️ Datei zu groß (höchstens {kb} KB). Wähle ein kürzeres Audio.",
+    audio_bad_file: "⚠️ Diese Datei lässt sich nicht verwenden. Wähle eine Audiodatei.",
+    audio_no_mic: "⚠️ Dieser Browser kann nicht aufnehmen. Versuche es am Handy oder schicke eine Datei.",
+    audio_mic_denied: "⚠️ Kein Zugriff auf das Mikrofon. Erlaube das Mikrofon für diese Seite und versuche es noch einmal.",
+    audio_cant_play: "⚠️ Dieses Gerät konnte das Audio nicht abspielen.",
+    audio_delete_q: "Das Audio „{name}“ löschen? Wo es verwendet wurde, kommt wieder der Standardton.",
+    audio_default_name: "Audio {n}",
+    hurry_audio_label: "Ton, wenn es schneller gehen soll:",
+    hurry_audio_default: "🔊 Motorbrummen (Standard)",
+    cheer_audio_label: "Ton zum Loben (Aufgabe pünktlich):",
+    cheer_audio_default: "👏 Applaus (Standard)",
     finish_short: "Fertig",
     confirm_hint_wait: "Warte auf eine Antwort…",
     confirm_hint_more: "Ohne Antwort gibt es in {seconds} s {extra} Minuten mehr",
@@ -2957,6 +3063,7 @@ const CHILD_COLORS = ['purple', 'sky', 'mint', 'coral', 'sun'];
 // Crosses the child's column when a task gets extra time ("time to hurry").
 const CHILD_RUNNERS = ['🏎️', '🚀', '🐕', '🐇'];
 const CHILD_ICONS = ['🦄', '🦖', '🐱', '🐶', '🦊', '🐼', '🐸', '🐙', '🚀', '⚽', '🎧', '🌸'];
+const MAX_AUDIOS = 10;
 function normalizeConfig(cfg){
   if(!cfg || !Array.isArray(cfg.routines)) return cfg;
   let children = Array.isArray(cfg.children) ? cfg.children.filter(c => c && c.id) : [];
@@ -2972,8 +3079,13 @@ function normalizeConfig(cfg){
     confirmDefault: ['yes', 'more', 'wait'].includes(c.confirmDefault) ? c.confirmDefault : 'yes',
     confirmSeconds: [10, 20, 30, 60].includes(c.confirmSeconds) ? c.confirmSeconds : 10,
     extraMin: [3, 5, 10].includes(c.extraMin) ? c.extraMin : 5,
-    runner: CHILD_RUNNERS.includes(c.runner) ? c.runner : CHILD_RUNNERS[0]
+    runner: CHILD_RUNNERS.includes(c.runner) ? c.runner : CHILD_RUNNERS[0],
+    // Family audios (ids from cfg.audios) for "well done" and "let's speed up"; '' = default sound
+    cheerAudio: typeof c.cheerAudio === 'string' ? c.cheerAudio.slice(0, 32) : '',
+    hurryAudio: typeof c.hurryAudio === 'string' ? c.hurryAudio.slice(0, 32) : ''
   }));
+  cfg.audios = (Array.isArray(cfg.audios) ? cfg.audios : []).filter(a => a && a.id).slice(0, MAX_AUDIOS)
+    .map(a => ({ id: String(a.id).slice(0, 32), name: String(a.name || '').slice(0, 30) }));
   if(cfg.children.every(c => c.hidden)) cfg.children[0].hidden = false; // someone is always shown
   const ids = cfg.children.map(c => c.id);
   cfg.routines.forEach(r => { if(!ids.includes(r.childId)) r.childId = ids[0]; });
@@ -3051,6 +3163,7 @@ let LATE_ICON = (stored && stored.lateIcon) ? stored.lateIcon : DEFAULT_LATE_ICO
 let ROUTINES = stored ? stored.routines : DEFAULT_ROUTINES;
 let WEEK_SCHEDULE = stored ? stored.weekSchedule : DEFAULT_WEEK_SCHEDULE;
 let CHILDREN = stored ? stored.children : normalizeConfig({ childName: DEFAULT_CHILD_NAME, routines: DEFAULT_ROUTINES }).children;
+let AUDIOS = stored ? stored.audios : []; // family audios: [{id, name}], the sound itself is stored apart
 // The child whose day the schedule engine is running (the only one shown for now).
 // Children whose routine is shown (the others are kept but hidden by the parents).
 function visibleChildren(){ return CHILDREN.filter(c => !c.hidden); }
@@ -3974,7 +4087,7 @@ function celebrationLeft(box, marginPct){
 }
 function celebrate(){
   const box = panelEl ? panelEl.getBoundingClientRect() : null;
-  playClapSound();
+  playFamilyAudio(activeChild().cheerAudio, playClapSound);
   spawnBalloons(box);
   const pieces = ['🎉','👏',ONTIME_ICON,'✨'];
   const waves = 3;
@@ -4027,7 +4140,7 @@ function startExtraTimeFeedback(){
     celebrationLayer.appendChild(el);
     setTimeout(() => el.remove(), 2800);
   }catch(e){}
-  try{ vroom(); }catch(e){}
+  playFamilyAudio(activeChild().hurryAudio, vroom);
 }
 // "Vroom": two rising engine sweeps.
 function vroom(){
@@ -4053,6 +4166,22 @@ function vroom(){
 const taskAudio = new Audio();
 taskAudio.loop = false;
 
+// A family audio for "well done" or "let's speed up"; the default sound
+// (fallback) plays when none is chosen, it's missing or it can't play.
+const familyAudio = new Audio();
+function playFamilyAudio(id, fallback){
+  if(!soundEnabled) return;
+  const runFallback = () => { try{ fallback(); }catch(e){} };
+  const src = audioSrc(id);
+  if(!src) return runFallback();
+  try{
+    familyAudio.pause();
+    familyAudio.src = src;
+    familyAudio.currentTime = 0;
+    familyAudio.play().catch(runFallback);
+  }catch(e){ runFallback(); }
+}
+
 function stopTaskAudio(){
   if(!taskAudio.paused){
     taskAudio.pause();
@@ -4068,6 +4197,15 @@ function playForTask(task){
   if(task && task.sound && task.sound.type === 'melody'){
     stopTaskAudio();
     wakeMelody();
+  } else if(task && task.sound && task.sound.type === 'family'){
+    stopTaskAudio();
+    const src = audioSrc(task.sound.id);
+    if(!src){ chime(); return; } // deleted, or not downloaded yet
+    taskAudio.src = src;
+    taskAudio.loop = false;
+    taskAudio.volume = 1;
+    taskAudio.currentTime = 0;
+    taskAudio.play().catch(() => { chime(); });
   } else if(task && task.sound && task.sound.src){
     stopTaskAudio();
     taskAudio.src = task.sound.src;
@@ -4608,8 +4746,9 @@ function configRoutineToDraft(r){
       emoji: t.emoji,
       start: arrToHHMM(t.start),
       end: arrToHHMM(t.end),
-      soundType: (t.sound && t.sound.type === 'melody') ? 'melody' : ((t.sound && t.sound.src) ? 'url' : 'chime'),
-      soundUrl: (t.sound && t.sound.src) ? t.sound.src : ''
+      soundType: (t.sound && ['melody', 'family'].includes(t.sound.type)) ? t.sound.type : ((t.sound && t.sound.src) ? 'url' : 'chime'),
+      soundUrl: (t.sound && t.sound.src) ? t.sound.src : '',
+      soundAudioId: (t.sound && t.sound.type === 'family') ? t.sound.id : ''
     }))
   };
 }
@@ -4631,6 +4770,8 @@ function openSettings(){
   hideCloudBanner();
   if(cloudEnabled() && getHouseId()) refreshFromCloud(); // so the sync status shown is current
   populateDraftFromCurrentConfig();
+  setAudioStatus('');
+  syncAudioCache();
   document.getElementById('autolink-toggle').checked = autoLinkNext;
   document.querySelectorAll('.step-size-btn').forEach(b => {
     b.classList.toggle('selected', parseInt(b.dataset.step,10) === timeStepMin);
@@ -4639,6 +4780,7 @@ function openSettings(){
 }
 function closeSettings(){
   settingsOverlay.style.display = 'none';
+  stopRecording();
   if(pendingRemoteHouse){
     const house = pendingRemoteHouse;
     pendingRemoteHouse = null;
@@ -4741,6 +4883,10 @@ function renderChildEditor(){
   document.getElementById('child-confirm-default').innerHTML = opts([['yes', tr('confirm_default_yes')], ['more', tr('confirm_default_more')], ['wait', tr('confirm_default_wait')]], c.confirmDefault || 'yes');
   document.getElementById('child-confirm-seconds').innerHTML = opts([10, 20, 30, 60].map(n => [n, `${n} s`]), c.confirmSeconds || 10);
   document.getElementById('child-extra-min').innerHTML = opts([3, 5, 10].map(n => [n, `${n} min`]), c.extraMin || 5);
+  const audioOpts = (defaultLabel, value) => opts([['', defaultLabel]].concat(AUDIOS.map(a => [a.id, '🎙️ ' + escHtml(a.name)])),
+    AUDIOS.some(a => a.id === value) ? value : '');
+  document.getElementById('child-hurry-audio').innerHTML = audioOpts(tr('hurry_audio_default'), c.hurryAudio);
+  document.getElementById('child-cheer-audio').innerHTML = audioOpts(tr('cheer_audio_default'), c.cheerAudio);
   const visible = document.getElementById('child-visible');
   visible.checked = !c.hidden;
   visible.disabled = !c.hidden && draftChildren.filter(x => !x.hidden).length <= 1; // the last one shown stays
@@ -4763,7 +4909,7 @@ function addDraftChild(){
   const usedColors = draftChildren.map(c => c.color);
   const id = 'c' + Date.now().toString(36);
   draftChildren.push({
-    id, name: '', picturesOnly: false, confirmDefault: 'yes', confirmSeconds: 10, extraMin: 5, runner: CHILD_RUNNERS[0],
+    id, name: '', picturesOnly: false, confirmDefault: 'yes', confirmSeconds: 10, extraMin: 5, runner: CHILD_RUNNERS[0], cheerAudio: '', hurryAudio: '',
     icon: CHILD_ICONS.find(e => !used.includes(e)) || CHILD_ICONS[0],
     color: CHILD_COLORS.find(col => !usedColors.includes(col)) || CHILD_COLORS[0]
   });
@@ -4805,6 +4951,8 @@ document.getElementById('child-runner-picker').addEventListener('click', (e) => 
 document.getElementById('child-confirm-default').addEventListener('change', (e) => { draftChild().confirmDefault = e.target.value; });
 document.getElementById('child-confirm-seconds').addEventListener('change', (e) => { draftChild().confirmSeconds = parseInt(e.target.value, 10); });
 document.getElementById('child-extra-min').addEventListener('change', (e) => { draftChild().extraMin = parseInt(e.target.value, 10); });
+document.getElementById('child-hurry-audio').addEventListener('change', (e) => { draftChild().hurryAudio = e.target.value; });
+document.getElementById('child-cheer-audio').addEventListener('change', (e) => { draftChild().cheerAudio = e.target.value; });
 document.getElementById('child-visible').addEventListener('change', (e) => {
   draftChild().hidden = !e.target.checked;
   renderChildTabs();
@@ -5018,6 +5166,7 @@ function renderSettingsRows(){
         <option value="chime" ${t.soundType==='chime'?'selected':''}>${tr('sound_default')}</option>
         <option value="melody" ${t.soundType==='melody'?'selected':''}>${tr('sound_melody')}</option>
         <option value="url" ${t.soundType==='url'?'selected':''}>${tr('sound_url')}</option>
+        ${AUDIOS.map(a => `<option value="fa:${a.id}" ${t.soundType==='family' && t.soundAudioId===a.id?'selected':''}>🎙️ ${escHtml(a.name)}</option>`).join('')}
       </select>
       <div class="row-reorder">
         <button class="row-up" data-index="${i}" ${i===0?'disabled':''} title="${tr('move_up')}">▲</button>
@@ -5088,7 +5237,9 @@ settingsTasksList.addEventListener('input', (e) => {
 settingsTasksList.addEventListener('change', (e) => {
   if(e.target.dataset.field === 'soundType'){
     const idx = parseInt(e.target.dataset.index, 10);
-    draftTasks[idx].soundType = e.target.value;
+    const value = e.target.value;
+    draftTasks[idx].soundType = value.startsWith('fa:') ? 'family' : value;
+    draftTasks[idx].soundAudioId = value.startsWith('fa:') ? value.slice(3) : '';
     renderSettingsRows(); // to show/hide the link field
   }
 });
@@ -5180,6 +5331,7 @@ function saveSettings(){
     tasks: r.tasks.map(t => {
       let sound;
       if(t.soundType === 'melody') sound = { type: 'melody' };
+      else if(t.soundType === 'family' && AUDIOS.some(a => a.id === t.soundAudioId)) sound = { type: 'family', id: t.soundAudioId };
       else if(t.soundType === 'url' && t.soundUrl && t.soundUrl.trim()) sound = { type: 'url', src: t.soundUrl.trim(), loop: false };
       return { name: t.name.trim(), emoji: t.emoji, start: hhmmToArr(t.start), end: hhmmToArr(t.end), sound };
     })
@@ -5193,6 +5345,7 @@ function saveSettings(){
     lateIcon: draftLateIcon,
     routines: newRoutines,
     weekSchedule: draftWeekSchedule,
+    audios: AUDIOS, // saved on their own as soon as they change
     testStartedAt: TEST_STARTED_AT || undefined // a running test goes on
   };
   saveStoredConfig(savedConfig);
@@ -5219,6 +5372,7 @@ function getCurrentConfigObject(){
     lateIcon: LATE_ICON,
     routines: ROUTINES,
     weekSchedule: WEEK_SCHEDULE,
+    audios: AUDIOS,
     testStartedAt: TEST_STARTED_AT || undefined
   };
 }
@@ -5236,8 +5390,10 @@ function applyImportedConfig(cfg){
   LATE_ICON = cfg.lateIcon || DEFAULT_LATE_ICON;
   ROUTINES = cfg.routines;
   WEEK_SCHEDULE = cfg.weekSchedule || {};
+  AUDIOS = cfg.audios;
   saveStoredConfig(cfg);
   initAllChildren();
+  syncAudioCache();
   return true;
 }
 
@@ -5250,7 +5406,9 @@ function backupFileName(){
 }
 function saveBackup(){
   const config = Object.assign({}, getCurrentConfigObject(), { testStartedAt: undefined });
-  const json = JSON.stringify({ app: APP_NAME, kind: 'backup', version: 1, savedAt: Date.now(), config }, null, 1);
+  const audioData = {};
+  AUDIOS.forEach(a => { const rec = getAudioRecord(a.id); if(rec) audioData[a.id] = { data: rec.data, mime: rec.mime }; });
+  const json = JSON.stringify({ app: APP_NAME, kind: 'backup', version: 1, savedAt: Date.now(), config, audioData }, null, 1);
   const name = backupFileName();
   const download = () => {
     const url = URL.createObjectURL(new Blob([json], { type: 'application/json' }));
@@ -5288,9 +5446,15 @@ function restoreBackupText(text){
   const date = `${String(d.getDate()).padStart(2, '0')}/${String(d.getMonth() + 1).padStart(2, '0')}/${d.getFullYear()} ${formatClock(d.getTime())}`;
   return appConfirm(tr('backup_restore_q', { date }), tr('backup_restore_btn')).then(ok => {
     if(!ok) return false;
+    // The saved audios are put in place first, so applying the config keeps them.
+    const audioData = (data.audioData && typeof data.audioData === 'object') ? data.audioData : {};
+    (Array.isArray(cfg.audios) ? cfg.audios : []).forEach(a => {
+      const rec = a && audioData[a.id];
+      if(rec && typeof rec.data === 'string' && typeof rec.mime === 'string') storeAudioLocal(a.id, { data: rec.data, mime: rec.mime, up: false });
+    });
     if(!applyImportedConfig(cfg)) return appAlert(tr('backup_invalid')).then(() => false);
     pendingRemoteHouse = null;
-    if(cloudEnabled() && getHouseId()) pushConfigToCloud(cfg);
+    if(cloudEnabled() && getHouseId()) Promise.all(AUDIOS.map(a => uploadAudio(a.id))).then(() => pushConfigToCloud(cfg));
     if(settingsOverlay.style.display === 'flex'){ populateDraftFromCurrentConfig(); settingsDirty = false; }
     if(restoreFromWelcome) hideWelcome();
     return appAlert(tr('backup_restored')).then(() => true);
@@ -5306,6 +5470,216 @@ document.getElementById('backup-file-input').addEventListener('change', (e) => {
 document.getElementById('backup-save-btn').addEventListener('click', saveBackup);
 document.getElementById('backup-restore-btn').addEventListener('click', () => pickBackupFile(false));
 document.getElementById('welcome-restore-btn').addEventListener('click', () => pickBackupFile(true));
+
+// ---------- Family audios (recorded or uploaded by the parents) ----------
+// The list (id and name) is part of the config. The sound itself is stored apart,
+// in audio/<houseId>/<audioId>, so the live reads of the house stay small: each
+// device downloads an audio once and keeps a copy in localStorage.
+const AUDIO_KEY_PREFIX = 'rotinaAudio_v1_';
+const MAX_AUDIO_SECONDS = 15;
+const MAX_AUDIO_BYTES = 200 * 1024;
+const audioMem = {};      // id -> { data (base64), mime, up (already in the cloud) }
+const audioFetching = {};
+function escHtml(text){
+  return String(text).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+}
+function getAudioRecord(id){
+  if(!id) return null;
+  if(audioMem[id]) return audioMem[id];
+  try{
+    const rec = JSON.parse(lsGet(AUDIO_KEY_PREFIX + id));
+    if(rec && rec.data && rec.mime){ audioMem[id] = rec; return rec; }
+  }catch(e){}
+  return null;
+}
+function storeAudioLocal(id, rec){
+  audioMem[id] = { data: String(rec.data), mime: String(rec.mime), up: !!rec.up };
+  try{ localStorage.setItem(AUDIO_KEY_PREFIX + id, JSON.stringify(audioMem[id])); }catch(e){} // full: kept in memory only
+}
+function audioSrc(id){
+  const rec = id && AUDIOS.some(a => a.id === id) ? getAudioRecord(id) : null;
+  return rec ? `data:${rec.mime};base64,${rec.data}` : null;
+}
+function uploadAudio(id){
+  const houseId = getHouseId();
+  const rec = getAudioRecord(id);
+  if(!cloudEnabled() || !houseId || !rec) return Promise.resolve(false);
+  return cloudFetch(`audio/${houseId}/${id}`, { method: 'PUT', body: JSON.stringify({ data: rec.data, mime: rec.mime, updatedAt: Date.now() }) })
+    .then(() => { storeAudioLocal(id, Object.assign({}, rec, { up: true })); return true; }, () => false);
+}
+// Keep this device's copies in step with the list: forget deleted audios,
+// download the missing ones and send the ones that didn't reach the cloud yet.
+function syncAudioCache(){
+  const ids = AUDIOS.map(a => a.id);
+  try{
+    Object.keys(localStorage).forEach(k => {
+      if(k.startsWith(AUDIO_KEY_PREFIX) && !ids.includes(k.slice(AUDIO_KEY_PREFIX.length))) localStorage.removeItem(k);
+    });
+  }catch(e){}
+  Object.keys(audioMem).forEach(id => { if(!ids.includes(id)) delete audioMem[id]; });
+  const houseId = getHouseId();
+  if(cloudEnabled() && houseId){
+    ids.forEach(id => {
+      if(audioFetching[id]) return;
+      const rec = getAudioRecord(id);
+      if(rec && rec.up) return;
+      audioFetching[id] = true;
+      const job = rec
+        ? uploadAudio(id)
+        : cloudFetch(`audio/${houseId}/${id}`).then(remote => {
+            if(remote && remote.data && remote.mime && AUDIOS.some(a => a.id === id)){
+              storeAudioLocal(id, { data: remote.data, mime: remote.mime, up: true });
+              renderAudioLibrary();
+            }
+          });
+      job.catch(() => {}).then(() => { delete audioFetching[id]; });
+    });
+  }
+  renderAudioLibrary();
+}
+// Changes to the audios are saved right away (not with "Save"), so a
+// recording never exists in the cloud without being on the list, or the opposite.
+function saveAudioList(){
+  const cfg = getCurrentConfigObject();
+  saveStoredConfig(cfg);
+  pushConfigToCloud(cfg);
+  syncAudioCache();
+  if(settingsOverlay.style.display === 'flex'){ renderSettingsRows(); renderChildEditor(); }
+}
+function setAudioStatus(text){ document.getElementById('audio-status').textContent = text || ''; }
+
+function renderAudioLibrary(){
+  const list = document.getElementById('audio-list');
+  if(!list.contains(document.activeElement)) list.innerHTML = AUDIOS.map(a => { // not while a name is being edited
+    const ready = !!getAudioRecord(a.id);
+    return `<li data-id="${escHtml(a.id)}">
+      <button type="button" class="audio-play" ${ready ? '' : 'disabled'} title="${escHtml(tr('audio_play'))}">${ready ? '▶️' : '⏳'}</button>
+      <input type="text" class="settings-text-input audio-rename" maxlength="30" value="${escHtml(a.name)}">
+      <button type="button" class="audio-delete" title="${escHtml(tr('remove'))}">🗑</button>
+    </li>`;
+  }).join('');
+  const full = AUDIOS.length >= MAX_AUDIOS;
+  document.getElementById('audio-upload-btn').disabled = full || !!recorder;
+  const recordBtn = document.getElementById('audio-record-btn');
+  recordBtn.disabled = full && !recorder;
+  recordBtn.classList.toggle('recording', !!recorder);
+  recordBtn.textContent = recorder ? tr('audio_stop', { n: recordLeft }) : tr('audio_record');
+  if(full && !recorder) setAudioStatus(tr('audio_full', { n: MAX_AUDIOS }));
+}
+
+// Add a recorded or chosen sound to the library.
+function addAudioBlob(blob){
+  if(AUDIOS.length >= MAX_AUDIOS) return setAudioStatus(tr('audio_full', { n: MAX_AUDIOS }));
+  const mime = String(blob.type || '').split(';')[0].trim();
+  if(!/^(audio|video)\/[\w.+-]+$/.test(mime) || mime.length > 40) return setAudioStatus(tr('audio_bad_file'));
+  if(blob.size > MAX_AUDIO_BYTES) return setAudioStatus(tr('audio_too_big', { kb: Math.round(MAX_AUDIO_BYTES / 1024) }));
+  if(!blob.size) return setAudioStatus(tr('audio_bad_file'));
+  const reader = new FileReader();
+  reader.onload = () => {
+    const data = String(reader.result || '').split(',')[1] || '';
+    if(!data) return setAudioStatus(tr('audio_bad_file'));
+    const id = 'a' + Date.now().toString(36) + randomId(4, ALNUM);
+    const input = document.getElementById('audio-name-input');
+    const name = (input.value.trim() || tr('audio_default_name', { n: AUDIOS.length + 1 })).slice(0, 30);
+    input.value = '';
+    storeAudioLocal(id, { data, mime: mime.replace(/^video\//, 'audio/'), up: false });
+    const paired = cloudEnabled() && getHouseId();
+    setAudioStatus(paired ? tr('audio_sending') : '');
+    // The sound goes up before the list names it, so other devices always find it.
+    uploadAudio(id).then(ok => {
+      AUDIOS = AUDIOS.concat([{ id, name }]);
+      saveAudioList();
+      setAudioStatus(!paired ? tr('audio_saved_local') : (ok ? tr('audio_saved') : tr('audio_saved_retry')));
+    });
+  };
+  reader.onerror = () => setAudioStatus(tr('audio_bad_file'));
+  reader.readAsDataURL(blob);
+}
+
+let recorder = null;
+let recordTimer = null;
+let recordLeft = 0;
+function startRecording(){
+  if(!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia || typeof MediaRecorder === 'undefined'){
+    return setAudioStatus(tr('audio_no_mic'));
+  }
+  navigator.mediaDevices.getUserMedia({ audio: true }).then(stream => {
+    const types = ['audio/webm;codecs=opus', 'audio/mp4', 'audio/ogg;codecs=opus', 'audio/webm'];
+    const type = types.find(t => MediaRecorder.isTypeSupported && MediaRecorder.isTypeSupported(t)) || '';
+    let rec;
+    try{ rec = new MediaRecorder(stream, Object.assign({ audioBitsPerSecond: 32000 }, type ? { mimeType: type } : {})); }
+    catch(e){ rec = new MediaRecorder(stream); }
+    const chunks = [];
+    rec.ondataavailable = (e) => { if(e.data && e.data.size) chunks.push(e.data); };
+    rec.onstop = () => {
+      stream.getTracks().forEach(t => t.stop());
+      clearInterval(recordTimer);
+      recorder = null;
+      renderAudioLibrary();
+      addAudioBlob(new Blob(chunks, { type: rec.mimeType || type || 'audio/webm' }));
+    };
+    recorder = rec;
+    recordLeft = MAX_AUDIO_SECONDS;
+    setAudioStatus(tr('audio_recording'));
+    rec.start();
+    renderAudioLibrary();
+    recordTimer = setInterval(() => {
+      recordLeft--;
+      if(recordLeft <= 0) stopRecording();
+      else renderAudioLibrary();
+    }, 1000);
+  }).catch(() => setAudioStatus(tr('audio_mic_denied')));
+}
+function stopRecording(){
+  clearInterval(recordTimer);
+  if(recorder && recorder.state !== 'inactive') recorder.stop();
+}
+document.getElementById('audio-record-btn').addEventListener('click', () => { recorder ? stopRecording() : startRecording(); });
+document.getElementById('audio-upload-btn').addEventListener('click', () => {
+  const input = document.getElementById('audio-file-input');
+  input.value = '';
+  input.click();
+});
+document.getElementById('audio-file-input').addEventListener('change', (e) => {
+  const file = e.target.files && e.target.files[0];
+  if(!file) return;
+  const nameInput = document.getElementById('audio-name-input');
+  if(!nameInput.value.trim()) nameInput.value = file.name.replace(/\.[^.]+$/, '').slice(0, 30);
+  addAudioBlob(file);
+});
+document.getElementById('audio-list').addEventListener('click', (e) => {
+  const li = e.target.closest('li[data-id]');
+  if(!li) return;
+  const id = li.dataset.id;
+  if(e.target.closest('.audio-play')){
+    const src = audioSrc(id);
+    if(!src) return;
+    familyAudio.pause();
+    familyAudio.src = src;
+    familyAudio.currentTime = 0;
+    familyAudio.play().catch(() => setAudioStatus(tr('audio_cant_play')));
+  } else if(e.target.closest('.audio-delete')){
+    const audio = AUDIOS.find(a => a.id === id);
+    if(!audio) return;
+    appConfirm(tr('audio_delete_q', { name: audio.name }), tr('remove')).then(ok => {
+      if(!ok) return;
+      AUDIOS = AUDIOS.filter(a => a.id !== id);
+      saveAudioList();
+      const houseId = getHouseId();
+      if(cloudEnabled() && houseId) cloudFetch(`audio/${houseId}/${id}`, { method: 'DELETE' }).catch(() => {});
+      setAudioStatus('');
+    });
+  }
+});
+document.getElementById('audio-list').addEventListener('change', (e) => {
+  if(!e.target.classList.contains('audio-rename')) return;
+  const id = e.target.closest('li[data-id]').dataset.id;
+  const name = e.target.value.trim().slice(0, 30);
+  const audio = AUDIOS.find(a => a.id === id);
+  if(!audio || !name || name === audio.name){ renderAudioLibrary(); return; }
+  AUDIOS = AUDIOS.map(a => a.id === id ? { id, name } : a);
+  saveAudioList();
+});
 
 // ---------- Cloud sync (pairing by code, one anonymous identity per device) ----------
 // All paired devices (TV, phones) share one "house" in a Firebase Realtime
@@ -5504,6 +5878,7 @@ let knownMemberIds = null;
 function handleRemoteHouse(house, readStartedAt){
   if(!house) return;
   handleRemoteConfig(house, readStartedAt);
+  if(AUDIOS.some(a => !getAudioRecord(a.id) || !getAudioRecord(a.id).up)) syncAudioCache(); // a download or upload failed before
   // One progress entry per child (houses/<id>/progress/<childId>).
   forEachChild(() => {
     const remote = house.progress && house.progress[ACTIVE_CHILD_ID];
@@ -5558,7 +5933,8 @@ let settingsDirty = false;
 (function trackSettingsEdits(){
   const card = settingsOverlay.querySelector('.settings-card');
   const markDirty = (e) => {
-    if(e.target.closest('#sync-section, #backup-section, #backup-file-input, #cloud-banner, #settings-cancel, #settings-save, #routine-tabs button[data-index]')) return;
+    if(!card.contains(e.target)) return; // redrawn by its own handler (e.g. a renamed audio)
+    if(e.target.closest('#sync-section, #backup-section, #backup-file-input, #audio-section, #audio-file-input, #cloud-banner, #settings-cancel, #settings-save, #routine-tabs button[data-index]')) return;
     settingsDirty = true;
   };
   ['input', 'change'].forEach(ev => card.addEventListener(ev, markDirty));
@@ -5674,7 +6050,8 @@ function ensureHouse(){
     .then(() => {
       lsSet(HOUSE_ID_KEY, houseId);
       logCloudEvent(tr('log_group_created'));
-      return pushConfigToCloud(getCurrentConfigObject());
+      // This device's audios go up before the config that names them.
+      return Promise.all(AUDIOS.map(a => uploadAudio(a.id))).then(() => pushConfigToCloud(getCurrentConfigObject()));
     })
     .then(ok => {
       if(!ok){ lsSet(HOUSE_ID_KEY, null); throw new Error('push failed'); }
