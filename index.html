@@ -45,7 +45,7 @@
 <meta name="color-scheme" content="light dark">
 <title>Routikids</title>
 <!-- The code version lives here (read by the app and by the update check); bump it on every change. -->
-<meta name="app-version" content="Versão do código: 2026-09-29 21:37">
+<meta name="app-version" content="Versão do código: 2026-09-29 21:59">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@500;700;800&family=Nunito:wght@600;800&display=swap" rel="stylesheet">
@@ -564,6 +564,18 @@
     box-shadow:0 4px 0 rgba(29,53,87,0.15);
   }
   .kid-start{ display:none; background:var(--sky); }
+  .kid-row{ display:flex; align-items:center; gap:calc(var(--w) * 0.04); }
+  /* "I'm done" as a big round check next to the minutes (saves a line) */
+  .kid-finish{
+    width:calc(var(--w) * 0.13);
+    height:calc(var(--w) * 0.13);
+    padding:0;
+    margin-top:0;
+    border-radius:50%;
+    font-size:calc(var(--w) * 0.07);
+    line-height:1;
+    flex-shrink:0;
+  }
   .kid-browse{ display:none; gap:calc(var(--w) * 0.02); margin-top:0.8vh; }
   .kid-browse button{
     font-family:'Baloo 2', sans-serif;
@@ -595,6 +607,20 @@
   .kid-timeline .outcome-badge{ font-size:calc(var(--w) * 0.035); }
   .kid-timeline .outcome-badge.star{ font-size:calc(var(--w) * 0.05); }
   .kid-timeline .reorder-controls{ display:none; }
+  .kid-timeline .step.collapsed{ display:none !important; }
+  .kid-trail{ display:flex; flex-wrap:wrap; gap:calc(var(--w) * 0.015); }
+  .kid-trail:empty{ display:none; }
+  .trail-item{
+    display:flex;
+    align-items:center;
+    gap:2px;
+    font-size:calc(var(--w) * 0.045);
+    background:white;
+    border-radius:999px;
+    padding:0.2vh calc(var(--w) * 0.015);
+    opacity:0.85;
+  }
+  .trail-item small{ font-size:0.6em; }
   .kid-timeline.pictures-only .step .emoji{ font-size:calc(var(--w) * 0.1); }
 
   /* ---- Celebration / encouragement ---- */
@@ -3563,7 +3589,8 @@ function updateHeaderTitle(){
 function rebuildTimelineDOM(){
   const child = CHILDREN.find(c => c.id === ACTIVE_CHILD_ID);
   timelineEl.classList.toggle('pictures-only', !!(child && child.picturesOnly));
-  timelineEl.innerHTML = `<div class="timeline-title"${timelineEl.id === 'timeline' ? ' id="timeline-title"' : ''}></div>`;
+  timelineEl.innerHTML = `<div class="timeline-title"${timelineEl.id === 'timeline' ? ' id="timeline-title"' : ''}></div>`
+    + (panelEl ? '<div class="kid-trail"></div>' : '');
   timelinePreviewKey = null;
   tasks.forEach((t, i) => {
     const div = document.createElement('div');
@@ -3655,6 +3682,21 @@ function applyTimelineFocus(){
     const el = stepEl(i);
     if(el) el.style.display = (day === 0 && i >= block.startIdx && i <= block.endIdx) ? '' : 'none';
   });
+  // In a child's column the list must fit without scrolling (hard with a TV
+  // remote): tasks done before the last one shrink into a row of small pictures.
+  const trail = timelineEl.querySelector('.kid-trail');
+  if(trail && timelineEl.classList.contains('pictures-only')) trail.innerHTML = ''; // already a compact row of pictures
+  else if(trail){
+    const collapsed = [];
+    tasks.forEach((t, i) => {
+      const el = stepEl(i);
+      const hide = day === 0 && i >= block.startIdx && i < pointer - 1;
+      if(el) el.classList.toggle('collapsed', hide);
+      if(hide) collapsed.push(t);
+    });
+    const html = collapsed.map(t => `<span class="trail-item">${t.emoji}<small>${t.outcome === 'skipped' ? '✔' : (t.outcome === 'late' ? LATE_ICON : ONTIME_ICON)}</small></span>`).join('');
+    if(trail.innerHTML !== html) trail.innerHTML = html;
+  }
   if(day === 0){ clearTimelinePreview(); return; }
   const key = `${day}:${block.startIdx}:${block.endIdx}`;
   if(key === timelinePreviewKey) return;
@@ -6159,7 +6201,7 @@ function fitPanels(){
 // Heights change when the web font arrives or the screen size changes:
 // scroll the columns' lists to the current task again.
 function rescrollPanels(){ kidsGrid.querySelectorAll('.kid-timeline').forEach(t => { delete t.dataset.scrolledTo; }); }
-window.addEventListener('resize', () => { fitPanels(); rescrollPanels(); });
+window.addEventListener('resize', fitPanels);
 if(document.fonts && document.fonts.ready) document.fonts.ready.then(rescrollPanels);
 function buildPanels(){
   const multi = SLOTS.length > 1;
@@ -6183,8 +6225,10 @@ function buildPanels(){
         <div class="kid-info">
           <div class="kid-label"></div>
           <div class="kid-sub"></div>
-          <div class="kid-minutes"></div>
-          <button type="button" class="kid-finish"></button>
+          <div class="kid-row">
+            <div class="kid-minutes"></div>
+            <button type="button" class="kid-finish">✔</button>
+          </div>
           <button type="button" class="kid-start"></button>
           <div class="kid-browse">
             <button type="button" class="kid-prev">◀</button>
@@ -6197,7 +6241,8 @@ function buildPanels(){
     const q = sel => panel.querySelector(sel);
     q('.kid-avatar').textContent = child.icon || '';
     q('.kid-name').textContent = child.name || '';
-    q('.kid-finish').textContent = tr('finish_early');
+    q('.kid-finish').title = tr('finish_early');
+    q('.kid-finish').setAttribute('aria-label', tr('finish_early'));
     const act = fn => () => { if(SLOTS.includes(slot)) withChild(slot, fn); };
     q('.kid-finish').addEventListener('click', act(finishEarly));
     q('.kid-start').addEventListener('click', act(startNextTask));
