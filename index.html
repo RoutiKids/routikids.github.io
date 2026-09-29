@@ -40,7 +40,7 @@
 <meta charset="UTF-8">
 <title>Routikids</title>
 <!-- The code version lives here (read by the app and by the update check); bump it on every change. -->
-<meta name="app-version" content="Versão do código: 2026-09-29 11:35">
+<meta name="app-version" content="Versão do código: 2026-09-29 11:51">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@500;700;800&family=Nunito:wght@600;800&display=swap" rel="stylesheet">
@@ -1800,6 +1800,7 @@ const I18N = {
     save_anyway: "Salvar mesmo assim",
     welcome_title: "👋 Bem-vindo ao {app}!",
     tagline: "a rotina das crianças, passo a passo",
+    log_progress_blocked: "O progresso do dia não pôde ser compartilhado (as regras do banco de dados precisam ser atualizadas).",
     backup_invalid: "⚠️ Este arquivo não é uma cópia do Routikids.",
     backup_restored: "✅ Cópia restaurada.",
     backup_restore_btn: "Restaurar",
@@ -2066,6 +2067,7 @@ const I18N = {
     save_anyway: "Save anyway",
     welcome_title: "👋 Welcome to {app}!",
     tagline: "kids' routines, step by step",
+    log_progress_blocked: "Today's progress couldn't be shared (the database rules need to be updated).",
     backup_invalid: "⚠️ This file isn't a Routikids copy.",
     backup_restored: "✅ Copy restored.",
     backup_restore_btn: "Restore",
@@ -2332,6 +2334,7 @@ const I18N = {
     save_anyway: "Trotzdem speichern",
     welcome_title: "👋 Willkommen bei {app}!",
     tagline: "die Kinder-Routine, Schritt für Schritt",
+    log_progress_blocked: "Der Tagesfortschritt konnte nicht geteilt werden (die Datenbankregeln müssen aktualisiert werden).",
     backup_invalid: "⚠️ Diese Datei ist keine Routikids-Kopie.",
     backup_restored: "✅ Kopie wiederhergestellt.",
     backup_restore_btn: "Wiederherstellen",
@@ -2853,7 +2856,8 @@ function catchUpToNow(){
 // one after the other, from the moment "Test now" was pressed on any device.
 function initSchedule(cfg, opts){
   const testStart = activeTestStartMin();
-  const prev = (opts && opts.fresh) ? null : previousDayProgress(testStart);
+  const given = opts && opts.progress;
+  const prev = given || ((opts && opts.fresh) ? null : previousDayProgress(testStart));
   const build = () => {
     const list = buildTasksFromConfig(cfg);
     if(testStart !== null){
@@ -2876,7 +2880,7 @@ function initSchedule(cfg, opts){
   let merged = false;
   if(prev){
     tasks = build();
-    try{ merged = mergeDayProgress(prev); }catch(e){ merged = false; }
+    try{ merged = mergeDayProgress(prev, !!given); }catch(e){ merged = false; }
   }
   if(!merged){
     tasks = build();
@@ -2890,6 +2894,7 @@ function initSchedule(cfg, opts){
   rebuildTimelineDOM();
   updateHeaderTitle();
   document.getElementById('reset-schedule-btn').style.display = testMode ? '' : 'none';
+  saveDayState();
 }
 
 // Minute of the day the shared test started, or null when no test is running.
@@ -2914,7 +2919,7 @@ function todayKey(){
 }
 function snapshotDay(){
   return {
-    date: scheduleDate, test: runningTestStart, pointer, awaitingStart, limitMin, limitRid: currentLimitRoutineId,
+    date: scheduleDate, test: runningTestStart, seq: progressSeq, pointer, awaitingStart, limitMin, limitRid: currentLimitRoutineId,
     tasks: tasks.map(t => ({
       name: t.name, routineId: t.routineId, plannedStartMin: t.plannedStartMin, plannedDurationMin: t.plannedDurationMin,
       baseDurationMin: t.baseDurationMin, redMin: t.redMin, outcome: t.outcome, startMin: t.startMin, endMin: t.endMin
@@ -2935,8 +2940,60 @@ function previousDayProgress(testStart){
     if(prev && prev.test !== undefined && prev.test !== null) prev = null;
   }
   if(!prev || prev.date !== todayKey() || !Array.isArray(prev.tasks)) return null;
+  if(prev.seq > progressSeq) progressSeq = prev.seq;
   return prev;
 }
+// ---------- Sharing today's progress with the paired devices ----------
+// A tap that changes the progress (I'm done, Start, the "Finished?" answer,
+// reordering, the deadline) publishes this device's day to houses/<id>/progress;
+// the other devices fit it onto their schedule with mergeDayProgress. Automatic
+// steps (the dialog's timeout, catching up) happen on every device by itself.
+// Actions are numbered (the last number seen + 1) instead of timed, because
+// device clocks differ by seconds; the highest number wins.
+let progressSeq = 0;           // number of the last progress action applied here (local or remote)
+let progressPublishTimer = null;
+let progressBlocked = false;   // the database refused it (rules not updated yet): keep working locally
+function progressAction(){
+  progressSeq += 1;
+  saveDayState(); // right away, so a reload a moment later can't lose it
+  if(progressPublishTimer) clearTimeout(progressPublishTimer);
+  progressPublishTimer = setTimeout(publishProgress, 300);
+}
+function publishProgress(){
+  progressPublishTimer = null;
+  const houseId = getHouseId();
+  if(!cloudEnabled() || !houseId || progressBlocked || !scheduleDate) return;
+  const body = JSON.stringify({ state: JSON.stringify(snapshotDay()), seq: progressSeq, updatedAt: Date.now(), by: getUid() || '' });
+  cloudFetch(`houses/${houseId}/progress`, { method: 'PUT', body }).catch(err => {
+    if(err && err.status === 401){ progressBlocked = true; logCloudEvent(tr('log_progress_blocked')); }
+  });
+}
+function applyRemoteProgress(progress){
+  if(!progress || typeof progress.state !== 'string' || progress.by === getUid()) return;
+  // Newer action, or two devices acting at the same moment: the same device wins on both sides.
+  const newer = progress.seq > progressSeq || (progress.seq === progressSeq && String(progress.by) > String(getUid()));
+  if(!newer) return;
+  let state;
+  try{ state = JSON.parse(progress.state); }catch(e){ return; }
+  if(!state || state.date !== todayKey() || !Array.isArray(state.tasks)) return;
+  if((state.test === undefined ? null : state.test) !== runningTestStart) return; // the other device is in another test/real day
+  const doneBefore = tasks.filter(t => t.outcome === 'onTime' || t.outcome === 'late').length;
+  const pointerBefore = pointer;
+  initSchedule(TASKS, { progress: state });
+  progressSeq = progress.seq;
+  saveDayState();
+  // Show what happened on the other device: the celebration, and the next task's sound.
+  const done = tasks.filter(t => t.outcome === 'onTime' || t.outcome === 'late');
+  if(done.length > doneBefore){
+    const last = done[done.length - 1];
+    try{ if(last.outcome === 'onTime') celebrate(); else encourage(); }catch(e){}
+  }
+  if(pointer !== pointerBefore && !awaitingStart && pointer < tasks.length){
+    try{ playForTask(tasks[pointer]); }catch(e){}
+  }
+  render();
+}
+
 let lastDayStateJson = '';
 function saveDayState(){
   if(testMode || !scheduleDate) return;
@@ -2949,11 +3006,11 @@ function saveDayState(){
 // - the current task keeps its start and extensions, and the ones after it keep their order;
 // - a new task planned before the current one counts as already passed; later ones join the upcoming list.
 // Returns false when there is no progress worth keeping.
-function mergeDayProgress(prev){
+function mergeDayProgress(prev, force){
   const prevPointer = Math.min(prev.pointer || 0, prev.tasks.length);
   const prevCurrent = prev.tasks[prevPointer];
   const hasProgress = prevPointer > 0 || prev.awaitingStart || (prevCurrent && prevCurrent.redMin > 0);
-  if(!hasProgress) return false;
+  if(!hasProgress && !force) return false;
 
   // Match tasks by routine + name (+ repetition), or else by routine + planned start (a renamed task).
   const keysOf = list => {
@@ -3718,8 +3775,8 @@ function resolveConfirm(answer){
   }
   render();
 }
-document.getElementById('confirm-yes').addEventListener('click', () => resolveConfirm('sim'));
-document.getElementById('confirm-no').addEventListener('click', () => resolveConfirm('nao'));
+document.getElementById('confirm-yes').addEventListener('click', () => { resolveConfirm('sim'); progressAction(); });
+document.getElementById('confirm-no').addEventListener('click', () => { resolveConfirm('nao'); progressAction(); });
 
 // ---------- "I'm done" button (early completion) ----------
 function finishEarly(){
@@ -3734,6 +3791,7 @@ function finishEarly(){
   } else {
     recomputeUpcoming();
   }
+  progressAction();
   render();
 }
 finishEarlyBtn.addEventListener('click', finishEarly);
@@ -3748,6 +3806,7 @@ function startNextTask(){
   recomputeUpcoming(nowMin); // anchor the next task (and the following ones) from now
   lastSegTaskIndex = -1;
   playForTask(tasks[pointer]);
+  progressAction();
   render();
 }
 startNextBtn.addEventListener('click', startNextTask);
@@ -3762,6 +3821,7 @@ function moveTask(idx, dir){
   recomputeUpcoming();
   lastSegTaskIndex = -1;
   rebuildTimelineDOM();
+  progressAction();
   render();
 }
 timelineEl.addEventListener('click', (e) => {
@@ -3990,10 +4050,10 @@ document.getElementById('reset-schedule-btn').addEventListener('click', applyPla
 // ---------- Deadline control (hour and minute arrows) ----------
 const limitHourEl = document.getElementById('limit-hour');
 const limitMinEl = document.getElementById('limit-min');
-document.getElementById('limit-hour-plus').addEventListener('click', () => { limitMin += 60; render(); });
-document.getElementById('limit-hour-minus').addEventListener('click', () => { limitMin = Math.max(0, limitMin - 60); render(); });
-document.getElementById('limit-min-plus').addEventListener('click', () => { limitMin += 1; render(); });
-document.getElementById('limit-min-minus').addEventListener('click', () => { limitMin = Math.max(0, limitMin - 1); render(); });
+document.getElementById('limit-hour-plus').addEventListener('click', () => { limitMin += 60; progressAction(); render(); });
+document.getElementById('limit-hour-minus').addEventListener('click', () => { limitMin = Math.max(0, limitMin - 60); progressAction(); render(); });
+document.getElementById('limit-min-plus').addEventListener('click', () => { limitMin += 1; progressAction(); render(); });
+document.getElementById('limit-min-minus').addEventListener('click', () => { limitMin = Math.max(0, limitMin - 1); progressAction(); render(); });
 
 // ---------- Settings screen (tasks, times, icons and sounds) ----------
 function hhmmToArr(str){
@@ -4807,6 +4867,10 @@ let pendingRemoteHouse = null;
 let knownMemberIds = null;
 function handleRemoteHouse(house){
   if(!house) return;
+  handleRemoteConfig(house);
+  try{ applyRemoteProgress(house.progress); }catch(e){}
+}
+function handleRemoteConfig(house){
   renderDevices(house);
   announceNewMembers(house.members || {});
   const data = house.data;
