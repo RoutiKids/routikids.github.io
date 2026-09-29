@@ -40,7 +40,7 @@
 <meta charset="UTF-8">
 <title>Routikids</title>
 <!-- The code version lives here (read by the app and by the update check); bump it on every change. -->
-<meta name="app-version" content="Versão do código: 2026-09-29 07:05">
+<meta name="app-version" content="Versão do código: 2026-09-29 08:01">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@500;700;800&family=Nunito:wght@600;800&display=swap" rel="stylesheet">
@@ -111,6 +111,48 @@
   }
   #test-schedule-btn{ background:var(--sky); }
   #reset-schedule-btn{ background:#9aa5b1; }
+  /* Top-right corner, away from the centered title */
+  #fullscreen-btn{ background:var(--navy); position:fixed; top:1.5vh; right:1.5vw; }
+
+  /* ---- "Tap to turn on the sound" balloon, above the sound button ---- */
+  #sound-prompt{
+    position:fixed;
+    right:2.5vw;
+    bottom:calc(2.5vh + max(6vw, 56px) + 2vh);
+    z-index:600;
+    display:none;
+    align-items:center;
+    gap:0.4vw;
+  }
+  #sound-prompt-btn{
+    font-family:'Nunito', sans-serif;
+    font-weight:800;
+    font-size:clamp(16px, 1.3vw, 28px);
+    color:white;
+    background:var(--coral);
+    border:none;
+    border-radius:999px;
+    padding:1.2vh 1.4vw;
+    cursor:pointer;
+    box-shadow:0 6px 18px rgba(29,53,87,0.25);
+    animation:soundPromptPulse 1.6s ease-in-out infinite;
+  }
+  #sound-prompt-close{
+    font-family:'Nunito', sans-serif;
+    font-weight:800;
+    font-size:clamp(16px, 1.2vw, 26px);
+    width:2.2em;
+    height:2.2em;
+    border-radius:50%;
+    border:none;
+    background:white;
+    color:var(--navy);
+    cursor:pointer;
+    box-shadow:0 4px 12px rgba(29,53,87,0.2);
+  }
+  #sound-prompt-btn:focus, #sound-prompt-close:focus{ outline:4px solid var(--sun); outline-offset:2px; }
+  @keyframes soundPromptPulse{ 0%, 100%{ transform:scale(1); } 50%{ transform:scale(1.04); } }
+  @media (prefers-reduced-motion: reduce){ #sound-prompt-btn{ animation:none; } }
 
   /* ---- Footer: current clock + deadline (next to the sound button) ---- */
   #bottom-info{
@@ -1313,6 +1355,8 @@
     .outcome-badge.star{ font-size:28px; }
     .reorder-controls{ gap:4px; }
     .reorder-btn{ width:34px; height:30px; font-size:14px; }
+    #fullscreen-btn{ position:static; }
+    #sound-prompt{ right:12px; left:12px; bottom:12px; justify-content:center; }
     #sound-toggle{ position:static; width:52px; height:52px; min-width:52px; min-height:52px; font-size:22px; }
 
     /* Settings screen: readable sizes instead of vw-based ones (16px inputs also avoid iOS zoom) */
@@ -1358,6 +1402,11 @@
   <button id="config-btn" class="util-btn" data-i18n="btn_config" data-i18n-title="btn_config_title" style="background:#B983FF;"></button>
   <button id="test-schedule-btn" class="util-btn" data-i18n="btn_test" data-i18n-title="btn_test_title"></button>
   <button id="reset-schedule-btn" class="util-btn" data-i18n="btn_reset" data-i18n-title="btn_reset_title"></button>
+  <button id="fullscreen-btn" class="util-btn" style="display:none;" data-i18n="fullscreen_btn" data-i18n-title="fullscreen_title"></button>
+</div>
+<div id="sound-prompt">
+  <button type="button" id="sound-prompt-btn" data-i18n="sound_prompt"></button>
+  <button type="button" id="sound-prompt-close" data-i18n-title="sound_prompt_dismiss">×</button>
 </div>
 <div id="bottom-info">
   <div id="clock">--:--</div>
@@ -1733,6 +1782,11 @@ const I18N = {
     save_anyway: "Salvar mesmo assim",
     welcome_title: "👋 Bem-vindo ao {app}!",
     tagline: "a rotina das crianças, passo a passo",
+    fullscreen_title: "Esconde a barra do navegador",
+    fullscreen_exit: "🖥️ Sair da tela cheia",
+    fullscreen_btn: "🖥️ Tela cheia",
+    sound_prompt_dismiss: "Não mostrar mais",
+    sound_prompt: "🔊 Toque aqui para ativar o som",
     guide_why_html: "<p>Rotina faz bem às crianças: saber o que vem agora e depois traz segurança, diminui as brigas nas transições e ajuda a ganhar autonomia. Mas os quadros de papel na parede costumam ser esquecidos depois de algumas semanas, porque são parados, não mostram o tempo passando e dão trabalho para mudar.</p><p>A ideia do Routikids é usar o <strong>lado bom da TV</strong>: ela já está no centro da casa, é grande e prende a atenção da criança. Em vez de desenho, ela mostra a rotina: viva, mudando ao longo do dia, fácil de ajustar.</p><p>💛 Ajuda qualquer criança a <strong>começar a ter noção de tempo</strong>, de ordem e de prioridades. E é um apoio visual especialmente útil para crianças que precisam de mais estrutura, como muitas crianças com TDAH.</p>",
     guide_why_title: "Por que na TV?",
     brand_googletv_models: "Vale para a maioria das TVs Sony, TCL, Philips e Xiaomi e para o Chromecast com Google TV.",
@@ -1782,7 +1836,7 @@ const I18N = {
     guide_tv_title: "Como levar para a TV",
     guide_tv_html: "<ol><li>Configure a rotina no celular (os modelos prontos ajudam).</li><li>Na TV, abra o navegador e digite <strong>{url}</strong>.</li><li>Na tela de boas-vindas da TV, digite o código que aparece no celular em ⚙️ Configurar → \"📺 Levar para a TV\".</li></ol>",
     guide_tips_title: "Dicas",
-    guide_tips_html: "<ul><li>🔊 <strong>Som:</strong> o navegador só libera o som depois de um toque. Na TV, toque uma vez no botão 🔇.</li><li>⭐ <strong>Favoritos:</strong> salve o endereço nos favoritos do navegador da TV para abrir direto nas próximas vezes.</li><li>🌙 <strong>Protetor de tela:</strong> se a TV escurecer ou mostrar fotos depois de alguns minutos, desative ou aumente o tempo do protetor de tela nas configurações da TV.</li><li>🧪 <strong>Teste:</strong> \"Testar agora\" roda a rotina com tarefas de 1 minuto; \"Sair do teste\" volta ao normal.</li></ul>",
+    guide_tips_html: "<ul><li>🔊 <strong>Som:</strong> o navegador só libera o som depois de um toque. Na TV, toque no aviso \"Toque aqui para ativar o som\" (ou no botão 🔇).</li><li>🖥️ <strong>Tela cheia:</strong> o botão \"Tela cheia\" esconde a barra do navegador. Depois de uma atualização do app, pode ser preciso tocar nele de novo.</li><li>⭐ <strong>Favoritos:</strong> salve o endereço nos favoritos do navegador da TV para abrir direto nas próximas vezes.</li><li>🌙 <strong>Tela sempre ligada:</strong> o app pede para a tela não apagar enquanto está aberto. Se mesmo assim a TV escurecer ou mostrar fotos depois de alguns minutos, desative ou aumente o tempo do protetor de tela nas configurações da TV.</li><li>🧪 <strong>Teste:</strong> \"Testar agora\" roda a rotina com tarefas de 1 minuto; \"Sair do teste\" volta ao normal.</li></ul>",
     guide_privacy_title: "Privacidade",
     guide_privacy_html: "<p>Use só um apelido para a criança. As rotinas ficam salvas no aparelho e, se você conectar outros aparelhos, num servidor usado só para sincronizá-los. Em ⚙️ Configurar você vê e remove os aparelhos conectados.</p>",
     welcome_note: "⚠️ <strong>Versão de teste.</strong> Este app ainda está em fase de testes. Para proteger sua família, <strong>use apenas um apelido</strong> para a criança, nada de nome completo, escola ou endereço. As rotinas ficam salvas neste aparelho e, se você conectar outros aparelhos, num servidor usado só para sincronizá-los.",
@@ -1986,6 +2040,11 @@ const I18N = {
     save_anyway: "Save anyway",
     welcome_title: "👋 Welcome to {app}!",
     tagline: "kids' routines, step by step",
+    fullscreen_title: "Hides the browser bar",
+    fullscreen_exit: "🖥️ Exit full screen",
+    fullscreen_btn: "🖥️ Full screen",
+    sound_prompt_dismiss: "Don't show again",
+    sound_prompt: "🔊 Tap here to turn on the sound",
     guide_why_html: "<p>Routines are good for kids: knowing what comes now and next gives them security, means fewer fights at transitions and helps them become independent. But paper charts on the wall are often forgotten after a few weeks, because they are static, don't show time passing and are a hassle to change.</p><p>The idea behind Routikids is to use the <strong>good side of the TV</strong>: it is already at the centre of the home, it is big and it catches your child's attention. Instead of cartoons, it shows the routine: alive, changing through the day, easy to adjust.</p><p>💛 It helps any child <strong>start to get a sense of time</strong>, order and priorities. And it is a particularly useful visual aid for children who need more structure, such as many children with ADHD.</p>",
     guide_why_title: "Why on the TV?",
     brand_googletv_models: "Works for most Sony, TCL, Philips and Xiaomi TVs and for Chromecast with Google TV.",
@@ -2035,7 +2094,7 @@ const I18N = {
     guide_tv_title: "How to put it on the TV",
     guide_tv_html: "<ol><li>Set up the routine on your phone (the ready-made templates help).</li><li>On the TV, open the browser and type <strong>{url}</strong>.</li><li>On the TV's welcome screen, type the code shown on your phone under ⚙️ Settings → \"📺 Put it on the TV\".</li></ol>",
     guide_tips_title: "Tips",
-    guide_tips_html: "<ul><li>🔊 <strong>Sound:</strong> browsers only allow sound after a tap. On the TV, press the 🔇 button once.</li><li>⭐ <strong>Bookmark:</strong> save the address in the TV browser's bookmarks to open it directly next time.</li><li>🌙 <strong>Screensaver:</strong> if the TV dims or shows photos after a few minutes, turn off the screensaver or make its delay longer in the TV settings.</li><li>🧪 <strong>Test:</strong> \"Test now\" runs the routine with 1-minute tasks; \"Exit test\" goes back to normal.</li></ul>",
+    guide_tips_html: "<ul><li>🔊 <strong>Sound:</strong> browsers only allow sound after a tap. On the TV, press the \"Tap here to turn on the sound\" notice (or the 🔇 button).</li><li>🖥️ <strong>Full screen:</strong> the \"Full screen\" button hides the browser bar. After an app update you may need to press it again.</li><li>⭐ <strong>Bookmark:</strong> save the address in the TV browser's bookmarks to open it directly next time.</li><li>🌙 <strong>Screen always on:</strong> the app asks the screen to stay on while it is open. If the TV still dims or shows photos after a few minutes, turn off the screensaver or make its delay longer in the TV settings.</li><li>🧪 <strong>Test:</strong> \"Test now\" runs the routine with 1-minute tasks; \"Exit test\" goes back to normal.</li></ul>",
     guide_privacy_title: "Privacy",
     guide_privacy_html: "<p>Use only a nickname for your child. Routines are stored on the device and, if you connect other devices, on a server used only to sync them. In ⚙️ Settings you can see and remove connected devices.</p>",
     welcome_note: "⚠️ <strong>Test version.</strong> This app is still being tested. To protect your family, <strong>use only a nickname</strong> for your child, no full name, school or address. Routines are stored on this device and, if you connect other devices, on a server used only to sync them.",
@@ -2239,6 +2298,11 @@ const I18N = {
     save_anyway: "Trotzdem speichern",
     welcome_title: "👋 Willkommen bei {app}!",
     tagline: "die Kinder-Routine, Schritt für Schritt",
+    fullscreen_title: "Blendet die Browserleiste aus",
+    fullscreen_exit: "🖥️ Vollbild beenden",
+    fullscreen_btn: "🖥️ Vollbild",
+    sound_prompt_dismiss: "Nicht mehr anzeigen",
+    sound_prompt: "🔊 Hier tippen, um den Ton einzuschalten",
     guide_why_html: "<p>Routinen tun Kindern gut: Zu wissen, was jetzt und danach kommt, gibt Sicherheit, sorgt für weniger Streit bei Übergängen und hilft, selbstständiger zu werden. Aber Papierpläne an der Wand geraten oft nach ein paar Wochen in Vergessenheit. Sie sind starr, zeigen nicht, wie die Zeit vergeht, und lassen sich nur mühsam ändern.</p><p>Die Idee von Routikids: die <strong>gute Seite des Fernsehers</strong> nutzen. Er steht schon mitten im Zuhause, ist groß und zieht die Aufmerksamkeit des Kindes auf sich. Statt Zeichentrick zeigt er die Routine: lebendig, im Lauf des Tages wechselnd, leicht anzupassen.</p><p>💛 Das hilft jedem Kind, <strong>ein Gefühl für Zeit</strong>, Reihenfolge und Prioritäten zu entwickeln. Und es ist eine besonders hilfreiche visuelle Stütze für Kinder, die mehr Struktur brauchen, wie viele Kinder mit ADHS.</p>",
     guide_why_title: "Warum auf dem Fernseher?",
     brand_googletv_models: "Gilt für die meisten Fernseher von Sony, TCL, Philips und Xiaomi sowie für Chromecast mit Google TV.",
@@ -2288,7 +2352,7 @@ const I18N = {
     guide_tv_title: "So kommt es auf den Fernseher",
     guide_tv_html: "<ol><li>Richte die Routine auf dem Handy ein (die fertigen Vorlagen helfen).</li><li>Öffne auf dem Fernseher den Browser und gib <strong>{url}</strong> ein.</li><li>Gib auf dem Willkommensbildschirm des Fernsehers den Code ein, den das Handy unter ⚙️ Einstellungen → „📺 Auf den Fernseher bringen“ anzeigt.</li></ol>",
     guide_tips_title: "Tipps",
-    guide_tips_html: "<ul><li>🔊 <strong>Ton:</strong> Browser erlauben Ton erst nach einem Tippen. Drücke auf dem Fernseher einmal die 🔇-Taste.</li><li>⭐ <strong>Lesezeichen:</strong> Speichere die Adresse als Lesezeichen im Browser des Fernsehers, um sie beim nächsten Mal direkt zu öffnen.</li><li>🌙 <strong>Bildschirmschoner:</strong> Wird der Fernseher nach ein paar Minuten dunkel oder zeigt Fotos, schalte den Bildschirmschoner in den Einstellungen des Fernsehers aus oder verlängere die Zeit.</li><li>🧪 <strong>Test:</strong> „Jetzt testen“ lässt die Routine mit 1-Minuten-Aufgaben laufen; „Test beenden“ kehrt zum Normalbetrieb zurück.</li></ul>",
+    guide_tips_html: "<ul><li>🔊 <strong>Ton:</strong> Browser erlauben Ton erst nach einem Tippen. Drücke auf dem Fernseher auf den Hinweis „Hier tippen, um den Ton einzuschalten“ (oder auf die 🔇-Taste).</li><li>🖥️ <strong>Vollbild:</strong> Die Taste „Vollbild“ blendet die Browserleiste aus. Nach einem App-Update musst du sie eventuell erneut drücken.</li><li>⭐ <strong>Lesezeichen:</strong> Speichere die Adresse als Lesezeichen im Browser des Fernsehers, um sie beim nächsten Mal direkt zu öffnen.</li><li>🌙 <strong>Bildschirm bleibt an:</strong> Die App bittet darum, dass der Bildschirm an bleibt, solange sie geöffnet ist. Wird der Fernseher trotzdem nach ein paar Minuten dunkel oder zeigt Fotos, schalte den Bildschirmschoner in den Einstellungen des Fernsehers aus oder verlängere die Zeit.</li><li>🧪 <strong>Test:</strong> „Jetzt testen“ lässt die Routine mit 1-Minuten-Aufgaben laufen; „Test beenden“ kehrt zum Normalbetrieb zurück.</li></ul>",
     guide_privacy_title: "Datenschutz",
     guide_privacy_html: "<p>Verwende nur einen Spitznamen für dein Kind. Die Routinen werden auf dem Gerät gespeichert und, wenn du weitere Geräte verbindest, auf einem Server, der nur zum Synchronisieren dient. Unter ⚙️ Einstellungen siehst und entfernst du verbundene Geräte.</p>",
     welcome_note: "⚠️ <strong>Testversion.</strong> Diese App wird noch getestet. Zum Schutz deiner Familie <strong>verwende nur einen Spitznamen</strong> für dein Kind, keinen vollen Namen, keine Schule, keine Adresse. Die Routinen werden auf diesem Gerät gespeichert und, wenn du weitere Geräte verbindest, auf einem Server, der nur zum Synchronisieren dient.",
@@ -3651,6 +3715,7 @@ function setSoundEnabled(enabled){
   soundEnabled = enabled;
   toggleBtn.textContent = enabled ? '🔊' : '🔇';
   toggleBtn.classList.toggle('off', !enabled);
+  updateSoundPrompt();
   if(enabled){
     ensureAudioCtx();
     beep(880,0.15,0); // confirmation beep when turning on
@@ -3660,6 +3725,23 @@ function setSoundEnabled(enabled){
 }
 function toggleSound(){ setSoundEnabled(!soundEnabled); }
 toggleBtn.addEventListener('click', toggleSound);
+
+// Browsers only allow sound after a tap, and the small 🔇 button is easy to miss,
+// so display devices get a big "tap here" balloon until the sound is on
+// (or the family chooses to hide it). Phones are mostly the parents' remote.
+const SOUND_PROMPT_KEY = 'rotinaSoundPrompt_v1';
+const soundPromptEl = document.getElementById('sound-prompt');
+function soundPromptWanted(){
+  return !soundEnabled && lsGet(SOUND_PROMPT_KEY) !== 'off' && guessDeviceKind() !== 'phone';
+}
+function updateSoundPrompt(){
+  soundPromptEl.style.display = soundPromptWanted() ? 'flex' : 'none';
+}
+document.getElementById('sound-prompt-btn').addEventListener('click', () => setSoundEnabled(true));
+document.getElementById('sound-prompt-close').addEventListener('click', () => {
+  lsSet(SOUND_PROMPT_KEY, 'off');
+  updateSoundPrompt();
+});
 setSoundEnabled(false); // initial state: off, 🔇 icon
 
 // ---------- "Test now" and "Real time" buttons ----------
@@ -5164,8 +5246,50 @@ function maybeShowWelcome(){
 // Now that everything (DOM, functions, settings screen) exists, build the
 // actual routine from the configuration saved in this browser (or the
 // default, if it's the first time).
+// ---------- Full screen and "keep the screen on" (display devices) ----------
+(function setUpDisplayHelpers(){
+  const isPhone = guessDeviceKind() === 'phone';
+  const root = document.documentElement;
+  const request = root.requestFullscreen || root.webkitRequestFullscreen;
+  const exit = document.exitFullscreen || document.webkitExitFullscreen;
+  const current = () => document.fullscreenElement || document.webkitFullscreenElement;
+  const fsBtn = document.getElementById('fullscreen-btn');
+  if(request && !isPhone && (document.fullscreenEnabled || document.webkitFullscreenEnabled)){
+    fsBtn.style.display = '';
+    const label = () => { fsBtn.textContent = tr(current() ? 'fullscreen_exit' : 'fullscreen_btn'); };
+    fsBtn.addEventListener('click', () => {
+      try{
+        const r = current() ? exit.call(document) : request.call(root);
+        if(r && r.catch) r.catch(() => {});
+      }catch(e){}
+    });
+    document.addEventListener('fullscreenchange', label);
+    document.addEventListener('webkitfullscreenchange', label);
+  }
+
+  // Ask the screen to stay on while the app is visible. The lock is dropped
+  // whenever the page is hidden, so ask again when it comes back.
+  if(isPhone || !('wakeLock' in navigator)) return;
+  let lock = null;
+  const keepAwake = () => {
+    if(lock || document.visibilityState !== 'visible') return;
+    navigator.wakeLock.request('screen')
+      .then(l => { lock = l; l.addEventListener('release', () => { lock = null; }); })
+      .catch(() => {});
+  };
+  keepAwake();
+  document.addEventListener('visibilitychange', keepAwake);
+  // Some browsers only grant it after an interaction.
+  ['pointerdown', 'keydown'].forEach(ev => document.addEventListener(ev, keepAwake, { passive: true }));
+})();
+
 initSchedule(TASKS);
 maybeShowWelcome();
+updateSoundPrompt();
+// On a TV, put the remote's focus on the balloon, so pressing OK turns the sound on.
+if(soundPromptWanted() && guessDeviceKind() === 'tv' && document.getElementById('welcome-overlay').style.display !== 'flex'){
+  document.getElementById('sound-prompt-btn').focus({ preventScroll: true });
+}
 initCloudSync();
 
 function safeRender(){
