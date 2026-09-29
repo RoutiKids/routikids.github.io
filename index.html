@@ -40,7 +40,7 @@
 <meta charset="UTF-8">
 <title>Routikids</title>
 <!-- The code version lives here (read by the app and by the update check); bump it on every change. -->
-<meta name="app-version" content="Versão do código: 2026-09-29 08:01">
+<meta name="app-version" content="Versão do código: 2026-09-29 11:04">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@500;700;800&family=Nunito:wght@600;800&display=swap" rel="stylesheet">
@@ -969,7 +969,14 @@
     padding:1.5vh 1.2vw;
     margin-bottom:2vh;
   }
-  #sync-section h3{
+  #backup-section{
+    background:rgba(78,168,222,0.08);
+    border:2px solid rgba(78,168,222,0.3);
+    border-radius:16px;
+    padding:1.5vh 1.2vw;
+    margin-bottom:2vh;
+  }
+  #sync-section h3, #backup-section h3{
     font-family:'Baloo 2', sans-serif;
     font-weight:800;
     font-size:1.2vw;
@@ -1369,8 +1376,8 @@
     .settings-text-input, .settings-time-input, .settings-select{ font-size:16px; padding:8px 10px; }
     .settings-card .util-btn{ font-size:14px; padding:8px 14px; }
     .settings-hint{ font-size:13px; }
-    #sync-section, #routines-section{ padding:12px; }
-    #sync-section h3, #routines-section h3, #routine-tasks-heading{ font-size:18px; }
+    #sync-section, #routines-section, #backup-section{ padding:12px; }
+    #sync-section h3, #routines-section h3, #backup-section h3, #routine-tasks-heading{ font-size:18px; }
     .step-size-btn{ font-size:14px; padding:6px 12px; }
     #autolink-row{ font-size:14px; }
     #autolink-row input{ width:20px; height:20px; }
@@ -1500,6 +1507,16 @@
 
     </div>
 
+    <div id="backup-section">
+      <h3 data-i18n="backup_title"></h3>
+      <p class="settings-hint" data-i18n="backup_hint"></p>
+      <div class="sync-buttons">
+        <button type="button" id="backup-save-btn" class="util-btn" style="background:var(--sky);" data-i18n="backup_save"></button>
+        <button type="button" id="backup-restore-btn" class="util-btn" style="background:#9aa5b1;" data-i18n="backup_restore"></button>
+      </div>
+    </div>
+    <input type="file" id="backup-file-input" accept=".json,application/json" style="display:none;">
+
     <label class="settings-label" for="settings-child-name" data-i18n="nickname_label"></label>
     <input type="text" id="settings-child-name" class="settings-text-input" maxlength="30" data-i18n-placeholder="nickname_placeholder">
     <p class="settings-hint" data-i18n="nickname_hint"></p>
@@ -1576,6 +1593,7 @@
     <div class="welcome-note" data-i18n-html="welcome_note"></div>
     <div class="sync-buttons" style="margin-top:1.5vh;">
       <button type="button" id="welcome-guide-btn" class="util-btn" style="background:var(--sky);" data-i18n="open_guide"></button>
+      <button type="button" id="welcome-restore-btn" class="util-btn" style="background:#9aa5b1;" data-i18n="backup_restore"></button>
     </div>
     <div id="welcome-tv-intro">
       <div id="welcome-qr"></div>
@@ -1782,6 +1800,14 @@ const I18N = {
     save_anyway: "Salvar mesmo assim",
     welcome_title: "👋 Bem-vindo ao {app}!",
     tagline: "a rotina das crianças, passo a passo",
+    backup_invalid: "⚠️ Este arquivo não é uma cópia do Routikids.",
+    backup_restored: "✅ Cópia restaurada.",
+    backup_restore_btn: "Restaurar",
+    backup_restore_q: "Substituir a rotina atual pela cópia salva em {date}? Os aparelhos conectados também vão receber a cópia.",
+    backup_restore: "📂 Restaurar cópia",
+    backup_save: "💾 Salvar cópia",
+    backup_hint: "Guarde uma cópia da rotina num arquivo, por exemplo mandando para você mesmo por WhatsApp ou e-mail. Se o navegador for apagado, é só restaurar a cópia.",
+    backup_title: "💾 Cópia de segurança",
     fullscreen_title: "Esconde a barra do navegador",
     fullscreen_exit: "🖥️ Sair da tela cheia",
     fullscreen_btn: "🖥️ Tela cheia",
@@ -2040,6 +2066,14 @@ const I18N = {
     save_anyway: "Save anyway",
     welcome_title: "👋 Welcome to {app}!",
     tagline: "kids' routines, step by step",
+    backup_invalid: "⚠️ This file isn't a Routikids copy.",
+    backup_restored: "✅ Copy restored.",
+    backup_restore_btn: "Restore",
+    backup_restore_q: "Replace the current routine with the copy saved on {date}? Connected devices will get the copy too.",
+    backup_restore: "📂 Restore a copy",
+    backup_save: "💾 Save a copy",
+    backup_hint: "Keep a copy of the routine in a file, for example by sending it to yourself by WhatsApp or e-mail. If the browser is wiped, just restore the copy.",
+    backup_title: "💾 Backup",
     fullscreen_title: "Hides the browser bar",
     fullscreen_exit: "🖥️ Exit full screen",
     fullscreen_btn: "🖥️ Full screen",
@@ -2298,6 +2332,14 @@ const I18N = {
     save_anyway: "Trotzdem speichern",
     welcome_title: "👋 Willkommen bei {app}!",
     tagline: "die Kinder-Routine, Schritt für Schritt",
+    backup_invalid: "⚠️ Diese Datei ist keine Routikids-Kopie.",
+    backup_restored: "✅ Kopie wiederhergestellt.",
+    backup_restore_btn: "Wiederherstellen",
+    backup_restore_q: "Die aktuelle Routine durch die am {date} gespeicherte Kopie ersetzen? Verbundene Geräte erhalten die Kopie ebenfalls.",
+    backup_restore: "📂 Kopie wiederherstellen",
+    backup_save: "💾 Kopie speichern",
+    backup_hint: "Bewahre eine Kopie der Routine als Datei auf, zum Beispiel indem du sie dir per WhatsApp oder E-Mail schickst. Wird der Browser gelöscht, stellst du die Kopie einfach wieder her.",
+    backup_title: "💾 Sicherungskopie",
     fullscreen_title: "Blendet die Browserleiste aus",
     fullscreen_exit: "🖥️ Vollbild beenden",
     fullscreen_btn: "🖥️ Vollbild",
@@ -2801,20 +2843,154 @@ function catchUpToNow(){
   }
 }
 
-function initSchedule(cfg){
-  tasks = buildTasksFromConfig(cfg);
+// Builds today's schedule from the config. Unless opts.fresh is set (new day,
+// "Exit test"), today's progress so far (tasks done, their real times and
+// outcomes, extensions, the current task) is kept: from the schedule on
+// screen when the config changes, or from the saved copy after a reload.
+function initSchedule(cfg, opts){
+  const prev = (opts && opts.fresh) ? null : previousDayProgress();
   PLANNED = cfg.map(t => ({ baseDurationMin: toMinutes(t.end) - toMinutes(t.start) }));
   dayStartMin = cfg.length > 0 ? toMinutes(cfg[0].start) : 0;
-  pointer = 0;
-  awaitingStart = false;
   lastSegTaskIndex = -1;
   closeConfirm();
-  recomputeUpcoming();
-  catchUpToNow();
+  testMode = false;
+  scheduleDate = todayKey();
   currentLimitRoutineId = undefined; // force recomputing the deadline for the current routine
+  let merged = false;
+  if(prev){
+    tasks = buildTasksFromConfig(cfg);
+    try{ merged = mergeDayProgress(prev); }catch(e){ merged = false; }
+  }
+  if(!merged){
+    tasks = buildTasksFromConfig(cfg);
+    pointer = 0;
+    awaitingStart = false;
+    currentLimitRoutineId = undefined;
+    recomputeUpcoming();
+    catchUpToNow();
+  }
   refreshLimitForCurrentRoutine();
   rebuildTimelineDOM();
   updateHeaderTitle();
+}
+
+// ---------- Today's progress (kept across config changes and reloads) ----------
+const DAY_STATE_KEY = 'rotinaDayState_v1';
+let testMode = false;     // "Test now" replaces the real times; its progress is never kept
+let scheduleDate = null;  // day the schedule on screen belongs to
+function todayKey(){
+  const d = new Date();
+  return `${d.getFullYear()}-${d.getMonth() + 1}-${d.getDate()}`;
+}
+function snapshotDay(){
+  return {
+    date: scheduleDate, pointer, awaitingStart, limitMin, limitRid: currentLimitRoutineId,
+    tasks: tasks.map(t => ({
+      name: t.name, routineId: t.routineId, plannedStartMin: t.plannedStartMin, plannedDurationMin: t.plannedDurationMin,
+      baseDurationMin: t.baseDurationMin, redMin: t.redMin, outcome: t.outcome, startMin: t.startMin, endMin: t.endMin
+    }))
+  };
+}
+function previousDayProgress(){
+  let prev = null;
+  if(tasks.length){ if(!testMode) prev = snapshotDay(); }
+  else { try{ prev = JSON.parse(lsGet(DAY_STATE_KEY) || 'null'); }catch(e){ prev = null; } }
+  if(!prev || prev.date !== todayKey() || !Array.isArray(prev.tasks)) return null;
+  return prev;
+}
+let lastDayStateJson = '';
+function saveDayState(){
+  if(testMode || !scheduleDate) return;
+  const json = JSON.stringify(snapshotDay());
+  if(json !== lastDayStateJson){ lastDayStateJson = json; lsSet(DAY_STATE_KEY, json); }
+}
+
+// Fits the progress in `prev` onto the freshly built `tasks`:
+// - tasks already done keep their real times and outcome (a task removed from the config disappears);
+// - the current task keeps its start and extensions, and the ones after it keep their order;
+// - a new task planned before the current one counts as already passed; later ones join the upcoming list.
+// Returns false when there is no progress worth keeping.
+function mergeDayProgress(prev){
+  const prevPointer = Math.min(prev.pointer || 0, prev.tasks.length);
+  const prevCurrent = prev.tasks[prevPointer];
+  const hasProgress = prevPointer > 0 || prev.awaitingStart || (prevCurrent && prevCurrent.redMin > 0);
+  if(!hasProgress) return false;
+
+  // Match tasks by routine + name (+ repetition), or else by routine + planned start (a renamed task).
+  const keysOf = list => {
+    const seen = {};
+    return list.map(t => { const k = `${t.routineId || ''}|${t.name}`; seen[k] = (seen[k] || 0) + 1; return `${k}#${seen[k]}`; });
+  };
+  const oldKeys = keysOf(prev.tasks);
+  const freshKeys = keysOf(tasks);
+  const used = new Set();
+  const findFresh = (o, key) => {
+    let i = freshKeys.indexOf(key);
+    if(i < 0 || used.has(i)) i = tasks.findIndex((t, j) => !used.has(j) && t.routineId === o.routineId && t.plannedStartMin === o.plannedStartMin);
+    if(i >= 0) used.add(i);
+    return i;
+  };
+
+  const done = [];
+  prev.tasks.slice(0, prevPointer).forEach((o, k) => {
+    const i = findFresh(o, oldKeys[k]);
+    if(i < 0) return;
+    const t = tasks[i];
+    Object.assign(t, { startMin: o.startMin, endMin: o.endMin, outcome: o.outcome, redMin: o.redMin, baseDurationMin: o.baseDurationMin });
+    done.push(t);
+  });
+  const rest = [];
+  prev.tasks.slice(prevPointer).forEach((o, k) => {
+    const i = findFresh(o, oldKeys[prevPointer + k]);
+    if(i < 0) return;
+    const t = tasks[i];
+    const isCurrent = k === 0;
+    if(o.plannedDurationMin === t.plannedDurationMin){
+      t.baseDurationMin = o.baseDurationMin;
+      t.redMin = o.redMin;
+    } else if(isCurrent){
+      t.redMin = o.redMin;
+      t.baseDurationMin = t.plannedDurationMin + o.redMin;
+    }
+    rest.push({ t, old: o, isCurrent });
+  });
+
+  const currentKept = rest.length > 0 && rest[0].isCurrent;
+  const anchor = rest.length ? rest[0].t.plannedStartMin : nowInMinutes();
+  tasks.forEach((t, i) => {
+    if(used.has(i)) return;
+    if(t.plannedStartMin < anchor){
+      t.outcome = 'skipped';
+      t.startMin = t.plannedStartMin;
+      t.endMin = t.plannedStartMin + t.baseDurationMin;
+      const at = done.findIndex(d => d.startMin > t.startMin);
+      done.splice(at < 0 ? done.length : at, 0, t);
+    } else {
+      const at = rest.findIndex((r, j) => (j > 0 || !currentKept) && r.t.plannedStartMin > t.plannedStartMin);
+      rest.splice(at < 0 ? rest.length : at, 0, { t });
+    }
+  });
+
+  tasks = done.concat(rest.map(r => r.t));
+  pointer = done.length;
+  if(currentKept){
+    const t = tasks[pointer];
+    t.startMin = rest[0].old.startMin;
+    t.endMin = t.startMin + t.baseDurationMin;
+    awaitingStart = !!prev.awaitingStart;
+    cascadeAfterPointer();
+    // Reopened long after the current task ended: move on, as a fresh load would.
+    if(!awaitingStart && nowInMinutes() > t.endMin + 1) catchUpToNow();
+  } else {
+    awaitingStart = false;
+    recomputeUpcoming();
+    catchUpToNow();
+  }
+  if(pointer < tasks.length && prev.limitRid !== undefined && tasks[pointer].routineId === prev.limitRid){
+    currentLimitRoutineId = prev.limitRid;
+    limitMin = prev.limitMin;
+  }
+  return true;
 }
 
 // If the TV stays on past midnight, switch to the new day's routine automatically.
@@ -2823,7 +2999,7 @@ function checkDayRollover(){
   if(idx !== loadedDayIndex){
     loadedDayIndex = idx;
     TASKS = buildTodaysTasks();
-    initSchedule(TASKS);
+    initSchedule(TASKS, { fresh: true });
   }
 }
 
@@ -3753,6 +3929,9 @@ function applyTestSchedule(){
   const now = new Date();
   dayStartMin = Math.ceil(now.getHours()*60 + now.getMinutes() + now.getSeconds()/60) + 1;
   tasks.forEach(t => { t.baseDurationMin = 1; t.redMin = 0; t.outcome = null; }); // 1 minute per task, for quick testing
+  testMode = true; // its progress isn't saved, and a config change or reload goes back to the real day
+  lsSet(DAY_STATE_KEY, null);
+  lastDayStateJson = '';
   recomputeUpcoming();
   catchUpToNow(); // just in case; normally a no-op here, since it starts in the future
   rebuildTimelineDOM();
@@ -3760,7 +3939,7 @@ function applyTestSchedule(){
 }
 
 function applyPlannedSchedule(){
-  initSchedule(TASKS);
+  initSchedule(TASKS, { fresh: true });
   render();
 }
 
@@ -4328,6 +4507,68 @@ function applyImportedConfig(cfg){
 
 document.getElementById('config-btn').addEventListener('click', openSettings);
 
+// ---------- Backup: save the config to a file and restore it ----------
+function backupFileName(){
+  const d = new Date();
+  return `routikids-backup-${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}.json`;
+}
+function saveBackup(){
+  const json = JSON.stringify({ app: APP_NAME, kind: 'backup', version: 1, savedAt: Date.now(), config: getCurrentConfigObject() }, null, 1);
+  const name = backupFileName();
+  const download = () => {
+    const url = URL.createObjectURL(new Blob([json], { type: 'application/json' }));
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = name;
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+    setTimeout(() => URL.revokeObjectURL(url), 10000);
+  };
+  // On phones, the share menu lets the file go straight to WhatsApp, e-mail or Drive.
+  let file = null;
+  try{ file = new File([json], name, { type: 'application/json' }); }catch(e){}
+  if(file && guessDeviceKind() !== 'computer' && navigator.canShare && navigator.canShare({ files: [file] })){
+    navigator.share({ files: [file], title: APP_NAME }).catch(err => { if(!err || err.name !== 'AbortError') download(); });
+  } else download();
+}
+let restoreFromWelcome = false;
+function pickBackupFile(fromWelcome){
+  restoreFromWelcome = !!fromWelcome;
+  const input = document.getElementById('backup-file-input');
+  input.value = '';
+  input.click();
+}
+function restoreBackupText(text){
+  let data = null;
+  try{ data = JSON.parse(text); }catch(e){}
+  const cfg = data && data.config;
+  if(!data || data.kind !== 'backup' || !cfg || !Array.isArray(cfg.routines) || !cfg.routines.length){
+    return appAlert(tr('backup_invalid')).then(() => false);
+  }
+  const d = new Date(data.savedAt || Date.now());
+  const date = `${String(d.getDate()).padStart(2, '0')}/${String(d.getMonth() + 1).padStart(2, '0')}/${d.getFullYear()} ${formatClock(d.getTime())}`;
+  return appConfirm(tr('backup_restore_q', { date }), tr('backup_restore_btn')).then(ok => {
+    if(!ok) return false;
+    if(!applyImportedConfig(cfg)) return appAlert(tr('backup_invalid')).then(() => false);
+    pendingRemoteHouse = null;
+    if(cloudEnabled() && getHouseId()) pushConfigToCloud(cfg);
+    if(settingsOverlay.style.display === 'flex'){ populateDraftFromCurrentConfig(); settingsDirty = false; }
+    if(restoreFromWelcome) hideWelcome();
+    return appAlert(tr('backup_restored')).then(() => true);
+  });
+}
+document.getElementById('backup-file-input').addEventListener('change', (e) => {
+  const file = e.target.files && e.target.files[0];
+  if(!file) return;
+  const reader = new FileReader();
+  reader.onload = () => restoreBackupText(String(reader.result || ''));
+  reader.readAsText(file);
+});
+document.getElementById('backup-save-btn').addEventListener('click', saveBackup);
+document.getElementById('backup-restore-btn').addEventListener('click', () => pickBackupFile(false));
+document.getElementById('welcome-restore-btn').addEventListener('click', () => pickBackupFile(true));
+
 // ---------- Cloud sync (pairing by code, one anonymous identity per device) ----------
 // All paired devices (TV, phones) share one "house" in a Firebase Realtime
 // Database. Each device signs in anonymously through the Firebase Auth REST
@@ -4562,7 +4803,7 @@ let settingsDirty = false;
 (function trackSettingsEdits(){
   const card = settingsOverlay.querySelector('.settings-card');
   const markDirty = (e) => {
-    if(e.target.closest('#sync-section, #cloud-banner, #settings-cancel, #settings-save, #routine-tabs button[data-index]')) return;
+    if(e.target.closest('#sync-section, #backup-section, #backup-file-input, #cloud-banner, #settings-cancel, #settings-save, #routine-tabs button[data-index]')) return;
     settingsDirty = true;
   };
   ['input', 'change'].forEach(ev => card.addEventListener(ev, markDirty));
@@ -5294,6 +5535,7 @@ initCloudSync();
 
 function safeRender(){
   try{ render(); }catch(e){ /* never let the loop hang because of a one-off error */ }
+  try{ saveDayState(); }catch(e){}
 }
 safeRender();
 setInterval(safeRender, 1000);
