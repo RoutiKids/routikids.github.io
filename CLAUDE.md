@@ -31,5 +31,6 @@ The app used to live at `fabiofialho1.github.io/rotina-infantil-na-tv/` (reposit
 
 ## Today's progress and backup
 
-- `initSchedule(cfg)` keeps today's progress by default: done tasks keep their real times and outcome, the current task keeps its start and extensions, and new tasks are fitted in (`mergeDayProgress`). It runs when a config arrives from another device, after a settings save and on load (from `rotinaDayState_v1`, saved each second by `saveDayState`). A new day and "Sair do teste" pass `{ fresh: true }`; test mode is never saved.
+- `initSchedule(cfg)` keeps today's progress by default: done tasks keep their real times and outcome, the current task keeps its start and extensions, and new tasks are fitted in (`mergeDayProgress`). It runs when a config arrives from another device, after a settings save and on load (from `rotinaDayState_v1`, saved each second by `saveDayState`). A new day passes `{ fresh: true }`.
+- "Testar agora" is shared: it sets `testStartedAt` in the config (so it reaches every paired device, with no database rule change) and today's tasks run 1 minute each from that moment. Changes during a test keep it running; "Sair do teste", the test ending or 2 hours passing clear it, and the real day comes back with its saved progress (test progress is never saved). Backups never carry `testStartedAt`.
 - Settings has "💾 Salvar cópia" / "📂 Restaurar cópia" (a JSON file with `kind: 'backup'` and the config); the welcome screen also offers the restore, for a wiped browser. A restore is pushed to the paired devices.
