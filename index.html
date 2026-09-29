@@ -45,7 +45,7 @@
 <meta name="color-scheme" content="light dark">
 <title>Routikids</title>
 <!-- The code version lives here (read by the app and by the update check); bump it on every change. -->
-<meta name="app-version" content="Versão do código: 2026-09-29 22:24">
+<meta name="app-version" content="Versão do código: 2026-09-29 22:43">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@500;700;800&family=Nunito:wght@600;800&display=swap" rel="stylesheet">
@@ -565,17 +565,41 @@
   }
   .kid-start{ display:none; background:var(--sky); }
   .kid-row{ display:flex; align-items:center; gap:calc(var(--w) * 0.04); }
-  /* "I'm done" as a big round check next to the minutes (saves a line) */
+  /* "I'm done" as a box to tick next to the minutes (saves a line) */
+  .kid-row{ gap:calc(var(--w) * 0.08); }
   .kid-finish{
-    width:calc(var(--w) * 0.13);
-    height:calc(var(--w) * 0.13);
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    gap:0.4vh;
     padding:0;
     margin-top:0;
-    border-radius:50%;
-    font-size:calc(var(--w) * 0.07);
-    line-height:1;
+    background:none;
+    box-shadow:none;
+    color:var(--navy);
     flex-shrink:0;
   }
+  .kid-box{
+    width:calc(var(--w) * 0.11);
+    height:calc(var(--w) * 0.11);
+    border:calc(var(--w) * 0.012) solid var(--c);
+    border-radius:calc(var(--w) * 0.022);
+    background:white;
+    box-shadow:0 4px 0 rgba(29,53,87,0.2);
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    font-size:calc(var(--w) * 0.075);
+    line-height:1;
+    color:white;
+    transition:background 0.2s ease, transform 0.2s ease;
+  }
+  .kid-finish:hover .kid-box, .kid-finish:focus .kid-box{ transform:scale(1.06); }
+  .kid-finish.checked .kid-box{ background:var(--mint); border-color:var(--mint); transform:scale(1.12); }
+  .kid-finish.checked .kid-box::after{ content:'✔'; }
+  .kid-finish-label{ font-family:'Baloo 2', sans-serif; font-weight:800; font-size:calc(var(--w) * 0.03); line-height:1; }
+  .kid-finish:focus{ outline:none; }
+  .kid-finish:focus .kid-box{ outline:4px solid var(--sun); outline-offset:3px; }
   .kid-browse{ display:none; gap:calc(var(--w) * 0.02); margin-top:0.8vh; }
   .kid-browse button{
     font-family:'Baloo 2', sans-serif;
@@ -623,6 +647,42 @@
   .trail-item small{ font-size:0.6em; }
   .kid-timeline.pictures-only .step .emoji{ font-size:calc(var(--w) * 0.1); }
 
+  /* ---- Extra time: the runner; finished late: the late icon pops ---- */
+  .runner{
+    position:fixed;
+    left:0;
+    display:flex;
+    align-items:center;
+    font-size:var(--size);
+    line-height:1;
+    animation:runner-dash 2.6s ease-in-out forwards;
+    pointer-events:none;
+  }
+  .runner-dust{ font-size:0.6em; margin-right:-0.15em; opacity:0.8; }
+  .runner-figure{ display:inline-block; transform:scaleX(-1); } /* these emojis face left: make them run right */
+  .runner-figure.rocket{ transform:rotate(45deg); }
+  @keyframes runner-dash{
+    0%{ transform:translateX(var(--from)); opacity:0; }
+    10%{ opacity:1; }
+    45%{ transform:translateX(calc((var(--from) + var(--to)) / 2)) translateY(-10px); }
+    90%{ opacity:1; }
+    100%{ transform:translateX(var(--to)); opacity:0; }
+  }
+  .late-pop{
+    position:fixed;
+    font-size:9vw;
+    transform:translate(-50%, -50%) scale(0);
+    animation:late-pop 1.8s ease forwards;
+    pointer-events:none;
+  }
+  @keyframes late-pop{
+    0%{ transform:translate(-50%, -50%) scale(0); opacity:0; }
+    25%{ transform:translate(-50%, -50%) scale(1.15); opacity:1; }
+    40%{ transform:translate(-50%, -50%) scale(1); }
+    80%{ opacity:1; }
+    100%{ transform:translate(-50%, -60%) scale(0.9); opacity:0; }
+  }
+
   /* ---- Celebration / encouragement ---- */
   #celebration-layer{
     position:fixed;
@@ -665,29 +725,6 @@
     10%{ opacity:1; }
     100%{ transform:translateY(-125vh) translateX(var(--drift, 10px)); opacity:0; }
   }
-  #encourage-banner{
-    position:fixed;
-    top:12vh;
-    left:50%;
-    transform:translateX(-50%) translateY(-20px);
-    background:var(--sky);
-    color:white;
-    font-family:'Baloo 2', sans-serif;
-    font-weight:800;
-    font-size:1.8vw;
-    padding:2vh 3vw;
-    border-radius:20px;
-    box-shadow:0 8px 0 rgba(29,53,87,0.2);
-    z-index:750;
-    opacity:0;
-    transition: opacity 0.4s ease, transform 0.4s ease;
-    pointer-events:none;
-  }
-  #encourage-banner.show{
-    opacity:1;
-    transform:translateX(-50%) translateY(0);
-  }
-
   /* ---- Reorder arrows (only on tasks not done yet) ---- */
   .reorder-controls{
     display:flex;
@@ -1639,7 +1676,6 @@
   <button id="sound-toggle" data-i18n-title="sound_title">🔊</button>
 </div>
 <div id="celebration-layer"></div>
-<div id="encourage-banner"></div>
 
 <header>
   <h1 id="page-title"></h1>
@@ -1753,6 +1789,8 @@
       <span class="settings-label" style="margin-top:1vh; display:block;" data-i18n="child_color_label"></span>
       <div id="child-color-picker"></div>
       <label id="child-pictures-row"><input type="checkbox" id="child-pictures-only"> <span data-i18n="pictures_only"></span></label>
+      <span class="settings-label" style="margin-top:1vh; display:block;" data-i18n="runner_label"></span>
+      <div class="emoji-picker" id="child-runner-picker"></div>
       <span class="settings-label" style="margin-top:1vh; display:block;" data-i18n="confirm_default_label"></span>
       <select id="child-confirm-default" class="settings-select"></select>
       <div class="sync-buttons" style="margin-top:0.8vh;">
@@ -1968,8 +2006,6 @@ const I18N = {
     routine_fallback: "Rotina",
     completed_range: "Concluída: {from} – {to} ({n} tarefas)",
     day_range: "{day}: {from} – {to} ({n} tarefas)",
-    encourage: "Vamos lá, {name}você consegue!",
-    extra_time: "Vamos, {name}se concentra que você consegue!",
     no_routine_today: "Sem rotina hoje",
     no_routine_configured: "Nenhuma rotina configurada pra hoje",
     routine_complete: "Rotina completa!",
@@ -2031,6 +2067,8 @@ const I18N = {
     save_anyway: "Salvar mesmo assim",
     welcome_title: "👋 Bem-vindo ao {app}!",
     tagline: "a rotina das crianças, passo a passo",
+    runner_label: "Figura quando é hora de acelerar:",
+    finish_short: "Terminei",
     confirm_hint_wait: "Esperando a resposta…",
     confirm_hint_more: "Sem resposta, ganha mais {extra} minutos em {seconds}s",
     extra_min_label: "Minutos extras quando a resposta é \"Não\":",
@@ -2254,8 +2292,6 @@ const I18N = {
     routine_fallback: "Routine",
     completed_range: "Done: {from} – {to} ({n} tasks)",
     day_range: "{day}: {from} – {to} ({n} tasks)",
-    encourage: "Come on, {name}you can do it!",
-    extra_time: "Come on, {name}focus. You can do it!",
     no_routine_today: "No routine today",
     no_routine_configured: "No routine set up for today",
     routine_complete: "Routine complete!",
@@ -2317,6 +2353,8 @@ const I18N = {
     save_anyway: "Save anyway",
     welcome_title: "👋 Welcome to {app}!",
     tagline: "kids' routines, step by step",
+    runner_label: "Picture when it's time to hurry:",
+    finish_short: "Done",
     confirm_hint_wait: "Waiting for an answer…",
     confirm_hint_more: "No answer: {extra} more minutes in {seconds}s",
     extra_min_label: "Extra minutes when the answer is \"No\":",
@@ -2540,8 +2578,6 @@ const I18N = {
     routine_fallback: "Routine",
     completed_range: "Erledigt: {from} – {to} ({n} Aufgaben)",
     day_range: "{day}: {from} – {to} ({n} Aufgaben)",
-    encourage: "Komm, {name}du schaffst das!",
-    extra_time: "Los, {name}konzentrier dich. Du schaffst das!",
     no_routine_today: "Heute keine Routine",
     no_routine_configured: "Für heute ist keine Routine eingerichtet",
     routine_complete: "Routine geschafft!",
@@ -2603,6 +2639,8 @@ const I18N = {
     save_anyway: "Trotzdem speichern",
     welcome_title: "👋 Willkommen bei {app}!",
     tagline: "die Kinder-Routine, Schritt für Schritt",
+    runner_label: "Bild, wenn es schneller gehen soll:",
+    finish_short: "Fertig",
     confirm_hint_wait: "Warte auf eine Antwort…",
     confirm_hint_more: "Ohne Antwort gibt es in {seconds} s {extra} Minuten mehr",
     extra_min_label: "Zusätzliche Minuten bei „Nein“:",
@@ -2916,6 +2954,8 @@ function makeTemplateRoutine(tpl, id){
 // into one child that owns every routine. childName stays = the first
 // child's name, for older app versions still running on other devices.
 const CHILD_COLORS = ['purple', 'sky', 'mint', 'coral', 'sun'];
+// Crosses the child's column when a task gets extra time ("time to hurry").
+const CHILD_RUNNERS = ['🏎️', '🚀', '🐕', '🐇'];
 const CHILD_ICONS = ['🦄', '🦖', '🐱', '🐶', '🦊', '🐼', '🐸', '🐙', '🚀', '⚽', '🎧', '🌸'];
 function normalizeConfig(cfg){
   if(!cfg || !Array.isArray(cfg.routines)) return cfg;
@@ -2931,7 +2971,8 @@ function normalizeConfig(cfg){
     // "Finished?" with no answer: 'yes' (count as done), 'more' (extra time once) or 'wait'
     confirmDefault: ['yes', 'more', 'wait'].includes(c.confirmDefault) ? c.confirmDefault : 'yes',
     confirmSeconds: [10, 20, 30, 60].includes(c.confirmSeconds) ? c.confirmSeconds : 10,
-    extraMin: [3, 5, 10].includes(c.extraMin) ? c.extraMin : 5
+    extraMin: [3, 5, 10].includes(c.extraMin) ? c.extraMin : 5,
+    runner: CHILD_RUNNERS.includes(c.runner) ? c.runner : CHILD_RUNNERS[0]
   }));
   if(cfg.children.every(c => c.hidden)) cfg.children[0].hidden = false; // someone is always shown
   const ids = cfg.children.map(c => c.id);
@@ -3924,7 +3965,6 @@ function speak(text, opts={}){
 
 // ---------- Celebration (confetti) and encouragement (banner) ----------
 const celebrationLayer = document.getElementById('celebration-layer');
-const encourageBanner = document.getElementById('encourage-banner');
 
 // Left position for a celebration piece: anywhere on screen, or inside the
 // child's column when several children share the screen.
@@ -3954,28 +3994,60 @@ function celebrate(){
   }
 }
 
+// Pictures instead of words: a synthesized voice was hard to understand, and
+// pictures work at any age and in any language.
+
+// A task finished late: the late icon pops up for a moment, with a soft sound.
 function encourage(){
-  const namePart = CHILD_NAME ? `${CHILD_NAME}, ` : '';
-  encourageBanner.textContent = `${LATE_ICON} ${tr('encourage', { name: namePart })}`;
-  encourageBanner.classList.add('show');
-  speak(tr('encourage', { name: namePart }), { pitch: 1.7, rate: 1.05 }); // higher-pitched, livelier tone, like a kids' mascot
-  setTimeout(() => encourageBanner.classList.remove('show'), 4500);
+  const box = panelEl ? panelEl.getBoundingClientRect() : null;
+  const el = document.createElement('div');
+  el.className = 'late-pop';
+  el.textContent = LATE_ICON;
+  el.style.left = box ? (box.left + box.width / 2) + 'px' : '50%';
+  el.style.top = box ? (box.top + box.height * 0.35) + 'px' : '40%';
+  celebrationLayer.appendChild(el);
+  setTimeout(() => el.remove(), 1800);
+  try{ beep(523, 0.18, 0); beep(659, 0.22, 0.2); }catch(e){}
 }
 
-// Feedback when entering extra time (click on "No"): always plays, even if
-// the schedule compensation calculation fails for some reason.
+// Extra time: the child's runner (🏎️ by default) races across their column
+// with a "vroom", to say "let's speed up". Always plays, even if the schedule
+// compensation calculation failed for some reason.
 function startExtraTimeFeedback(){
-  const namePart = CHILD_NAME ? `${CHILD_NAME}, ` : '';
   try{
-    encourageBanner.textContent = `${LATE_ICON} ${tr('extra_time', { name: namePart })}`;
-    encourageBanner.classList.add('show');
-    setTimeout(() => encourageBanner.classList.remove('show'), 4500);
+    const box = panelEl ? panelEl.getBoundingClientRect() : { left: 0, width: window.innerWidth, top: 0, height: window.innerHeight };
+    const runner = activeChild().runner || CHILD_RUNNERS[0];
+    const el = document.createElement('div');
+    el.className = 'runner';
+    el.innerHTML = `<span class="runner-dust">💨</span><span class="runner-figure${runner === '🚀' ? ' rocket' : ''}">${runner}</span>`;
+    el.style.top = (box.top + box.height * 0.4) + 'px';
+    el.style.setProperty('--from', (box.left - 40) + 'px');
+    el.style.setProperty('--to', (box.left + box.width - 40) + 'px');
+    el.style.setProperty('--size', Math.max(48, Math.min(box.width * 0.18, 180)) + 'px');
+    celebrationLayer.appendChild(el);
+    setTimeout(() => el.remove(), 2800);
   }catch(e){}
-  try{
-    // longer, more noticeable alert than the previous short beeps
-    beep(587,0.3,0); beep(523,0.3,0.3); beep(440,0.5,0.6); beep(440,0.5,1.15);
-  }catch(e){}
-  try{ speak(tr('extra_time', { name: namePart }), { pitch: 1.7, rate: 1.05 }); }catch(e){}
+  try{ vroom(); }catch(e){}
+}
+// "Vroom": two rising engine sweeps.
+function vroom(){
+  if(!soundEnabled) return;
+  const ctx = ensureAudioCtx();
+  [0, 0.9].forEach(delay => {
+    const t0 = ctx.currentTime + delay;
+    const osc = ctx.createOscillator();
+    const gain = ctx.createGain();
+    osc.type = 'sawtooth';
+    osc.frequency.setValueAtTime(70, t0);
+    osc.frequency.exponentialRampToValueAtTime(260, t0 + 0.7);
+    gain.gain.setValueAtTime(0.0001, t0);
+    gain.gain.exponentialRampToValueAtTime(0.18, t0 + 0.08);
+    gain.gain.exponentialRampToValueAtTime(0.0001, t0 + 0.8);
+    osc.connect(gain);
+    gain.connect(ctx.destination);
+    osc.start(t0);
+    osc.stop(t0 + 0.85);
+  });
 }
 
 const taskAudio = new Audio();
@@ -4663,6 +4735,8 @@ function renderChildEditor(){
   document.getElementById('child-color-picker').innerHTML = CHILD_COLORS.map(col =>
     `<button type="button" data-color="${col}" class="${c.color === col ? 'selected' : ''}" style="background:var(--${col});" aria-label="${col}"></button>`).join('');
   document.getElementById('child-pictures-only').checked = !!c.picturesOnly;
+  document.getElementById('child-runner-picker').innerHTML = CHILD_RUNNERS.map(e =>
+    `<button type="button" data-runner="${e}" class="${(c.runner || CHILD_RUNNERS[0]) === e ? 'selected' : ''}">${e}</button>`).join('');
   const opts = (list, value) => list.map(([v, label]) => `<option value="${v}"${String(v) === String(value) ? ' selected' : ''}>${label}</option>`).join('');
   document.getElementById('child-confirm-default').innerHTML = opts([['yes', tr('confirm_default_yes')], ['more', tr('confirm_default_more')], ['wait', tr('confirm_default_wait')]], c.confirmDefault || 'yes');
   document.getElementById('child-confirm-seconds').innerHTML = opts([10, 20, 30, 60].map(n => [n, `${n} s`]), c.confirmSeconds || 10);
@@ -4689,7 +4763,7 @@ function addDraftChild(){
   const usedColors = draftChildren.map(c => c.color);
   const id = 'c' + Date.now().toString(36);
   draftChildren.push({
-    id, name: '', picturesOnly: false, confirmDefault: 'yes', confirmSeconds: 10, extraMin: 5,
+    id, name: '', picturesOnly: false, confirmDefault: 'yes', confirmSeconds: 10, extraMin: 5, runner: CHILD_RUNNERS[0],
     icon: CHILD_ICONS.find(e => !used.includes(e)) || CHILD_ICONS[0],
     color: CHILD_COLORS.find(col => !usedColors.includes(col)) || CHILD_COLORS[0]
   });
@@ -4722,6 +4796,12 @@ document.getElementById('child-color-picker').addEventListener('click', (e) => {
   renderChildEditor();
 });
 document.getElementById('child-pictures-only').addEventListener('change', (e) => { draftChild().picturesOnly = e.target.checked; });
+document.getElementById('child-runner-picker').addEventListener('click', (e) => {
+  const btn = e.target.closest('button');
+  if(!btn) return;
+  draftChild().runner = btn.dataset.runner;
+  renderChildEditor();
+});
 document.getElementById('child-confirm-default').addEventListener('change', (e) => { draftChild().confirmDefault = e.target.value; });
 document.getElementById('child-confirm-seconds').addEventListener('change', (e) => { draftChild().confirmSeconds = parseInt(e.target.value, 10); });
 document.getElementById('child-extra-min').addEventListener('change', (e) => { draftChild().extraMin = parseInt(e.target.value, 10); });
@@ -6300,7 +6380,7 @@ function buildPanels(){
           <div class="kid-sub"></div>
           <div class="kid-row">
             <div class="kid-minutes"></div>
-            <button type="button" class="kid-finish">✔</button>
+            <button type="button" class="kid-finish"><span class="kid-box"></span><span class="kid-finish-label"></span></button>
           </div>
           <button type="button" class="kid-start"></button>
           <div class="kid-browse">
@@ -6316,8 +6396,15 @@ function buildPanels(){
     q('.kid-name').textContent = child.name || '';
     q('.kid-finish').title = tr('finish_early');
     q('.kid-finish').setAttribute('aria-label', tr('finish_early'));
+    q('.kid-finish-label').textContent = tr('finish_short');
     const act = fn => () => { if(SLOTS.includes(slot)) withChild(slot, fn); };
-    q('.kid-finish').addEventListener('click', act(finishEarly));
+    // Tick the box first, so the child sees it marked, then close the task.
+    const finishBtn = q('.kid-finish');
+    finishBtn.addEventListener('click', () => {
+      if(finishBtn.classList.contains('checked')) return;
+      finishBtn.classList.add('checked');
+      setTimeout(() => { finishBtn.classList.remove('checked'); act(finishEarly)(); }, 600);
+    });
     q('.kid-start').addEventListener('click', act(startNextTask));
     q('.kid-prev').title = tr('browse_prev_title');
     q('.kid-next').title = tr('browse_next_title');
