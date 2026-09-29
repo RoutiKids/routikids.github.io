@@ -40,7 +40,7 @@
 <meta charset="UTF-8">
 <title>Routikids</title>
 <!-- The code version lives here (read by the app and by the update check); bump it on every change. -->
-<meta name="app-version" content="Versão do código: 2026-09-29 11:51">
+<meta name="app-version" content="Versão do código: 2026-09-29 14:19">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@500;700;800&family=Nunito:wght@600;800&display=swap" rel="stylesheet">
@@ -2621,6 +2621,31 @@ const BLANK_TEMPLATE = { key: 'blank', name: tr('tpl_blank_name'), icon: '📋',
 function makeTemplateRoutine(tpl, id){
   return { id, name: tpl.name, icon: tpl.icon, tasks: JSON.parse(JSON.stringify(tpl.tasks)) };
 }
+// ---------- Children ----------
+// The config has a list of children ({ id, name, icon, color, picturesOnly }),
+// and each routine belongs to one of them (routine.childId). Configs from
+// before this (a single childName, routines without childId) are normalized
+// into one child that owns every routine. childName stays = the first
+// child's name, for older app versions still running on other devices.
+const CHILD_COLORS = ['purple', 'sky', 'mint', 'coral', 'sun'];
+const CHILD_ICONS = ['🦄', '🦖', '🐱', '🐶', '🦊', '🐼', '🐸', '🐙', '🚀', '⚽', '🎧', '🌸'];
+function normalizeConfig(cfg){
+  if(!cfg || !Array.isArray(cfg.routines)) return cfg;
+  let children = Array.isArray(cfg.children) ? cfg.children.filter(c => c && c.id) : [];
+  if(!children.length) children = [{ id: 'c1', name: cfg.childName || '' }];
+  cfg.children = children.map((c, i) => ({
+    id: String(c.id).slice(0, 32),
+    name: String(c.name || '').slice(0, 30),
+    icon: c.icon || CHILD_ICONS[i % CHILD_ICONS.length],
+    color: CHILD_COLORS.includes(c.color) ? c.color : CHILD_COLORS[i % CHILD_COLORS.length],
+    picturesOnly: !!c.picturesOnly
+  }));
+  const ids = cfg.children.map(c => c.id);
+  cfg.routines.forEach(r => { if(!ids.includes(r.childId)) r.childId = ids[0]; });
+  cfg.childName = cfg.children[0].name;
+  return cfg;
+}
+
 // Full configuration from a list of templates, each routine on its template's weekdays.
 function buildConfigFromTemplates(templates, childName){
   const routines = [];
@@ -2630,7 +2655,7 @@ function buildConfigFromTemplates(templates, childName){
     routines.push(routine);
     tpl.days.forEach(d => weekSchedule[d].push(routine.id));
   });
-  return { childName: childName || '', onTimeIcon: DEFAULT_ONTIME_ICON, lateIcon: DEFAULT_LATE_ICON, routines, weekSchedule };
+  return normalizeConfig({ childName: childName || '', onTimeIcon: DEFAULT_ONTIME_ICON, lateIcon: DEFAULT_LATE_ICON, routines, weekSchedule });
 }
 
 // ---------- DEFAULT CONFIGURATION (used only if nothing is saved in this browser) ----------
@@ -2656,7 +2681,7 @@ function loadStoredConfig(){
     const raw = localStorage.getItem(STORAGE_KEY);
     if(raw){
       const parsed = JSON.parse(raw);
-      if(parsed && Array.isArray(parsed.routines) && parsed.routines.length) return parsed;
+      if(parsed && Array.isArray(parsed.routines) && parsed.routines.length) return normalizeConfig(parsed);
     }
   }catch(e){}
   // Migrate a configuration saved in the old format (single routine, no weekdays)
@@ -2665,13 +2690,13 @@ function loadStoredConfig(){
     if(oldRaw){
       const old = JSON.parse(oldRaw);
       if(old && Array.isArray(old.tasks) && old.tasks.length){
-        return {
+        return normalizeConfig({
           childName: old.childName,
           onTimeIcon: old.onTimeIcon,
           lateIcon: old.lateIcon,
           routines: [{ id:'r_migrated', name: tr('routine_fallback'), icon:'📋', tasks: old.tasks }],
           weekSchedule: { 0:['r_migrated'],1:['r_migrated'],2:['r_migrated'],3:['r_migrated'],4:['r_migrated'],5:['r_migrated'],6:['r_migrated'] }
-        };
+        });
       }
     }
   }catch(e){}
@@ -2690,6 +2715,9 @@ let ONTIME_ICON = (stored && stored.onTimeIcon) ? stored.onTimeIcon : DEFAULT_ON
 let LATE_ICON = (stored && stored.lateIcon) ? stored.lateIcon : DEFAULT_LATE_ICON;
 let ROUTINES = stored ? stored.routines : DEFAULT_ROUTINES;
 let WEEK_SCHEDULE = stored ? stored.weekSchedule : DEFAULT_WEEK_SCHEDULE;
+let CHILDREN = stored ? stored.children : normalizeConfig({ childName: DEFAULT_CHILD_NAME, routines: DEFAULT_ROUTINES }).children;
+// The child whose day the schedule engine is running (the only one shown for now).
+let ACTIVE_CHILD_ID = CHILDREN[0].id;
 // "Test now" is part of the config (when it started), so it reaches every paired device.
 let TEST_STARTED_AT = (stored && stored.testStartedAt) || null;
 
@@ -2697,10 +2725,11 @@ function toMinutes([h,m]){ return h*60+m; }
 
 // Merge the tasks of all routines active today (there may be more than
 // one if "allow several per day" is on), in chronological order.
+function childRoutines(){ return ROUTINES.filter(r => r.childId === ACTIVE_CHILD_ID); }
 function buildTasksForDayIndex(dayIdx){
   const activeIds = (WEEK_SCHEDULE[dayIdx] || []).filter(id => ROUTINES.some(r => r.id === id));
   let combined = [];
-  ROUTINES.forEach(r => {
+  childRoutines().forEach(r => {
     if(activeIds.includes(r.id)) combined = combined.concat(r.tasks.map(t => ({ ...t, routineId: r.id })));
   });
   combined.sort((a,b) => toMinutes(a.start) - toMinutes(b.start));
@@ -2728,7 +2757,7 @@ const WEEKDAY_FULL = tr('days_full');
 function previewTomorrow(){
   const tomorrowIdx = (new Date().getDay() + 1) % 7;
   const activeIds = (WEEK_SCHEDULE[tomorrowIdx] || []).filter(id => ROUTINES.some(r => r.id === id));
-  const activeRoutines = ROUTINES.filter(r => activeIds.includes(r.id));
+  const activeRoutines = childRoutines().filter(r => activeIds.includes(r.id));
   if(activeRoutines.length === 0) return null;
   let firstStart = null;
   activeRoutines.forEach(r => {
@@ -2909,7 +2938,20 @@ function activeTestStartMin(){
 }
 
 // ---------- Today's progress (kept across config changes and reloads) ----------
-const DAY_STATE_KEY = 'rotinaDayState_v1';
+const DAY_STATE_KEY = 'rotinaDayState_v2';        // { childId: snapshot }
+const LEGACY_DAY_STATE_KEY = 'rotinaDayState_v1'; // single snapshot, from before children
+function readDayStates(){
+  let all = null;
+  try{ all = JSON.parse(lsGet(DAY_STATE_KEY) || 'null'); }catch(e){}
+  if(!all || typeof all !== 'object') all = {};
+  if(!Object.keys(all).length){
+    try{
+      const legacy = JSON.parse(lsGet(LEGACY_DAY_STATE_KEY) || 'null');
+      if(legacy && Array.isArray(legacy.tasks)) all[CHILDREN[0].id] = legacy;
+    }catch(e){}
+  }
+  return all;
+}
 let testMode = false;     // "Test now" replaces the real times; its progress is only kept in memory
 let runningTestStart = null;
 let scheduleDate = null;  // day the schedule on screen belongs to
@@ -2919,7 +2961,7 @@ function todayKey(){
 }
 function snapshotDay(){
   return {
-    date: scheduleDate, test: runningTestStart, seq: progressSeq, pointer, awaitingStart, limitMin, limitRid: currentLimitRoutineId,
+    child: ACTIVE_CHILD_ID, date: scheduleDate, test: runningTestStart, seq: progressSeq, pointer, awaitingStart, limitMin, limitRid: currentLimitRoutineId,
     tasks: tasks.map(t => ({
       name: t.name, routineId: t.routineId, plannedStartMin: t.plannedStartMin, plannedDurationMin: t.plannedDurationMin,
       baseDurationMin: t.baseDurationMin, redMin: t.redMin, outcome: t.outcome, startMin: t.startMin, endMin: t.endMin
@@ -2936,7 +2978,7 @@ function previousDayProgress(testStart){
   } else if(tasks.length && !testMode){
     prev = snapshotDay();
   } else {
-    try{ prev = JSON.parse(lsGet(DAY_STATE_KEY) || 'null'); }catch(e){ prev = null; }
+    prev = readDayStates()[ACTIVE_CHILD_ID] || null;
     if(prev && prev.test !== undefined && prev.test !== null) prev = null;
   }
   if(!prev || prev.date !== todayKey() || !Array.isArray(prev.tasks)) return null;
@@ -2946,7 +2988,8 @@ function previousDayProgress(testStart){
 // ---------- Sharing today's progress with the paired devices ----------
 // A tap that changes the progress (I'm done, Start, the "Finished?" answer,
 // reordering, the deadline) publishes this device's day to houses/<id>/progress;
-// the other devices fit it onto their schedule with mergeDayProgress. Automatic
+// the other devices fit it onto their schedule with mergeDayProgress. Each
+// child has its own entry, so progress on two children never overwrites each other. Automatic
 // steps (the dialog's timeout, catching up) happen on every device by itself.
 // Actions are numbered (the last number seen + 1) instead of timed, because
 // device clocks differ by seconds; the highest number wins.
@@ -2964,7 +3007,7 @@ function publishProgress(){
   const houseId = getHouseId();
   if(!cloudEnabled() || !houseId || progressBlocked || !scheduleDate) return;
   const body = JSON.stringify({ state: JSON.stringify(snapshotDay()), seq: progressSeq, updatedAt: Date.now(), by: getUid() || '' });
-  cloudFetch(`houses/${houseId}/progress`, { method: 'PUT', body }).catch(err => {
+  cloudFetch(`houses/${houseId}/progress/${encodeURIComponent(ACTIVE_CHILD_ID)}`, { method: 'PUT', body }).catch(err => {
     if(err && err.status === 401){ progressBlocked = true; logCloudEvent(tr('log_progress_blocked')); }
   });
 }
@@ -2997,8 +3040,15 @@ function applyRemoteProgress(progress){
 let lastDayStateJson = '';
 function saveDayState(){
   if(testMode || !scheduleDate) return;
-  const json = JSON.stringify(snapshotDay());
-  if(json !== lastDayStateJson){ lastDayStateJson = json; lsSet(DAY_STATE_KEY, json); }
+  const snap = snapshotDay();
+  const json = JSON.stringify(snap);
+  if(json === lastDayStateJson) return;
+  lastDayStateJson = json;
+  const all = readDayStates();
+  all[ACTIVE_CHILD_ID] = snap;
+  Object.keys(all).forEach(id => { if(!CHILDREN.some(c => c.id === id)) delete all[id]; });
+  lsSet(DAY_STATE_KEY, JSON.stringify(all));
+  lsSet(LEGACY_DAY_STATE_KEY, null);
 }
 
 // Fits the progress in `prev` onto the freshly built `tasks`:
@@ -4099,6 +4149,7 @@ document.getElementById('late-icon-picker').addEventListener('click', (e) => {
 function configRoutineToDraft(r){
   return {
     id: r.id,
+    childId: r.childId || ACTIVE_CHILD_ID,
     name: r.name,
     icon: r.icon,
     limitMin: r.limitMin,
@@ -4191,6 +4242,7 @@ document.addEventListener('keydown', (e) => {
     const tpl = ROUTINE_TEMPLATES.find(t => t.key === select.value);
     if(!tpl) return;
     const routine = makeTemplateRoutine(tpl, `r_${tpl.key}_${Date.now()}`);
+    routine.childId = ACTIVE_CHILD_ID;
     draftRoutines.push(configRoutineToDraft(routine));
     tpl.days.forEach(d => { (draftWeekSchedule[d] = draftWeekSchedule[d] || []).push(routine.id); });
     selectRoutine(draftRoutines.length - 1);
@@ -4220,7 +4272,7 @@ function renderRoutineTabs(){
     btn.addEventListener('click', () => selectRoutine(parseInt(btn.dataset.index,10)));
   });
   document.getElementById('routine-add-btn').addEventListener('click', () => {
-    draftRoutines.push({ id: 'r_' + Date.now(), name: tr('new_routine'), icon: '📋', tasks: [] });
+    draftRoutines.push({ id: 'r_' + Date.now(), childId: ACTIVE_CHILD_ID, name: tr('new_routine'), icon: '📋', tasks: [] });
     selectRoutine(draftRoutines.length - 1);
     renderWeekMatrix();
   });
@@ -4294,26 +4346,30 @@ function findScheduleConflicts(){
   for(let d=0; d<7; d++){
     const ids = draftWeekSchedule[d] || [];
     if(ids.length < 2) continue;
-    let combined = [];
-    draftRoutines.forEach(r => {
-      if(ids.includes(r.id)){
-        r.tasks.forEach(t => combined.push({
-          routineId: r.id,
-          routineName: r.name,
-          start: toMinutes(hhmmToArr(t.start)),
-          end: toMinutes(hhmmToArr(t.end))
-        }));
+    const conflictingIds = new Set();
+    // Each child has their own day: only routines of the same child can clash.
+    const childIds = [...new Set(draftRoutines.map(r => r.childId))];
+    childIds.forEach(cid => {
+      let combined = [];
+      draftRoutines.forEach(r => {
+        if(r.childId === cid && ids.includes(r.id)){
+          r.tasks.forEach(t => combined.push({
+            routineId: r.id,
+            routineName: r.name,
+            start: toMinutes(hhmmToArr(t.start)),
+            end: toMinutes(hhmmToArr(t.end))
+          }));
+        }
+      });
+      combined.sort((a,b) => a.start - b.start);
+      for(let i=1; i<combined.length; i++){
+        if(combined[i].start < combined[i-1].end && combined[i].routineId !== combined[i-1].routineId){
+          conflictingIds.add(combined[i].routineId);
+          conflictingIds.add(combined[i-1].routineId);
+          messages.push(tr('overlap_item', { day: DAY_NAMES[d], a: combined[i-1].routineName, b: combined[i].routineName }));
+        }
       }
     });
-    combined.sort((a,b) => a.start - b.start);
-    const conflictingIds = new Set();
-    for(let i=1; i<combined.length; i++){
-      if(combined[i].start < combined[i-1].end && combined[i].routineId !== combined[i-1].routineId){
-        conflictingIds.add(combined[i].routineId);
-        conflictingIds.add(combined[i-1].routineId);
-        messages.push(tr('overlap_item', { day: DAY_NAMES[d], a: combined[i-1].routineName, b: combined[i].routineName }));
-      }
-    }
     if(conflictingIds.size > 0) byDay[d] = conflictingIds;
   }
   return { byDay, messages };
@@ -4545,6 +4601,7 @@ document.getElementById('settings-save').addEventListener('click', () => {
 function saveSettings(){
   const newRoutines = draftRoutines.map(r => ({
     id: r.id,
+    childId: r.childId || ACTIVE_CHILD_ID,
     name: (r.name && r.name.trim()) ? r.name.trim() : tr('routine_fallback'),
     icon: r.icon,
     limitMin: r.limitMin,
@@ -4557,8 +4614,10 @@ function saveSettings(){
   }));
   const newName = settingsChildNameInput.value.trim();
 
+  const newChildren = CHILDREN.map(c => c.id === ACTIVE_CHILD_ID ? Object.assign({}, c, { name: newName }) : c);
   const savedConfig = {
-    childName: newName,
+    childName: newChildren[0].name,
+    children: newChildren,
     onTimeIcon: draftOnTimeIcon,
     lateIcon: draftLateIcon,
     routines: newRoutines,
@@ -4571,6 +4630,7 @@ function saveSettings(){
 
   ROUTINES = newRoutines;
   WEEK_SCHEDULE = draftWeekSchedule;
+  CHILDREN = newChildren;
   CHILD_NAME = newName;
   ONTIME_ICON = draftOnTimeIcon;
   LATE_ICON = draftLateIcon;
@@ -4585,6 +4645,7 @@ document.getElementById('settings-cancel').addEventListener('click', closeSettin
 function getCurrentConfigObject(){
   return {
     childName: CHILD_NAME,
+    children: CHILDREN,
     onTimeIcon: ONTIME_ICON,
     lateIcon: LATE_ICON,
     routines: ROUTINES,
@@ -4597,6 +4658,9 @@ function getCurrentConfigObject(){
 // templates, with basic validation.
 function applyImportedConfig(cfg){
   if(!cfg || !Array.isArray(cfg.routines) || cfg.routines.length === 0) return false;
+  normalizeConfig(cfg);
+  CHILDREN = cfg.children;
+  if(!CHILDREN.some(c => c.id === ACTIVE_CHILD_ID)) ACTIVE_CHILD_ID = CHILDREN[0].id;
   TEST_STARTED_AT = cfg.testStartedAt || null;
   CHILD_NAME = cfg.childName || '';
   ONTIME_ICON = cfg.onTimeIcon || DEFAULT_ONTIME_ICON;
@@ -4868,7 +4932,13 @@ let knownMemberIds = null;
 function handleRemoteHouse(house){
   if(!house) return;
   handleRemoteConfig(house);
-  try{ applyRemoteProgress(house.progress); }catch(e){}
+  // One progress entry per child (houses/<id>/progress/<childId>).
+  const remote = house.progress && house.progress[ACTIVE_CHILD_ID];
+  try{ applyRemoteProgress(remote); }catch(e){}
+  // This device is ahead (e.g. its day started before pairing, or the entry is
+  // missing): share it, so a device joining mid-day starts from where things are.
+  const remoteSeq = (remote && typeof remote.seq === 'number') ? remote.seq : 0;
+  if(progressSeq > remoteSeq && !testMode && !progressPublishTimer) publishProgress();
 }
 function handleRemoteConfig(house){
   renderDevices(house);
