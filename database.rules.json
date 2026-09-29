@@ -36,6 +36,19 @@
         }
       }
     },
+    "audio": {
+      "$houseId": {
+        "$audioId": {
+          ".read": "auth != null && root.child('houses').child($houseId).child('members').child(auth.uid).exists()",
+          ".write": "auth != null && root.child('houses').child($houseId).child('members').child(auth.uid).exists()",
+          ".validate": "$audioId.length <= 32 && newData.hasChildren(['data', 'mime', 'updatedAt'])",
+          "data": { ".validate": "newData.isString() && newData.val().length <= 400000" },
+          "mime": { ".validate": "newData.isString() && newData.val().length <= 40" },
+          "updatedAt": { ".validate": "newData.isNumber()" },
+          "$other": { ".validate": false }
+        }
+      }
+    },
     "pairCodes": {
       "$code": {
         ".read": "auth != null && $code.length == 6",
