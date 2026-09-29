@@ -28,3 +28,8 @@ The app used to live at `fabiofialho1.github.io/rotina-infantil-na-tv/` (reposit
 - Phone-first setup: after "Começar" on a non-TV device, the "📺 Agora leve para a TV" screen (`openTvSetup`) shows the address to type on the TV, a pairing code that renews itself while open, and per-brand steps (`renderBrandGuide`); it turns into "TV conectada" when `announceNewMembers` sees the TV join. It also opens from settings. The "📖 Guia rápido" (`openGuide`) explains the app and the same TV steps.
 - Security rules live in `database.rules.json` and must be pasted into the Firebase console whenever they change. Anonymous auth must stay enabled, with automatic cleanup of anonymous accounts **off**.
 - A device only drops its pairing after two database refusals at least 15s apart, and only discards its anonymous identity when Auth says it is gone (not on generic 400s). Key events go to a per-device "Histórico da conexão" (localStorage) shown in the sync section, to diagnose lost pairings.
+
+## Today's progress and backup
+
+- `initSchedule(cfg)` keeps today's progress by default: done tasks keep their real times and outcome, the current task keeps its start and extensions, and new tasks are fitted in (`mergeDayProgress`). It runs when a config arrives from another device, after a settings save and on load (from `rotinaDayState_v1`, saved each second by `saveDayState`). A new day and "Sair do teste" pass `{ fresh: true }`; test mode is never saved.
+- Settings has "💾 Salvar cópia" / "📂 Restaurar cópia" (a JSON file with `kind: 'backup'` and the config); the welcome screen also offers the restore, for a wiped browser. A restore is pushed to the paired devices.
