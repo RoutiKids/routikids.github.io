@@ -40,7 +40,7 @@
 <meta charset="UTF-8">
 <title>Routikids</title>
 <!-- The code version lives here (read by the app and by the update check); bump it on every change. -->
-<meta name="app-version" content="Versão do código: 2026-09-29 11:04">
+<meta name="app-version" content="Versão do código: 2026-09-29 11:30">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@500;700;800&family=Nunito:wght@600;800&display=swap" rel="stylesheet">
@@ -2687,6 +2687,8 @@ let ONTIME_ICON = (stored && stored.onTimeIcon) ? stored.onTimeIcon : DEFAULT_ON
 let LATE_ICON = (stored && stored.lateIcon) ? stored.lateIcon : DEFAULT_LATE_ICON;
 let ROUTINES = stored ? stored.routines : DEFAULT_ROUTINES;
 let WEEK_SCHEDULE = stored ? stored.weekSchedule : DEFAULT_WEEK_SCHEDULE;
+// "Test now" is part of the config (when it started), so it reaches every paired device.
+let TEST_STARTED_AT = (stored && stored.testStartedAt) || null;
 
 function toMinutes([h,m]){ return h*60+m; }
 
@@ -2786,7 +2788,7 @@ function routineTargetAndLimit(idx){
   const routine = ROUTINES.find(r => r.id === block.routineId);
   // Use the routine's preconfigured deadline, if any; otherwise fall back
   // to a reasonable default (planned end + 10min).
-  const limit = (routine && routine.limitMin !== undefined) ? routine.limitMin : (targetEndMin + 10);
+  const limit = (!testMode && routine && routine.limitMin !== undefined) ? routine.limitMin : (targetEndMin + 10);
   return { targetEndMin, limitMin: limit };
 }
 
@@ -2847,22 +2849,37 @@ function catchUpToNow(){
 // "Exit test"), today's progress so far (tasks done, their real times and
 // outcomes, extensions, the current task) is kept: from the schedule on
 // screen when the config changes, or from the saved copy after a reload.
+// While a test runs (activeTestStartMin), today's tasks take 1 minute each,
+// one after the other, from the moment "Test now" was pressed on any device.
 function initSchedule(cfg, opts){
-  const prev = (opts && opts.fresh) ? null : previousDayProgress();
+  const testStart = activeTestStartMin();
+  const prev = (opts && opts.fresh) ? null : previousDayProgress(testStart);
+  const build = () => {
+    const list = buildTasksFromConfig(cfg);
+    if(testStart !== null){
+      list.forEach((t, i) => {
+        t.plannedStartMin = testStart + i;
+        t.plannedDurationMin = 1;
+        t.baseDurationMin = 1;
+      });
+    }
+    return list;
+  };
   PLANNED = cfg.map(t => ({ baseDurationMin: toMinutes(t.end) - toMinutes(t.start) }));
-  dayStartMin = cfg.length > 0 ? toMinutes(cfg[0].start) : 0;
+  dayStartMin = testStart !== null ? testStart : (cfg.length > 0 ? toMinutes(cfg[0].start) : 0);
   lastSegTaskIndex = -1;
   closeConfirm();
-  testMode = false;
+  testMode = testStart !== null;
+  runningTestStart = testStart;
   scheduleDate = todayKey();
   currentLimitRoutineId = undefined; // force recomputing the deadline for the current routine
   let merged = false;
   if(prev){
-    tasks = buildTasksFromConfig(cfg);
+    tasks = build();
     try{ merged = mergeDayProgress(prev); }catch(e){ merged = false; }
   }
   if(!merged){
-    tasks = buildTasksFromConfig(cfg);
+    tasks = build();
     pointer = 0;
     awaitingStart = false;
     currentLimitRoutineId = undefined;
@@ -2872,11 +2889,24 @@ function initSchedule(cfg, opts){
   refreshLimitForCurrentRoutine();
   rebuildTimelineDOM();
   updateHeaderTitle();
+  document.getElementById('reset-schedule-btn').style.display = testMode ? '' : 'none';
+}
+
+// Minute of the day the shared test started, or null when no test is running.
+// A test only counts on the day it started and for at most 2 hours.
+const TEST_MAX_MS = 2 * 60 * 60 * 1000;
+function activeTestStartMin(){
+  if(!TEST_STARTED_AT) return null;
+  const started = new Date(TEST_STARTED_AT);
+  const now = new Date();
+  if(started.toDateString() !== now.toDateString() || now - started > TEST_MAX_MS || now < started - 60000) return null;
+  return started.getHours() * 60 + started.getMinutes() + started.getSeconds() / 60;
 }
 
 // ---------- Today's progress (kept across config changes and reloads) ----------
 const DAY_STATE_KEY = 'rotinaDayState_v1';
-let testMode = false;     // "Test now" replaces the real times; its progress is never kept
+let testMode = false;     // "Test now" replaces the real times; its progress is only kept in memory
+let runningTestStart = null;
 let scheduleDate = null;  // day the schedule on screen belongs to
 function todayKey(){
   const d = new Date();
@@ -2884,17 +2914,26 @@ function todayKey(){
 }
 function snapshotDay(){
   return {
-    date: scheduleDate, pointer, awaitingStart, limitMin, limitRid: currentLimitRoutineId,
+    date: scheduleDate, test: runningTestStart, pointer, awaitingStart, limitMin, limitRid: currentLimitRoutineId,
     tasks: tasks.map(t => ({
       name: t.name, routineId: t.routineId, plannedStartMin: t.plannedStartMin, plannedDurationMin: t.plannedDurationMin,
       baseDurationMin: t.baseDurationMin, redMin: t.redMin, outcome: t.outcome, startMin: t.startMin, endMin: t.endMin
     }))
   };
 }
-function previousDayProgress(){
+// The progress to carry over: the test on screen while the same test goes on;
+// otherwise the real day, from the screen, or from the saved copy (after a
+// reload, or when a test ends and the real day comes back).
+function previousDayProgress(testStart){
   let prev = null;
-  if(tasks.length){ if(!testMode) prev = snapshotDay(); }
-  else { try{ prev = JSON.parse(lsGet(DAY_STATE_KEY) || 'null'); }catch(e){ prev = null; } }
+  if(testStart !== null){
+    if(tasks.length && testMode && runningTestStart === testStart) prev = snapshotDay();
+  } else if(tasks.length && !testMode){
+    prev = snapshotDay();
+  } else {
+    try{ prev = JSON.parse(lsGet(DAY_STATE_KEY) || 'null'); }catch(e){ prev = null; }
+    if(prev && prev.test !== undefined && prev.test !== null) prev = null;
+  }
   if(!prev || prev.date !== todayKey() || !Array.isArray(prev.tasks)) return null;
   return prev;
 }
@@ -3035,7 +3074,8 @@ function fmt([h,m]){
   return String(h).padStart(2,'0') + ':' + String(m).padStart(2,'0');
 }
 function fmtMin(min){
-  return fmt([Math.floor(min/60), Math.round(min%60)]);
+  const m = Math.round(min);
+  return fmt([Math.floor(m/60), m%60]);
 }
 
 const heroEl = document.getElementById('hero');
@@ -3738,6 +3778,7 @@ function render(){
 }
 function renderMain(){
   checkDayRollover();
+  checkTestFinished();
   const now = new Date();
   clockEl.textContent = String(now.getHours()).padStart(2,'0')+':'+String(now.getMinutes()).padStart(2,'0')+':'+String(now.getSeconds()).padStart(2,'0');
   const nowMin = now.getHours()*60 + now.getMinutes() + now.getSeconds()/60;
@@ -3921,26 +3962,26 @@ document.getElementById('sound-prompt-close').addEventListener('click', () => {
 setSoundEnabled(false); // initial state: off, 🔇 icon
 
 // ---------- "Test now" and "Real time" buttons ----------
-function applyTestSchedule(){
-  pointer = 0;
-  lastSegTaskIndex = -1;
-  closeConfirm();
-  awaitingStart = false;
-  const now = new Date();
-  dayStartMin = Math.ceil(now.getHours()*60 + now.getMinutes() + now.getSeconds()/60) + 1;
-  tasks.forEach(t => { t.baseDurationMin = 1; t.redMin = 0; t.outcome = null; }); // 1 minute per task, for quick testing
-  testMode = true; // its progress isn't saved, and a config change or reload goes back to the real day
-  lsSet(DAY_STATE_KEY, null);
-  lastDayStateJson = '';
-  recomputeUpcoming();
-  catchUpToNow(); // just in case; normally a no-op here, since it starts in the future
-  rebuildTimelineDOM();
+// "Test now" starts right away, with 1-minute tasks, on this device and on
+// every paired one (the start time travels in the config). Changes made
+// during the test keep it running; "Exit test" (or the test finishing, or
+// 2 hours passing) brings back the real day with its progress.
+function setSharedTest(startedAt){
+  TEST_STARTED_AT = startedAt;
+  const cfg = getCurrentConfigObject();
+  saveStoredConfig(cfg);
+  pendingRemoteHouse = null;
+  pushConfigToCloud(cfg);
+  initSchedule(TASKS); // entering starts the test from zero; leaving restores the real day's progress
   render();
 }
-
-function applyPlannedSchedule(){
-  initSchedule(TASKS, { fresh: true });
-  render();
+function applyTestSchedule(){ setSharedTest(Date.now()); }
+function applyPlannedSchedule(){ setSharedTest(null); }
+// A test that ran to the end goes back to the real day a minute later.
+function checkTestFinished(){
+  if(!testMode) return;
+  const ended = pointer >= tasks.length && (!tasks.length || nowInMinutes() > tasks[tasks.length - 1].endMin + 1);
+  if(ended || activeTestStartMin() === null) setSharedTest(null);
 }
 
 document.getElementById('test-schedule-btn').addEventListener('click', applyTestSchedule);
@@ -4461,7 +4502,8 @@ function saveSettings(){
     onTimeIcon: draftOnTimeIcon,
     lateIcon: draftLateIcon,
     routines: newRoutines,
-    weekSchedule: draftWeekSchedule
+    weekSchedule: draftWeekSchedule,
+    testStartedAt: TEST_STARTED_AT || undefined // a running test goes on
   };
   saveStoredConfig(savedConfig);
   pendingRemoteHouse = null; // this save wins over any remote change received while editing
@@ -4486,7 +4528,8 @@ function getCurrentConfigObject(){
     onTimeIcon: ONTIME_ICON,
     lateIcon: LATE_ICON,
     routines: ROUTINES,
-    weekSchedule: WEEK_SCHEDULE
+    weekSchedule: WEEK_SCHEDULE,
+    testStartedAt: TEST_STARTED_AT || undefined
   };
 }
 
@@ -4494,6 +4537,7 @@ function getCurrentConfigObject(){
 // templates, with basic validation.
 function applyImportedConfig(cfg){
   if(!cfg || !Array.isArray(cfg.routines) || cfg.routines.length === 0) return false;
+  TEST_STARTED_AT = cfg.testStartedAt || null;
   CHILD_NAME = cfg.childName || '';
   ONTIME_ICON = cfg.onTimeIcon || DEFAULT_ONTIME_ICON;
   LATE_ICON = cfg.lateIcon || DEFAULT_LATE_ICON;
@@ -4513,7 +4557,8 @@ function backupFileName(){
   return `routikids-backup-${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}.json`;
 }
 function saveBackup(){
-  const json = JSON.stringify({ app: APP_NAME, kind: 'backup', version: 1, savedAt: Date.now(), config: getCurrentConfigObject() }, null, 1);
+  const config = Object.assign({}, getCurrentConfigObject(), { testStartedAt: undefined });
+  const json = JSON.stringify({ app: APP_NAME, kind: 'backup', version: 1, savedAt: Date.now(), config }, null, 1);
   const name = backupFileName();
   const download = () => {
     const url = URL.createObjectURL(new Blob([json], { type: 'application/json' }));
@@ -4543,6 +4588,7 @@ function restoreBackupText(text){
   let data = null;
   try{ data = JSON.parse(text); }catch(e){}
   const cfg = data && data.config;
+  if(cfg) delete cfg.testStartedAt;
   if(!data || data.kind !== 'backup' || !cfg || !Array.isArray(cfg.routines) || !cfg.routines.length){
     return appAlert(tr('backup_invalid')).then(() => false);
   }
