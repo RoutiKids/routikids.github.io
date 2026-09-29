@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Routikids</title>
+<!-- Newer than any version of the app that ran at this address, so those
+     devices detect an "update", reload, and land here to be forwarded. -->
+<meta name="app-version" content="Versão do código: __VERSION__">
+<script>
+// This address moved to https://routikids.github.io/. Forward this device's
+// saved data (localStorage keys starting with "rotina": routine, pairing,
+// identity, language) in the URL fragment, which is never sent to any server,
+// so nothing has to be set up again. A pairing QR link (?parear=CODE) keeps working.
+(function(){
+  const target = 'https://routikids.github.io/';
+  let data = {};
+  try{
+    for(let i = 0; i < localStorage.length; i++){
+      const k = localStorage.key(i);
+      if(/^rotina/.test(k)) data[k] = localStorage.getItem(k);
+    }
+  }catch(e){}
+  const code = new URLSearchParams(location.search).get('parear');
+  let url = target + (code ? '?parear=' + encodeURIComponent(code) : '');
+  if(Object.keys(data).length){
+    const b64 = btoa(unescape(encodeURIComponent(JSON.stringify(data))))
+      .replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '');
+    url += '#migrate=' + b64;
+  }
+  location.replace(url);
+})();
+</script>
+<style>
+  body{ font-family:'Nunito', sans-serif; background:#FFF6E9; color:#1D3557; display:flex; align-items:center; justify-content:center; min-height:100vh; margin:0; text-align:center; padding:24px; }
+  a{ color:#4EA8DE; font-weight:700; }
+</style>
+</head>
+<body>
+  <div>
+    <h1>🌞 Routikids</h1>
+    <p>O app mudou de endereço — abrindo…<br>The app has moved — opening…<br>Die App ist umgezogen — wird geöffnet…</p>
+    <p><a href="https://routikids.github.io/">routikids.github.io</a></p>
+  </div>
+</body>
+</html>

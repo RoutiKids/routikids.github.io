@@ -2,6 +2,26 @@
 <html lang="pt-BR">
 <head>
 <script>
+// Moving from the old address: the page left there forwards this device's
+// saved data (routine, pairing, identity, language) in the URL fragment,
+// which is never sent to any server. Import it once — unless this address
+// already has its own data — and drop it from the URL.
+(function(){
+  const m = location.hash.match(/^#migrate=([A-Za-z0-9_-]+)/);
+  if(!m) return;
+  try{
+    const json = decodeURIComponent(escape(atob(m[1].replace(/-/g, '+').replace(/_/g, '/'))));
+    const data = JSON.parse(json);
+    const hasOwnData = localStorage.getItem('rotinaConfig_v2') || localStorage.getItem('rotinaHouseId_v2');
+    if(!hasOwnData){
+      Object.keys(data).forEach(k => {
+        if(/^rotina/.test(k) && typeof data[k] === 'string') localStorage.setItem(k, data[k]);
+      });
+    }
+  }catch(e){}
+  history.replaceState(null, '', location.pathname + location.search);
+})();
+
 // Always force fetching the newest version from the server: if the URL lacks
 // our cache-busting parameter, redirect to itself with a unique value, which
 // forces the browser to ignore any cached copy (on the TV or GitHub Pages)
@@ -18,9 +38,9 @@
 })();
 </script>
 <meta charset="UTF-8">
-<title>Routinek</title>
+<title>Routikids</title>
 <!-- The code version lives here (read by the app and by the update check); bump it on every change. -->
-<meta name="app-version" content="Versão do código: 2026-09-28 22:24">
+<meta name="app-version" content="Versão do código: 2026-09-29 05:38">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@500;700;800&family=Nunito:wght@600;800&display=swap" rel="stylesheet">
@@ -1459,7 +1479,7 @@
 // The language is per device: chosen by the user, else the device language
 // for new devices; devices that already had a routine before this existed
 // stay in Portuguese.
-const APP_NAME = 'Routinek';
+const APP_NAME = 'Routikids';
 const LANG_KEY = 'rotinaLang_v1';
 const LANG_LOCALES = { pt: 'pt-BR', en: 'en-US', de: 'de-DE' };
 const LANG_LABELS = { pt: '🇧🇷 Português', en: '🇬🇧 English', de: '🇩🇪 Deutsch' };
