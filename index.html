@@ -40,7 +40,7 @@
 <meta charset="UTF-8">
 <title>Routikids</title>
 <!-- The code version lives here (read by the app and by the update check); bump it on every change. -->
-<meta name="app-version" content="Versão do código: 2026-09-29 14:19">
+<meta name="app-version" content="Versão do código: 2026-09-29 15:22">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@500;700;800&family=Nunito:wght@600;800&display=swap" rel="stylesheet">
@@ -53,6 +53,7 @@
     --mint:#5FC28E;
     --navy:#1D3557;
     --cream:#FFF7E9;
+    --purple:#B983FF;
     --card:#FFFFFF;
   }
   *{box-sizing:border-box; margin:0; padding:0;}
@@ -454,6 +455,104 @@
     60%{ transform:scale(1.3); }
     100%{ transform:scale(1); }
   }
+
+  /* ---- "Pictures only" list (children who can't read yet) ---- */
+  .pictures-only{ flex-direction:row !important; flex-wrap:wrap; align-content:flex-start; }
+  .pictures-only .timeline-title{ width:100%; }
+  .pictures-only .step{ flex-direction:column; gap:0.3vh; padding:1vh 1.2vw; }
+  .pictures-only .step .info, .pictures-only .step .reorder-controls{ display:none; }
+  .pictures-only .step .emoji{ font-size:4vw; }
+
+  /* ---- Several children: one column each (sizes follow the column, --w) ---- */
+  #kids-grid{ display:none; }
+  body.multi main{ display:none; }
+  body.multi #kids-grid{
+    flex:1;
+    display:grid;
+    grid-template-columns:repeat(var(--n), 1fr);
+    gap:1.2vw;
+    min-height:0;
+  }
+  body.multi header h1{ font-size:2vw; }
+  body.multi #limit-control{ display:none; }
+  body.multi #bottom-info{ top:1.2vh; bottom:auto; right:1.5vw; }
+  body.multi #sound-toggle{ position:static; width:3.2vw; height:3.2vw; min-width:40px; min-height:40px; font-size:1.5vw; }
+  body.multi #fullscreen-btn{ position:static; }
+  body.multi #sound-prompt{ top:calc(2vh + max(3.2vw, 40px)); bottom:auto; right:1.5vw; }
+  .kid-panel{
+    --w:600px;
+    display:flex;
+    flex-direction:column;
+    background:white;
+    border-radius:1.4vw;
+    border-top:0.9vh solid var(--c);
+    padding:1.2vh 1vw;
+    min-height:0;
+    min-width:0;
+    box-shadow:0 0.6vh 0 rgba(29,53,87,0.08);
+  }
+  .kid-head{ display:flex; align-items:center; gap:calc(var(--w) * 0.015); margin-bottom:1vh; }
+  .kid-avatar{ font-size:calc(var(--w) * 0.06); line-height:1; }
+  .kid-name{
+    font-family:'Baloo 2', sans-serif;
+    font-weight:800;
+    font-size:calc(var(--w) * 0.05);
+    line-height:1;
+    color:var(--navy);
+    color:color-mix(in srgb, var(--c) 70%, #1D3557);
+  }
+  .kid-deadline{ margin-left:auto; font-weight:800; font-size:calc(var(--w) * 0.026); color:#8a96a8; white-space:nowrap; }
+  .kid-hero{
+    display:grid;
+    grid-template-columns:auto 1fr;
+    align-items:center;
+    gap:calc(var(--w) * 0.03);
+    background:#f6f7f9;
+    background:color-mix(in srgb, var(--c) 12%, white);
+    border-radius:1.2vw;
+    padding:1.6vh calc(var(--w) * 0.03);
+    transition:background 0.6s ease;
+  }
+  .kid-hero.done{ background:var(--mint); color:white; }
+  .kid-emoji{ font-size:calc(var(--w) * 0.17); line-height:1; }
+  .kid-info{ display:flex; flex-direction:column; align-items:flex-start; min-width:0; }
+  .kid-label{ font-family:'Baloo 2', sans-serif; font-weight:800; font-size:calc(var(--w) * 0.055); line-height:1.05; }
+  .kid-sub{ font-size:calc(var(--w) * 0.026); opacity:0.75; margin-top:0.3vh; }
+  .kid-minutes{ font-family:'Baloo 2', sans-serif; font-weight:800; font-size:calc(var(--w) * 0.085); line-height:1; color:var(--coral); }
+  .kid-minutes .unit{ font-size:calc(var(--w) * 0.03); margin-left:0.3vw; }
+  .kid-hero.done .kid-minutes{ color:white; }
+  .kid-segments{ display:flex; flex-wrap:wrap; gap:calc(var(--w) * 0.008); margin:0.6vh 0; }
+  .kid-segments .seg{ width:calc(var(--w) * 0.045); height:calc(var(--w) * 0.045); min-width:0; min-height:0; border-radius:calc(var(--w) * 0.01); font-size:calc(var(--w) * 0.02); }
+  .kid-hero.done .seg{ background:rgba(255,255,255,0.3); color:white; }
+  .kid-finish, .kid-start{
+    font-family:'Baloo 2', sans-serif;
+    font-weight:800;
+    font-size:calc(var(--w) * 0.032);
+    color:white;
+    background:var(--mint);
+    border:none;
+    border-radius:999px;
+    padding:0.6vh calc(var(--w) * 0.03);
+    margin-top:0.6vh;
+    cursor:pointer;
+    box-shadow:0 4px 0 rgba(29,53,87,0.15);
+  }
+  .kid-start{ display:none; background:var(--sky); }
+  .kid-finish:focus, .kid-start:focus{ outline:4px solid var(--sun); outline-offset:2px; }
+  .kid-hero.done .kid-finish{ display:none; }
+  .kid-timeline{ flex:1; display:flex; flex-direction:column; gap:0.8vh; overflow-y:auto; scrollbar-width:none; margin-top:1.2vh; min-height:0; }
+  .kid-timeline::-webkit-scrollbar{ display:none; }
+  .kid-timeline .timeline-title{ font-size:calc(var(--w) * 0.03); padding:0; }
+  .kid-timeline .step{ padding:0.8vh calc(var(--w) * 0.02); gap:calc(var(--w) * 0.02); border-radius:0.9vw; transform:none; }
+  .kid-timeline .step.active{ border-left-color:var(--c); transform:none; }
+  .kid-timeline .step .emoji{ font-size:calc(var(--w) * 0.06); }
+  .kid-timeline .step .name{ font-size:calc(var(--w) * 0.034); }
+  .kid-timeline .step .time{ font-size:calc(var(--w) * 0.026); }
+  .kid-timeline .check{ font-size:calc(var(--w) * 0.035); }
+  .kid-timeline .outcome-badge{ font-size:calc(var(--w) * 0.035); }
+  .kid-timeline .outcome-badge.star{ font-size:calc(var(--w) * 0.05); }
+  .kid-timeline .reorder-controls{ display:none; }
+  .kid-timeline.pictures-only .step .emoji{ font-size:calc(var(--w) * 0.1); }
 
   /* ---- Celebration / encouragement ---- */
   #celebration-layer{
@@ -976,6 +1075,33 @@
     padding:1.5vh 1.2vw;
     margin-bottom:2vh;
   }
+  #children-section{
+    background:rgba(185,131,255,0.08);
+    border:2px solid rgba(185,131,255,0.3);
+    border-radius:16px;
+    padding:1.5vh 1.2vw;
+    margin:2vh 0;
+  }
+  #child-tabs{ display:flex; flex-wrap:wrap; gap:0.6vw; margin:0.5vh 0 1.5vh; }
+  .child-tab, #child-add-btn{
+    font-family:'Nunito', sans-serif;
+    font-weight:800;
+    font-size:clamp(14px, 1vw, 22px);
+    padding:0.6vh 1vw;
+    border-radius:999px;
+    border:2px solid rgba(29,53,87,0.15);
+    background:white;
+    color:var(--navy);
+    cursor:pointer;
+  }
+  .child-tab.selected{ border-color:var(--c); background:var(--c); color:white; }
+  #child-add-btn{ border-style:dashed; }
+  #child-color-picker{ display:flex; gap:0.6vw; margin:0.5vh 0 1vh; }
+  #child-color-picker button{ width:2.4vw; height:2.4vw; min-width:32px; min-height:32px; border-radius:50%; border:3px solid white; box-shadow:0 0 0 2px rgba(29,53,87,0.15); cursor:pointer; }
+  #child-color-picker button.selected{ box-shadow:0 0 0 3px var(--navy); }
+  #child-pictures-row{ display:flex; align-items:center; gap:0.6vw; font-family:'Nunito', sans-serif; font-weight:700; font-size:clamp(14px, 1vw, 22px); color:var(--navy); margin:1vh 0; cursor:pointer; }
+  #child-pictures-row input{ width:1.4em; height:1.4em; }
+  #children-section h3,
   #sync-section h3, #backup-section h3{
     font-family:'Baloo 2', sans-serif;
     font-weight:800;
@@ -1364,6 +1490,13 @@
     .reorder-btn{ width:34px; height:30px; font-size:14px; }
     #fullscreen-btn{ position:static; }
     #sound-prompt{ right:12px; left:12px; bottom:12px; justify-content:center; }
+    body.multi #kids-grid{ order:4; display:flex; flex-direction:column; gap:14px; flex:none; }
+    body.multi #bottom-info{ top:auto; right:auto; }
+    body.multi #sound-toggle{ width:52px; height:52px; font-size:22px; }
+    body.multi #sound-prompt{ top:auto; bottom:12px; right:12px; }
+    body.multi header h1{ font-size:22px; }
+    .kid-panel{ border-radius:18px; padding:12px; }
+    .kid-hero{ border-radius:14px; }
     #sound-toggle{ position:static; width:52px; height:52px; min-width:52px; min-height:52px; font-size:22px; }
 
     /* Settings screen: readable sizes instead of vw-based ones (16px inputs also avoid iOS zoom) */
@@ -1376,8 +1509,8 @@
     .settings-text-input, .settings-time-input, .settings-select{ font-size:16px; padding:8px 10px; }
     .settings-card .util-btn{ font-size:14px; padding:8px 14px; }
     .settings-hint{ font-size:13px; }
-    #sync-section, #routines-section, #backup-section{ padding:12px; }
-    #sync-section h3, #routines-section h3, #backup-section h3, #routine-tasks-heading{ font-size:18px; }
+    #sync-section, #routines-section, #backup-section, #children-section{ padding:12px; }
+    #sync-section h3, #routines-section h3, #backup-section h3, #children-section h3, #routine-tasks-heading{ font-size:18px; }
     .step-size-btn{ font-size:14px; padding:6px 12px; }
     #autolink-row{ font-size:14px; }
     #autolink-row input{ width:20px; height:20px; }
@@ -1458,6 +1591,8 @@
 
   <div id="timeline"></div>
 </main>
+<!-- Two or more children: one column per child, built by buildPanels() -->
+<div id="kids-grid"></div>
 
 <div id="settings-overlay">
   <div class="settings-card">
@@ -1517,10 +1652,6 @@
     </div>
     <input type="file" id="backup-file-input" accept=".json,application/json" style="display:none;">
 
-    <label class="settings-label" for="settings-child-name" data-i18n="nickname_label"></label>
-    <input type="text" id="settings-child-name" class="settings-text-input" maxlength="30" data-i18n-placeholder="nickname_placeholder">
-    <p class="settings-hint" data-i18n="nickname_hint"></p>
-
     <div id="step-size-row">
       <span class="settings-label" data-i18n="step_size"></span>
       <button type="button" class="step-size-btn selected" data-step="5">5 min</button>
@@ -1538,6 +1669,23 @@
 
     <label class="settings-label" style="margin-top:1vh; display:block;" data-i18n="late_icon"></label>
     <div class="emoji-picker" id="late-icon-picker"></div>
+
+    <div id="children-section">
+      <h3 data-i18n="children_title"></h3>
+      <p class="settings-hint" data-i18n="children_hint"></p>
+      <div id="child-tabs"></div>
+      <label class="settings-label" for="settings-child-name" data-i18n="nickname_label"></label>
+      <input type="text" id="settings-child-name" class="settings-text-input" maxlength="30" data-i18n-placeholder="nickname_placeholder">
+      <p class="settings-hint" data-i18n="nickname_hint"></p>
+      <span class="settings-label" data-i18n="child_icon_label"></span>
+      <div class="emoji-picker" id="child-icon-picker"></div>
+      <span class="settings-label" style="margin-top:1vh; display:block;" data-i18n="child_color_label"></span>
+      <div id="child-color-picker"></div>
+      <label id="child-pictures-row"><input type="checkbox" id="child-pictures-only"> <span data-i18n="pictures_only"></span></label>
+      <div class="sync-buttons">
+        <button type="button" id="child-remove-btn" class="util-btn" style="background:var(--coral);" data-i18n="remove_child"></button>
+      </div>
+    </div>
 
     <div id="routines-section">
       <h3 data-i18n="week_title"></h3>
@@ -1800,6 +1948,15 @@ const I18N = {
     save_anyway: "Salvar mesmo assim",
     welcome_title: "👋 Bem-vindo ao {app}!",
     tagline: "a rotina das crianças, passo a passo",
+    remove_child_q: "Remover {name} e todas as rotinas? Isso não pode ser desfeito.",
+    remove_child: "Remover criança",
+    pictures_only: "Mostrar só figuras na lista (para quem ainda não lê)",
+    child_color_label: "Cor:",
+    child_icon_label: "Figura da criança:",
+    child_default_name: "Criança {n}",
+    add_child: "+ Adicionar criança",
+    children_hint: "Com duas ou mais crianças, a TV mostra uma coluna para cada uma, cada uma no seu ritmo.",
+    children_title: "👧 Crianças",
     log_progress_blocked: "O progresso do dia não pôde ser compartilhado (as regras do banco de dados precisam ser atualizadas).",
     backup_invalid: "⚠️ Este arquivo não é uma cópia do Routikids.",
     backup_restored: "✅ Cópia restaurada.",
@@ -2067,6 +2224,15 @@ const I18N = {
     save_anyway: "Save anyway",
     welcome_title: "👋 Welcome to {app}!",
     tagline: "kids' routines, step by step",
+    remove_child_q: "Remove {name} and all their routines? This can't be undone.",
+    remove_child: "Remove child",
+    pictures_only: "Show only pictures in the list (for children who can't read yet)",
+    child_color_label: "Colour:",
+    child_icon_label: "Child's picture:",
+    child_default_name: "Child {n}",
+    add_child: "+ Add a child",
+    children_hint: "With two or more children, the TV shows a column for each, each at their own pace.",
+    children_title: "👧 Children",
     log_progress_blocked: "Today's progress couldn't be shared (the database rules need to be updated).",
     backup_invalid: "⚠️ This file isn't a Routikids copy.",
     backup_restored: "✅ Copy restored.",
@@ -2334,6 +2500,15 @@ const I18N = {
     save_anyway: "Trotzdem speichern",
     welcome_title: "👋 Willkommen bei {app}!",
     tagline: "die Kinder-Routine, Schritt für Schritt",
+    remove_child_q: "{name} und alle Routinen entfernen? Das kann nicht rückgängig gemacht werden.",
+    remove_child: "Kind entfernen",
+    pictures_only: "In der Liste nur Bilder zeigen (für Kinder, die noch nicht lesen)",
+    child_color_label: "Farbe:",
+    child_icon_label: "Bild des Kindes:",
+    child_default_name: "Kind {n}",
+    add_child: "+ Kind hinzufügen",
+    children_hint: "Bei zwei oder mehr Kindern zeigt der Fernseher für jedes eine Spalte, jedes in seinem Tempo.",
+    children_title: "👧 Kinder",
     log_progress_blocked: "Der Tagesfortschritt konnte nicht geteilt werden (die Datenbankregeln müssen aktualisiert werden).",
     backup_invalid: "⚠️ Diese Datei ist keine Routikids-Kopie.",
     backup_restored: "✅ Kopie wiederhergestellt.",
@@ -3000,7 +3175,8 @@ function progressAction(){
   progressSeq += 1;
   saveDayState(); // right away, so a reload a moment later can't lose it
   if(progressPublishTimer) clearTimeout(progressPublishTimer);
-  progressPublishTimer = setTimeout(publishProgress, 300);
+  const slot = currentSlot;
+  progressPublishTimer = setTimeout(() => { if(SLOTS.includes(slot)) withChild(slot, publishProgress); }, 300);
 }
 function publishProgress(){
   progressPublishTimer = null;
@@ -3159,7 +3335,8 @@ const AUTO_REFRESH_STABLE_MS = 15 * 60 * 1000;       // only reload after 15min 
 let safeStateSince = null;
 
 function maybeAutoRefresh(nowMin){
-  const isSafe = (pointer >= tasks.length) || (tasks[pointer] && nowMin < tasks[pointer].startMin);
+  // Safe only when no child is in the middle of a task.
+  const isSafe = SLOTS.every(slot => withChild(slot, () => (pointer >= tasks.length) || (tasks[pointer] && nowMin < tasks[pointer].startMin)));
   if(!isSafe){
     safeStateSince = null;
     return;
@@ -3185,16 +3362,19 @@ function fmtMin(min){
   return fmt([Math.floor(m/60), m%60]);
 }
 
-const heroEl = document.getElementById('hero');
-const heroEmoji = document.getElementById('hero-emoji');
-const heroLabel = document.getElementById('hero-label');
-const heroSub = document.getElementById('hero-sub');
-const minutesLeftEl = document.getElementById('minutes-left');
-const segmentsEl = document.getElementById('segments');
-const finishEarlyBtn = document.getElementById('finish-early-btn');
-const browseControlsEl = document.getElementById('browse-controls');
-const browsePrevBtn = document.getElementById('browse-prev-btn');
-const browseNextBtn = document.getElementById('browse-next-btn');
+// The elements the day is drawn into. With one child they are the main
+// screen's; with several, each child's column has its own set, swapped in by
+// useView() while that child's day is handled (see "One day per child").
+let heroEl = document.getElementById('hero');
+let heroEmoji = document.getElementById('hero-emoji');
+let heroLabel = document.getElementById('hero-label');
+let heroSub = document.getElementById('hero-sub');
+let minutesLeftEl = document.getElementById('minutes-left');
+let segmentsEl = document.getElementById('segments');
+let finishEarlyBtn = document.getElementById('finish-early-btn');
+let browseControlsEl = document.getElementById('browse-controls');
+let browsePrevBtn = document.getElementById('browse-prev-btn');
+let browseNextBtn = document.getElementById('browse-next-btn');
 
 // Arrow navigation, by WHOLE routine (not task by task — today's tasks
 // already show in the side list). browseDay = null (default screen) or
@@ -3312,9 +3492,11 @@ function browseNext(){
 browsePrevBtn.addEventListener('click', browsePrev);
 browseNextBtn.addEventListener('click', browseNext);
 
-const timelineEl = document.getElementById('timeline');
+let timelineEl = document.getElementById('timeline');
 const clockEl = document.getElementById('clock');
-const pageTitleEl = document.getElementById('page-title');
+let pageTitleEl = document.getElementById('page-title');
+let panelEl = null; // the child's column (several children), or null (main screen)
+function stepEl(i){ return timelineEl.querySelector(`.step[data-step="${i}"]`); }
 
 function updateHeaderTitle(){
   pageTitleEl.textContent = CHILD_NAME ? tr('page_title_child', { name: CHILD_NAME }) : `🌞 ${APP_NAME}`;
@@ -3322,12 +3504,15 @@ function updateHeaderTitle(){
 
 // ---------- Timeline construction (rebuilt whenever the order changes) ----------
 function rebuildTimelineDOM(){
-  timelineEl.innerHTML = '<div class="timeline-title" id="timeline-title"></div>';
+  const child = CHILDREN.find(c => c.id === ACTIVE_CHILD_ID);
+  timelineEl.classList.toggle('pictures-only', !!(child && child.picturesOnly));
+  timelineEl.innerHTML = `<div class="timeline-title"${timelineEl.id === 'timeline' ? ' id="timeline-title"' : ''}></div>`;
   timelinePreviewKey = null;
   tasks.forEach((t, i) => {
     const div = document.createElement('div');
     div.className = 'step';
-    div.id = 'step-' + i;
+    div.dataset.step = i;
+    if(timelineEl.id === 'timeline') div.id = 'step-' + i;
     const isDone = i < pointer;
     const canMoveUp = !isDone && i > pointer;
     const canMoveDown = !isDone && i < tasks.length - 1;
@@ -3385,16 +3570,15 @@ function showDeadlineFor(focus){
       ? routine.limitMin
       : (focus.day === 0 ? routineTargetAndLimit(focus.block.startIdx).limitMin : focus.block.endMin + 10);
   }
-  const limitControl = document.getElementById('limit-control');
-  limitControl.style.visibility = focus ? '' : 'hidden';
-  limitControl.classList.toggle('read-only', !live);
-  limitControl.querySelectorAll('.limit-btn').forEach(btn => { btn.disabled = !live; });
+  limitControlEl.style.visibility = focus ? '' : 'hidden';
+  limitControlEl.classList.toggle('read-only', !live);
+  limitControlEl.querySelectorAll('.limit-btn').forEach(btn => { btn.disabled = !live; });
   limitHourEl.textContent = String(Math.floor(value / 60) % 24).padStart(2, '0');
   limitMinEl.textContent = String(Math.round(value % 60)).padStart(2, '0');
 }
 
 function applyTimelineFocus(){
-  const titleEl = document.getElementById('timeline-title');
+  const titleEl = timelineEl.querySelector('.timeline-title');
   const focus = focusedRoutineBlock();
   showDeadlineFor(focus);
   if(!focus){
@@ -3411,7 +3595,7 @@ function applyTimelineFocus(){
     titleEl.style.display = '';
   }
   tasks.forEach((t, i) => {
-    const el = document.getElementById('step-' + i);
+    const el = stepEl(i);
     if(el) el.style.display = (day === 0 && i >= block.startIdx && i <= block.endIdx) ? '' : 'none';
   });
   if(day === 0){ clearTimelinePreview(); return; }
@@ -3568,12 +3752,12 @@ function playClapSound(){
 }
 
 // ---------- Colorful balloons rising (generic, no branded characters) ----------
-function spawnBalloons(){
+function spawnBalloons(box){
   const colors = ['#FF6B6B','#FFC145','#5FC28E','#4EA8DE','#B983FF','#FF8FB1'];
   for(let i=0;i<7;i++){
     const b = document.createElement('div');
     b.className = 'balloon';
-    b.style.left = (5 + Math.random()*88) + '%';
+    b.style.left = celebrationLeft(box, 5);
     b.style.background = colors[Math.floor(Math.random()*colors.length)];
     b.style.setProperty('--drift', (Math.random()*80-40) + 'px');
     b.style.animationDelay = (Math.random()*0.6) + 's';
@@ -3605,9 +3789,16 @@ function speak(text, opts={}){
 const celebrationLayer = document.getElementById('celebration-layer');
 const encourageBanner = document.getElementById('encourage-banner');
 
+// Left position for a celebration piece: anywhere on screen, or inside the
+// child's column when several children share the screen.
+function celebrationLeft(box, marginPct){
+  if(!box) return (marginPct + Math.random() * (100 - 2 * marginPct)) + '%';
+  return (box.left + box.width * (marginPct + Math.random() * (100 - 2 * marginPct)) / 100) + 'px';
+}
 function celebrate(){
+  const box = panelEl ? panelEl.getBoundingClientRect() : null;
   playClapSound();
-  spawnBalloons();
+  spawnBalloons(box);
   const pieces = ['🎉','👏',ONTIME_ICON,'✨'];
   const waves = 3;
   for(let w=0; w<waves; w++){
@@ -3616,7 +3807,7 @@ function celebrate(){
         const el = document.createElement('div');
         el.className = 'confetti-piece';
         el.textContent = pieces[Math.floor(Math.random()*pieces.length)];
-        el.style.left = Math.random()*100 + '%';
+        el.style.left = celebrationLeft(box, 0);
         el.style.animationDelay = (Math.random()*0.3) + 's';
         el.style.fontSize = (1.8+Math.random()*1.8) + 'vw';
         celebrationLayer.appendChild(el);
@@ -3797,18 +3988,26 @@ const CONFIRM_MS = 10000;
 let confirmState = null; // {deadline}
 let lastTickSecond = null;
 
+// The dialog is shared by all children: one child's question at a time
+// (confirmOwner); another child's waits until it is answered.
+let confirmOwner = null;
 function openConfirm(){
+  if(confirmOwner && confirmOwner !== ACTIVE_CHILD_ID) return;
+  confirmOwner = ACTIVE_CHILD_ID;
   confirmState = { deadline: Date.now() + CONFIRM_MS };
   lastTickSecond = null;
-  confirmTaskName.textContent = tasks[pointer].name;
+  const child = CHILDREN.length > 1 && CHILDREN.find(c => c.id === ACTIVE_CHILD_ID);
+  confirmTaskName.textContent = child ? `${tasks[pointer].name} (${child.icon} ${child.name})` : tasks[pointer].name;
   confirmOverlay.style.display = 'flex';
   confirmCardEl.classList.remove('urgent');
   chime();
 }
 function closeConfirm(){
+  confirmState = null;
+  if(confirmOwner && confirmOwner !== ACTIVE_CHILD_ID) return; // another child's question is on screen
+  confirmOwner = null;
   confirmOverlay.style.display = 'none';
   confirmCardEl.classList.remove('urgent');
-  confirmState = null;
 }
 function resolveConfirm(answer){
   if(!confirmState) return;
@@ -3825,8 +4024,8 @@ function resolveConfirm(answer){
   }
   render();
 }
-document.getElementById('confirm-yes').addEventListener('click', () => { resolveConfirm('sim'); progressAction(); });
-document.getElementById('confirm-no').addEventListener('click', () => { resolveConfirm('nao'); progressAction(); });
+document.getElementById('confirm-yes').addEventListener('click', () => withChild(slotById(confirmOwner), () => { resolveConfirm('sim'); progressAction(); }));
+document.getElementById('confirm-no').addEventListener('click', () => withChild(slotById(confirmOwner), () => { resolveConfirm('nao'); progressAction(); }));
 
 // ---------- "I'm done" button (early completion) ----------
 function finishEarly(){
@@ -3847,7 +4046,7 @@ function finishEarly(){
 finishEarlyBtn.addEventListener('click', finishEarly);
 
 // ---------- "Start" button (starts the next task and moves the rest earlier) ----------
-const startNextBtn = document.getElementById('start-next-btn');
+let startNextBtn = document.getElementById('start-next-btn');
 function startNextTask(){
   if(!awaitingStart) return;
   const now = new Date();
@@ -3882,23 +4081,29 @@ timelineEl.addEventListener('click', (e) => {
 });
 
 // ---------- Main render ----------
+// Draws the current child's day.
 function render(){
   renderMain();
   applyTimelineFocus();
 }
-function renderMain(){
-  checkDayRollover();
-  checkTestFinished();
+// Every second: the clock, each child's day, and the checks that depend on all of them.
+function renderAll(){
   const now = new Date();
   clockEl.textContent = String(now.getHours()).padStart(2,'0')+':'+String(now.getMinutes()).padStart(2,'0')+':'+String(now.getSeconds()).padStart(2,'0');
+  forEachChild(render);
+  checkTestFinished();
+  maybeAutoRefresh(now.getHours()*60 + now.getMinutes() + now.getSeconds()/60);
+}
+function renderMain(){
+  checkDayRollover();
+  const now = new Date();
   const nowMin = now.getHours()*60 + now.getMinutes() + now.getSeconds()/60;
-  maybeAutoRefresh(nowMin);
   refreshLimitForCurrentRoutine(); // automatically recompute the deadline when the routine changes
   updateHeaderTitle(); // reset to the normal title by default; renderBrowsedTask() overrides it while browsing
 
   // Visually mark completed / active tasks
   tasks.forEach((t,i) => {
-    const el = document.getElementById('step-'+i);
+    const el = stepEl(i);
     if(!el) return;
     el.classList.remove('active','finished');
     if(i < pointer) el.classList.add('finished');
@@ -4082,24 +4287,28 @@ function setSharedTest(startedAt){
   saveStoredConfig(cfg);
   pendingRemoteHouse = null;
   pushConfigToCloud(cfg);
-  initSchedule(TASKS); // entering starts the test from zero; leaving restores the real day's progress
-  render();
+  initAllChildren(); // entering starts the test from zero; leaving restores the real day's progress
+  forEachChild(render);
 }
 function applyTestSchedule(){ setSharedTest(Date.now()); }
 function applyPlannedSchedule(){ setSharedTest(null); }
-// A test that ran to the end goes back to the real day a minute later.
+// A test that ran to the end (for every child) goes back to the real day a minute later.
 function checkTestFinished(){
-  if(!testMode) return;
-  const ended = pointer >= tasks.length && (!tasks.length || nowInMinutes() > tasks[tasks.length - 1].endMin + 1);
-  if(ended || activeTestStartMin() === null) setSharedTest(null);
+  const states = SLOTS.map(slot => withChild(slot, () => ({
+    test: testMode,
+    ended: pointer >= tasks.length && (!tasks.length || nowInMinutes() > tasks[tasks.length - 1].endMin + 1)
+  })));
+  if(!states.some(st => st.test)) return;
+  if(states.every(st => !st.test || st.ended) || activeTestStartMin() === null) setSharedTest(null);
 }
 
 document.getElementById('test-schedule-btn').addEventListener('click', applyTestSchedule);
 document.getElementById('reset-schedule-btn').addEventListener('click', applyPlannedSchedule);
 
 // ---------- Deadline control (hour and minute arrows) ----------
-const limitHourEl = document.getElementById('limit-hour');
-const limitMinEl = document.getElementById('limit-min');
+let limitHourEl = document.getElementById('limit-hour');
+let limitMinEl = document.getElementById('limit-min');
+let limitControlEl = document.getElementById('limit-control');
 document.getElementById('limit-hour-plus').addEventListener('click', () => { limitMin += 60; progressAction(); render(); });
 document.getElementById('limit-hour-minus').addEventListener('click', () => { limitMin = Math.max(0, limitMin - 60); progressAction(); render(); });
 document.getElementById('limit-min-plus').addEventListener('click', () => { limitMin += 1; progressAction(); render(); });
@@ -4167,17 +4376,13 @@ function populateDraftFromCurrentConfig(){
   draftRoutines = ROUTINES.map(configRoutineToDraft);
   draftWeekSchedule = {};
   for(let d=0; d<7; d++) draftWeekSchedule[d] = (WEEK_SCHEDULE[d] || []).slice();
-  selectedRoutineIndex = 0;
-  draftTasks = draftRoutines[0].tasks; // same reference: editing draftTasks already edits the routine
-
-  settingsChildNameInput.value = CHILD_NAME;
+  draftChildren = CHILDREN.map(c => Object.assign({}, c));
   draftOnTimeIcon = ONTIME_ICON;
   draftLateIcon = LATE_ICON;
   renderIconPickers();
-  renderRoutineTabs();
-  renderRoutineEditRow();
-  renderWeekMatrix();
-  renderSettingsRows();
+  // selectChild picks the child's first routine (draftTasks = its tasks, same
+  // reference: editing draftTasks already edits the routine) and draws the rest.
+  selectChild(draftChildren[0].id);
 }
 
 function openSettings(){
@@ -4242,13 +4447,118 @@ document.addEventListener('keydown', (e) => {
     const tpl = ROUTINE_TEMPLATES.find(t => t.key === select.value);
     if(!tpl) return;
     const routine = makeTemplateRoutine(tpl, `r_${tpl.key}_${Date.now()}`);
-    routine.childId = ACTIVE_CHILD_ID;
+    routine.childId = selectedChildId;
     draftRoutines.push(configRoutineToDraft(routine));
     tpl.days.forEach(d => { (draftWeekSchedule[d] = draftWeekSchedule[d] || []).push(routine.id); });
     selectRoutine(draftRoutines.length - 1);
     renderWeekMatrix();
   });
 })();
+
+// ---------- Children (tabs) ----------
+// The settings edit one child at a time: its name, picture, colour and
+// "pictures only", and below, only that child's routines and weekly table.
+let draftChildren = [];
+let selectedChildId = null;
+const MAX_CHILDREN = 4;
+function draftChild(){ return draftChildren.find(c => c.id === selectedChildId) || draftChildren[0]; }
+function childLabel(c, i){ return `${c.icon} ${c.name || tr('child_default_name', { n: i + 1 })}`; }
+function childRoutineIndexes(){ return draftRoutines.map((r, i) => i).filter(i => draftRoutines[i].childId === selectedChildId); }
+function renderChildTabs(){
+  const wrap = document.getElementById('child-tabs');
+  wrap.innerHTML = '';
+  draftChildren.forEach((c, i) => {
+    const b = document.createElement('button');
+    b.type = 'button';
+    b.className = 'child-tab' + (c.id === selectedChildId ? ' selected' : '');
+    b.dataset.child = c.id;
+    b.style.setProperty('--c', `var(--${c.color})`);
+    b.textContent = childLabel(c, i);
+    b.addEventListener('click', () => selectChild(c.id));
+    wrap.appendChild(b);
+  });
+  if(draftChildren.length < MAX_CHILDREN){
+    const add = document.createElement('button');
+    add.type = 'button';
+    add.id = 'child-add-btn';
+    add.textContent = tr('add_child');
+    add.addEventListener('click', addDraftChild);
+    wrap.appendChild(add);
+  }
+}
+function renderChildEditor(){
+  const c = draftChild();
+  settingsChildNameInput.value = c.name;
+  document.getElementById('child-icon-picker').innerHTML = CHILD_ICONS.map(e =>
+    `<button type="button" data-icon="${e}" class="${c.icon === e ? 'selected' : ''}">${e}</button>`).join('');
+  document.getElementById('child-color-picker').innerHTML = CHILD_COLORS.map(col =>
+    `<button type="button" data-color="${col}" class="${c.color === col ? 'selected' : ''}" style="background:var(--${col});" aria-label="${col}"></button>`).join('');
+  document.getElementById('child-pictures-only').checked = !!c.picturesOnly;
+  document.getElementById('child-remove-btn').style.display = draftChildren.length > 1 ? '' : 'none';
+}
+function selectChild(id){
+  selectedChildId = id;
+  const first = childRoutineIndexes()[0];
+  selectedRoutineIndex = first !== undefined ? first : -1;
+  draftTasks = first !== undefined ? draftRoutines[first].tasks : [];
+  renderChildTabs();
+  renderChildEditor();
+  renderRoutineTabs();
+  renderRoutineEditRow();
+  renderWeekMatrix();
+  renderSettingsRows();
+}
+function addDraftChild(){
+  const used = draftChildren.map(c => c.icon);
+  const usedColors = draftChildren.map(c => c.color);
+  const id = 'c' + Date.now().toString(36);
+  draftChildren.push({
+    id, name: '', picturesOnly: false,
+    icon: CHILD_ICONS.find(e => !used.includes(e)) || CHILD_ICONS[0],
+    color: CHILD_COLORS.find(col => !usedColors.includes(col)) || CHILD_COLORS[0]
+  });
+  // A new child starts with one routine on every day, ready to be filled in.
+  const routine = makeTemplateRoutine(BLANK_TEMPLATE, `r_${Date.now()}`);
+  routine.childId = id;
+  draftRoutines.push(configRoutineToDraft(routine));
+  BLANK_TEMPLATE.days.forEach(d => { (draftWeekSchedule[d] = draftWeekSchedule[d] || []).push(routine.id); });
+  selectChild(id);
+  settingsChildNameInput.focus();
+}
+settingsChildNameInput.addEventListener('input', () => {
+  const c = draftChild();
+  c.name = settingsChildNameInput.value;
+  const tab = document.querySelector(`.child-tab[data-child="${c.id}"]`);
+  if(tab) tab.textContent = childLabel(c, draftChildren.indexOf(c));
+});
+document.getElementById('child-icon-picker').addEventListener('click', (e) => {
+  const btn = e.target.closest('button');
+  if(!btn) return;
+  draftChild().icon = btn.dataset.icon;
+  renderChildTabs();
+  renderChildEditor();
+});
+document.getElementById('child-color-picker').addEventListener('click', (e) => {
+  const btn = e.target.closest('button');
+  if(!btn) return;
+  draftChild().color = btn.dataset.color;
+  renderChildTabs();
+  renderChildEditor();
+});
+document.getElementById('child-pictures-only').addEventListener('change', (e) => { draftChild().picturesOnly = e.target.checked; });
+document.getElementById('child-remove-btn').addEventListener('click', () => {
+  const c = draftChild();
+  if(draftChildren.length <= 1) return;
+  appConfirm(tr('remove_child_q', { name: childLabel(c, draftChildren.indexOf(c)) }), tr('remove')).then(ok => {
+    if(!ok) return;
+    const removed = draftRoutines.filter(r => r.childId === c.id).map(r => r.id);
+    draftRoutines = draftRoutines.filter(r => r.childId !== c.id);
+    Object.keys(draftWeekSchedule).forEach(d => { draftWeekSchedule[d] = draftWeekSchedule[d].filter(id => !removed.includes(id)); });
+    draftChildren = draftChildren.filter(x => x.id !== c.id);
+    selectChild(draftChildren[0].id);
+    settingsDirty = true;
+  });
+});
 
 // ---------- Routine management (tabs) ----------
 let draftRoutines = [];
@@ -4265,14 +4575,14 @@ function selectRoutine(idx){
 
 function renderRoutineTabs(){
   const wrap = document.getElementById('routine-tabs');
-  wrap.innerHTML = draftRoutines.map((r,i) =>
-    `<button type="button" class="routine-tab${i===selectedRoutineIndex?' selected':''}" data-index="${i}">${r.icon} ${r.name}</button>`
-  ).join('') + `<button type="button" id="routine-add-btn">${tr('add_routine_btn')}</button>`;
+  wrap.innerHTML = childRoutineIndexes().map(i => { const r = draftRoutines[i];
+    return `<button type="button" class="routine-tab${i===selectedRoutineIndex?' selected':''}" data-index="${i}">${r.icon} ${r.name}</button>`;
+  }).join('') + `<button type="button" id="routine-add-btn">${tr('add_routine_btn')}</button>`;
   wrap.querySelectorAll('.routine-tab').forEach(btn => {
     btn.addEventListener('click', () => selectRoutine(parseInt(btn.dataset.index,10)));
   });
   document.getElementById('routine-add-btn').addEventListener('click', () => {
-    draftRoutines.push({ id: 'r_' + Date.now(), childId: ACTIVE_CHILD_ID, name: tr('new_routine'), icon: '📋', tasks: [] });
+    draftRoutines.push({ id: 'r_' + Date.now(), childId: selectedChildId, name: tr('new_routine'), icon: '📋', tasks: [] });
     selectRoutine(draftRoutines.length - 1);
     renderWeekMatrix();
   });
@@ -4287,6 +4597,8 @@ function computeDraftRoutineNaturalLimit(routine){
 
 function renderRoutineEditRow(){
   const r = draftRoutines[selectedRoutineIndex];
+  document.getElementById('routine-edit-row').style.display = r ? '' : 'none';
+  if(!r) return;
   document.getElementById('routine-name-input').value = r.name;
   document.getElementById('routine-icon-picker').innerHTML = ROUTINE_ICON_PRESETS.map(e =>
     `<button type="button" data-icon="${e}" class="${r.icon===e?'selected':''}">${e}</button>`
@@ -4309,7 +4621,7 @@ document.getElementById('routine-name-input').addEventListener('input', (e) => {
   const r = draftRoutines[selectedRoutineIndex];
   r.name = e.target.value;
   // Update only the matching tab's text, without redrawing everything (avoids losing field focus)
-  const tabBtn = document.querySelectorAll('.routine-tab')[selectedRoutineIndex];
+  const tabBtn = document.querySelector(`.routine-tab[data-index="${selectedRoutineIndex}"]`);
   if(tabBtn) tabBtn.textContent = `${r.icon} ${r.name}`;
 });
 document.getElementById('routine-icon-picker').addEventListener('click', (e) => {
@@ -4320,7 +4632,7 @@ document.getElementById('routine-icon-picker').addEventListener('click', (e) => 
   renderRoutineTabs();
 });
 document.getElementById('routine-delete-btn').addEventListener('click', () => {
-  if(draftRoutines.length <= 1){
+  if(childRoutineIndexes().length <= 1){
     appAlert(tr('need_one_routine'));
     return;
   }
@@ -4329,12 +4641,7 @@ document.getElementById('routine-delete-btn').addEventListener('click', () => {
   Object.keys(draftWeekSchedule).forEach(d => {
     draftWeekSchedule[d] = draftWeekSchedule[d].filter(id => id !== removedId);
   });
-  selectedRoutineIndex = 0;
-  draftTasks = draftRoutines[0].tasks;
-  renderRoutineTabs();
-  renderRoutineEditRow();
-  renderWeekMatrix();
-  renderSettingsRows();
+  selectChild(selectedChildId);
 });
 
 // ---------- Weekly table (day x routine) ----------
@@ -4380,7 +4687,7 @@ function renderWeekMatrix(){
   const thead = document.querySelector('#week-matrix thead');
   const tbody = document.querySelector('#week-matrix tbody');
   thead.innerHTML = '<tr><th></th>' + DAY_NAMES.map((d,i) => `<th class="${conflicts.byDay[i]?'day-conflict':''}">${d}</th>`).join('') + '<th></th></tr>';
-  tbody.innerHTML = draftRoutines.map(r => `
+  tbody.innerHTML = draftRoutines.filter(r => r.childId === selectedChildId).map(r => `
     <tr>
       <td><span class="matrix-routine-label">${r.icon} ${r.name}</span></td>
       ${DAY_NAMES.map((_, d) => {
@@ -4612,9 +4919,8 @@ function saveSettings(){
       return { name: t.name.trim(), emoji: t.emoji, start: hhmmToArr(t.start), end: hhmmToArr(t.end), sound };
     })
   }));
-  const newName = settingsChildNameInput.value.trim();
 
-  const newChildren = CHILDREN.map(c => c.id === ACTIVE_CHILD_ID ? Object.assign({}, c, { name: newName }) : c);
+  const newChildren = draftChildren.map(c => Object.assign({}, c, { name: String(c.name || '').trim().slice(0, 30) }));
   const savedConfig = {
     childName: newChildren[0].name,
     children: newChildren,
@@ -4631,12 +4937,10 @@ function saveSettings(){
   ROUTINES = newRoutines;
   WEEK_SCHEDULE = draftWeekSchedule;
   CHILDREN = newChildren;
-  CHILD_NAME = newName;
+  CHILD_NAME = newChildren[0].name;
   ONTIME_ICON = draftOnTimeIcon;
   LATE_ICON = draftLateIcon;
-  loadedDayIndex = new Date().getDay();
-  TASKS = buildTodaysTasks();
-  initSchedule(TASKS);
+  initAllChildren();
   closeSettings();
 }
 document.getElementById('settings-cancel').addEventListener('click', closeSettings);
@@ -4668,8 +4972,7 @@ function applyImportedConfig(cfg){
   ROUTINES = cfg.routines;
   WEEK_SCHEDULE = cfg.weekSchedule || {};
   saveStoredConfig(cfg);
-  TASKS = buildTodaysTasks();
-  initSchedule(TASKS);
+  initAllChildren();
   return true;
 }
 
@@ -4933,12 +5236,14 @@ function handleRemoteHouse(house){
   if(!house) return;
   handleRemoteConfig(house);
   // One progress entry per child (houses/<id>/progress/<childId>).
-  const remote = house.progress && house.progress[ACTIVE_CHILD_ID];
-  try{ applyRemoteProgress(remote); }catch(e){}
-  // This device is ahead (e.g. its day started before pairing, or the entry is
-  // missing): share it, so a device joining mid-day starts from where things are.
-  const remoteSeq = (remote && typeof remote.seq === 'number') ? remote.seq : 0;
-  if(progressSeq > remoteSeq && !testMode && !progressPublishTimer) publishProgress();
+  forEachChild(() => {
+    const remote = house.progress && house.progress[ACTIVE_CHILD_ID];
+    try{ applyRemoteProgress(remote); }catch(e){}
+    // This device is ahead (e.g. its day started before pairing, or the entry is
+    // missing): share it, so a device joining mid-day starts from where things are.
+    const remoteSeq = (remote && typeof remote.seq === 'number') ? remote.seq : 0;
+    if(progressSeq > remoteSeq && !testMode && !progressPublishTimer) publishProgress();
+  });
 }
 function handleRemoteConfig(house){
   renderDevices(house);
@@ -5704,7 +6009,139 @@ function maybeShowWelcome(){
   ['pointerdown', 'keydown'].forEach(ev => document.addEventListener(ev, keepAwake, { passive: true }));
 })();
 
-initSchedule(TASKS);
+// ---------- One day per child ----------
+// The schedule engine keeps the day it is working on in the globals above
+// (tasks, pointer, awaitingStart, ...) and draws it into the elements above
+// (heroEl, timelineEl, ...). Each child has a slot with its own copy of both;
+// withChild(slot, fn) swaps that child's day and elements in, runs fn and
+// swaps back. Between calls the globals hold the first child's day, so with
+// one child nothing is ever swapped and the engine works as it always did.
+const MAIN_VIEW = { heroEl, heroEmoji, heroLabel, heroSub, minutesLeftEl, segmentsEl, finishEarlyBtn, startNextBtn,
+  browseControlsEl, browsePrevBtn, browseNextBtn, timelineEl, pageTitleEl, limitHourEl, limitMinEl, limitControlEl, panelEl: null };
+function useView(v){
+  ({ heroEl, heroEmoji, heroLabel, heroSub, minutesLeftEl, segmentsEl, finishEarlyBtn, startNextBtn,
+     browseControlsEl, browsePrevBtn, browseNextBtn, timelineEl, pageTitleEl, limitHourEl, limitMinEl, limitControlEl, panelEl } = v);
+}
+function freshDay(){
+  return { TASKS: [], loadedDayIndex: new Date().getDay(), tasks: [], PLANNED: [], dayStartMin: 0, limitMin: 0, pointer: 0,
+    currentLimitRoutineId: undefined, awaitingStart: false, lastSegTaskIndex: -1, confirmState: null, lastTickSecond: null,
+    scheduleDate: null, testMode: false, runningTestStart: null, progressSeq: 0, progressPublishTimer: null, lastDayStateJson: '',
+    browseDay: null, browseRoutineIdx: null, timelinePreviewKey: null };
+}
+function saveDay(slot){
+  slot.day = { TASKS, loadedDayIndex, tasks, PLANNED, dayStartMin, limitMin, pointer, currentLimitRoutineId, awaitingStart,
+    lastSegTaskIndex, confirmState, lastTickSecond, scheduleDate, testMode, runningTestStart, progressSeq, progressPublishTimer,
+    lastDayStateJson, browseDay, browseRoutineIdx, timelinePreviewKey };
+}
+function loadDay(slot){
+  ({ TASKS, loadedDayIndex, tasks, PLANNED, dayStartMin, limitMin, pointer, currentLimitRoutineId, awaitingStart,
+     lastSegTaskIndex, confirmState, lastTickSecond, scheduleDate, testMode, runningTestStart, progressSeq, progressPublishTimer,
+     lastDayStateJson, browseDay, browseRoutineIdx, timelinePreviewKey } = slot.day);
+  ACTIVE_CHILD_ID = slot.id;
+  const child = CHILDREN.find(c => c.id === slot.id);
+  CHILD_NAME = child ? child.name : '';
+  useView(slot.view || MAIN_VIEW);
+}
+let SLOTS = [];
+let currentSlot = null;
+function slotById(id){ return SLOTS.find(s => s.id === id) || null; }
+function withChild(slot, fn){
+  if(!slot || slot === currentSlot) return fn(currentSlot);
+  const prev = currentSlot;
+  saveDay(prev);
+  loadDay(slot);
+  currentSlot = slot;
+  try{ return fn(slot); }
+  finally{
+    saveDay(slot);
+    loadDay(prev);
+    currentSlot = prev;
+  }
+}
+function forEachChild(fn){ SLOTS.slice().forEach(slot => withChild(slot, fn)); }
+// One slot per child in CHILDREN (kept for children that stay), first child loaded.
+function syncSlots(){
+  if(currentSlot) saveDay(currentSlot);
+  SLOTS = CHILDREN.map(c => slotById(c.id) || { id: c.id, day: freshDay(), view: null });
+  currentSlot = SLOTS[0];
+  loadDay(currentSlot);
+}
+// ---------- Several children on one screen ----------
+// With two or more children the main screen is hidden and each child gets a
+// column (#kids-grid) with its own set of the engine's elements. Its buttons
+// act on that child's day. With one child the main screen is used as before.
+const kidsGrid = document.getElementById('kids-grid');
+function fitPanels(){
+  const portrait = window.innerHeight > window.innerWidth;
+  kidsGrid.querySelectorAll('.kid-panel').forEach(p => {
+    const w = portrait ? Math.min(p.clientWidth, 640) : Math.min(p.clientWidth, p.clientHeight * 0.95);
+    p.style.setProperty('--w', Math.max(200, w) + 'px');
+  });
+}
+window.addEventListener('resize', fitPanels);
+function buildPanels(){
+  const multi = SLOTS.length > 1;
+  document.body.classList.toggle('multi', multi);
+  kidsGrid.innerHTML = '';
+  SLOTS.forEach(slot => { slot.view = null; });
+  if(!multi) return;
+  document.getElementById('page-title').textContent = `🌞 ${APP_NAME}`;
+  kidsGrid.style.setProperty('--n', SLOTS.length);
+  SLOTS.forEach(slot => {
+    const child = CHILDREN.find(c => c.id === slot.id) || {};
+    const panel = document.createElement('section');
+    panel.className = 'kid-panel';
+    panel.dataset.child = slot.id;
+    panel.style.setProperty('--c', `var(--${child.color || 'sky'})`);
+    panel.innerHTML = `
+      <div class="kid-head"><span class="kid-avatar"></span><span class="kid-name"></span>
+        <span class="kid-deadline">🚩 <span class="kid-limit-h">--</span>:<span class="kid-limit-m">--</span></span></div>
+      <div class="kid-hero">
+        <div class="kid-emoji">⏰</div>
+        <div class="kid-info">
+          <div class="kid-label"></div>
+          <div class="kid-sub"></div>
+          <div class="kid-minutes"></div>
+          <div class="kid-segments"></div>
+          <button type="button" class="kid-finish"></button>
+          <button type="button" class="kid-start"></button>
+        </div>
+      </div>
+      <div class="kid-timeline"></div>`;
+    const q = sel => panel.querySelector(sel);
+    q('.kid-avatar').textContent = child.icon || '';
+    q('.kid-name').textContent = child.name || '';
+    q('.kid-finish').textContent = tr('finish_early');
+    const act = fn => () => { if(SLOTS.includes(slot)) withChild(slot, fn); };
+    q('.kid-finish').addEventListener('click', act(finishEarly));
+    q('.kid-start').addEventListener('click', act(startNextTask));
+    slot.view = {
+      heroEl: q('.kid-hero'), heroEmoji: q('.kid-emoji'), heroLabel: q('.kid-label'), heroSub: q('.kid-sub'),
+      minutesLeftEl: q('.kid-minutes'), segmentsEl: q('.kid-segments'), finishEarlyBtn: q('.kid-finish'), startNextBtn: q('.kid-start'),
+      // no browsing between days or title in a column: these stay off screen
+      browseControlsEl: document.createElement('div'), browsePrevBtn: document.createElement('button'), browseNextBtn: document.createElement('button'),
+      pageTitleEl: document.createElement('div'),
+      timelineEl: q('.kid-timeline'), limitHourEl: q('.kid-limit-h'), limitMinEl: q('.kid-limit-m'), limitControlEl: q('.kid-deadline'),
+      panelEl: panel
+    };
+    kidsGrid.appendChild(panel);
+  });
+  fitPanels();
+}
+// Rebuilds every child's day from the config (keeping today's progress).
+function initAllChildren(opts){
+  syncSlots();
+  buildPanels();
+  useView(currentSlot.view || MAIN_VIEW);
+  forEachChild(() => {
+    loadedDayIndex = new Date().getDay();
+    TASKS = buildTodaysTasks();
+    initSchedule(TASKS, opts);
+    render(); // draw right away (new columns would otherwise stay empty until the next tick)
+  });
+}
+
+initAllChildren();
 maybeShowWelcome();
 updateSoundPrompt();
 // On a TV, put the remote's focus on the balloon, so pressing OK turns the sound on.
@@ -5714,8 +6151,8 @@ if(soundPromptWanted() && guessDeviceKind() === 'tv' && document.getElementById(
 initCloudSync();
 
 function safeRender(){
-  try{ render(); }catch(e){ /* never let the loop hang because of a one-off error */ }
-  try{ saveDayState(); }catch(e){}
+  try{ renderAll(); }catch(e){ /* never let the loop hang because of a one-off error */ }
+  try{ forEachChild(saveDayState); }catch(e){}
 }
 safeRender();
 setInterval(safeRender, 1000);
