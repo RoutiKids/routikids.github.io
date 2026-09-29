@@ -12,6 +12,7 @@ The app used to live at `fabiofialho1.github.io/rotina-infantil-na-tv/` (reposit
 - Commit messages, PR titles/descriptions and GitHub comments: **English**.
 - User-facing UI text lives in the `I18N` dictionary in `index.html`, in **Portuguese (pt-BR), English and German**; always add a new text to all three and use `tr('key', {vars})` (static HTML: `data-i18n`, `data-i18n-html`, `data-i18n-placeholder`, `data-i18n-title`). The translation function is `tr`, not `t`, because `t` is used everywhere for tasks.
 - The language is per device (picker on the welcome screen and in settings; else the device language for new devices; devices that already had a routine default to Portuguese).
+- UI texts never use dashes (—, –, or " - ") as punctuation: use a comma, colon, period or parentheses instead. Ranges such as `07:00 – 07:30` or `seg–sex` are fine.
 - The app is called **Routikids** (`APP_NAME`), with a translated tagline (`tagline` key).
 
 ## Versioning
