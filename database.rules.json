@@ -22,6 +22,15 @@
             "code": { ".validate": "newData.isString() && newData.val().length == 6" },
             "$other": { ".validate": false }
           }
+        },
+        "progress": {
+          ".write": "auth != null && root.child('houses').child($houseId).child('members').child(auth.uid).exists()",
+          ".validate": "newData.hasChildren(['state', 'seq', 'updatedAt'])",
+          "state": { ".validate": "newData.isString() && newData.val().length <= 100000" },
+          "seq": { ".validate": "newData.isNumber()" },
+          "updatedAt": { ".validate": "newData.isNumber()" },
+          "by": { ".validate": "newData.isString() && newData.val().length <= 128" },
+          "$other": { ".validate": false }
         }
       }
     },
