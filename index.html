@@ -45,7 +45,7 @@
 <meta name="color-scheme" content="light dark">
 <title>Routikids</title>
 <!-- The code version lives here (read by the app and by the update check); bump it on every change. -->
-<meta name="app-version" content="Versão do código: 2026-09-29 23:08">
+<meta name="app-version" content="Versão do código: 2026-09-29 23:29">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@500;700;800&family=Nunito:wght@600;800&display=swap" rel="stylesheet">
@@ -480,6 +480,13 @@
     min-height:0;
   }
   body.multi header h1{ font-size:2vw; }
+  /* One child: the screen takes the child's colour, as a column does with several children */
+  html.solo, html.solo body{ background:var(--c); background:color-mix(in srgb, var(--c) 65%, white); }
+  html.solo #hero{ background:color-mix(in srgb, var(--c) 18%, white); }
+  html.solo #hero.done{ background:var(--mint); }
+  html.solo .step{ background:color-mix(in srgb, var(--c) 10%, white); opacity:0.85; }
+  html.solo .step.active{ opacity:1; border-left-color:var(--c); box-shadow:0 0 0 0.3vh var(--c); }
+  html.solo .step.finished{ opacity:1; }
   body.multi #limit-control{ display:none; }
   body.multi #bottom-info{ top:1.2vh; bottom:auto; right:1.5vw; }
   body.multi #sound-toggle{ position:static; width:3.2vw; height:3.2vw; min-width:40px; min-height:40px; font-size:1.5vw; }
@@ -6736,6 +6743,9 @@ if(document.fonts && document.fonts.ready) document.fonts.ready.then(rescrollPan
 function buildPanels(){
   const multi = SLOTS.length > 1;
   document.body.classList.toggle('multi', multi);
+  const solo = !multi && CHILDREN.find(c => SLOTS[0] && c.id === SLOTS[0].id);
+  document.documentElement.classList.toggle('solo', !!solo);
+  document.documentElement.style.setProperty('--c', solo ? `var(--${solo.color || 'sky'})` : '');
   kidsGrid.innerHTML = '';
   SLOTS.forEach(slot => { slot.view = null; });
   if(!multi) return;
