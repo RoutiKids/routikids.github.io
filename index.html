@@ -45,7 +45,7 @@
 <meta name="color-scheme" content="light dark">
 <title>Routikids</title>
 <!-- The code version lives here (read by the app and by the update check); bump it on every change. -->
-<meta name="app-version" content="Versão do código: 2026-09-30 21:45">
+<meta name="app-version" content="Versão do código: 2026-09-30 21:59">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@500;700;800&family=Nunito:wght@600;800&display=swap" rel="stylesheet">
@@ -1510,6 +1510,9 @@
     align-items:center;
     gap:0.8vw;
   }
+  .task-row .emoji-picker[hidden]{ display:none; }
+  .task-row button.emoji-preview{ border:2px dashed rgba(29,53,87,0.25); cursor:pointer; padding:0; }
+  .task-row button.emoji-preview:focus{ outline:4px solid var(--sun); outline-offset:2px; }
   .task-row .emoji-preview{
     font-size:2vw;
     width:2.6vw;
@@ -2201,6 +2204,7 @@ const I18N = {
     welcome_title: "👋 Bem-vindo ao {app}!",
     tagline: "a rotina das crianças, passo a passo",
     runner_label: "Figura quando é hora de acelerar:",
+    change_picture: "Trocar a figura",
     other_emoji_ph: "Outro emoji...",
     done_icon_label: "Figura da rotina completa:",
     done_audio_label: "Som da rotina completa:",
@@ -2536,6 +2540,7 @@ const I18N = {
     welcome_title: "👋 Welcome to {app}!",
     tagline: "kids' routines, step by step",
     runner_label: "Picture when it's time to hurry:",
+    change_picture: "Change the picture",
     other_emoji_ph: "Other emoji...",
     done_icon_label: "Picture when a routine is complete:",
     done_audio_label: "Sound when a routine is complete:",
@@ -2871,6 +2876,7 @@ const I18N = {
     welcome_title: "👋 Willkommen bei {app}!",
     tagline: "die Kinder-Routine, Schritt für Schritt",
     runner_label: "Bild, wenn es schneller gehen soll:",
+    change_picture: "Bild ändern",
     other_emoji_ph: "Anderes Emoji...",
     done_icon_label: "Bild, wenn eine Routine fertig ist:",
     done_audio_label: "Ton, wenn eine Routine fertig ist:",
@@ -5218,6 +5224,7 @@ function configRoutineToDraft(r){
   };
 }
 function populateDraftFromCurrentConfig(){
+  openPickerIdx = null;
   draftRoutines = ROUTINES.map(configRoutineToDraft);
   draftWeekSchedule = {};
   for(let d=0; d<7; d++) draftWeekSchedule[d] = (WEEK_SCHEDULE[d] || []).slice();
@@ -5252,6 +5259,20 @@ function closeSettings(){
     handleRemoteHouse(house);
   }
 }
+
+// Over the dark area around a card (settings, welcome, guide, TV setup) the
+// mouse wheel scrolls the card too, not only with the pointer on the card.
+['settings-overlay', 'welcome-overlay', 'tvsetup-overlay', 'guide-overlay'].forEach(id => {
+  const overlay = document.getElementById(id);
+  if(!overlay) return;
+  overlay.addEventListener('wheel', (e) => {
+    if(e.target !== overlay) return;
+    const card = overlay.querySelector('.settings-card');
+    if(!card) return;
+    card.scrollTop += e.deltaY * (e.deltaMode === 1 ? 40 : e.deltaMode === 2 ? card.clientHeight : 1);
+    e.preventDefault();
+  }, { passive: false });
+});
 
 // ---------- In-app alert/confirm ----------
 // TV browsers (e.g. on Google TV) may block native alert()/confirm() popups,
@@ -5454,6 +5475,7 @@ let draftWeekSchedule = {};
 let selectedRoutineIndex = 0;
 
 function selectRoutine(idx){
+  openPickerIdx = null;
   selectedRoutineIndex = idx;
   draftTasks = draftRoutines[idx].tasks;
   renderRoutineTabs();
@@ -5619,10 +5641,12 @@ document.querySelector('#week-matrix').addEventListener('click', (e) => {
   renderWeekMatrix();
 });
 
+// The picture list of a task opens only when its picture is tapped (one at a time).
+let openPickerIdx = null;
 function renderSettingsRows(){
   settingsTasksList.innerHTML = draftTasks.map((t, i) => `
     <div class="task-row" data-index="${i}">
-      <div class="emoji-preview">${t.emoji}</div>
+      <button type="button" class="emoji-preview" data-index="${i}" title="${tr('change_picture')}">${t.emoji}</button>
       <input type="text" class="settings-text-input task-name-input" data-field="name" data-index="${i}" value="${t.name.replace(/"/g,'&quot;')}" placeholder="${tr('task_name_ph')}">
       <div class="task-time-group">
         <div class="time-stepper">
@@ -5649,7 +5673,7 @@ function renderSettingsRows(){
       </div>
       <button class="remove-task-btn" data-index="${i}" title="${tr('remove_task')}">🗑</button>
       <label class="flex-toggle" title="${tr('can_shorten_hint')}"><input type="checkbox" data-field="flex" data-index="${i}" ${t.flex ? 'checked' : ''}> ${tr('can_shorten')}</label>
-      <div class="emoji-picker">
+      <div class="emoji-picker"${openPickerIdx === i ? '' : ' hidden'}>
         ${EMOJI_PRESETS.map(e => `<button type="button" data-index="${i}" data-emoji="${e}" class="${t.emoji===e?'selected':''}">${e}</button>`).join('')}
         <input type="text" class="settings-text-input emoji-custom" data-field="emoji" data-index="${i}" maxlength="16" autocomplete="off" placeholder="${tr('other_emoji_ph')}" value="${EMOJI_PRESETS.includes(t.emoji) ? '' : t.emoji}">
       </div>
@@ -5737,9 +5761,17 @@ settingsTasksList.addEventListener('click', (e) => {
     adjustDraftTime(parseInt(timeBtn.dataset.index,10), timeBtn.dataset.field, parseInt(timeBtn.dataset.dir,10));
     return;
   }
+  const previewBtn = e.target.closest('.emoji-preview');
+  if(previewBtn){
+    const idx = parseInt(previewBtn.dataset.index, 10);
+    openPickerIdx = openPickerIdx === idx ? null : idx;
+    renderSettingsRows();
+    return;
+  }
   const emojiBtn = e.target.closest('.emoji-picker button');
   if(emojiBtn){
     draftTasks[parseInt(emojiBtn.dataset.index,10)].emoji = emojiBtn.dataset.emoji;
+    openPickerIdx = null;
     renderSettingsRows();
     return;
   }
@@ -5778,6 +5810,7 @@ document.getElementById('settings-add-task').addEventListener('click', () => {
     soundType: 'chime',
     soundUrl: ''
   });
+  openPickerIdx = draftTasks.length - 1; // a new task needs a picture
   renderSettingsRows();
 });
 
@@ -6423,7 +6456,7 @@ let settingsDirty = false;
   const card = settingsOverlay.querySelector('.settings-card');
   const markDirty = (e) => {
     if(!card.contains(e.target)) return; // redrawn by its own handler (e.g. a renamed audio)
-    if(e.target.closest('#sync-section, #backup-section, #backup-file-input, #audio-section, #audio-file-input, #cloud-banner, #settings-cancel, #settings-save, #routine-tabs button[data-index]')) return;
+    if(e.target.closest('.emoji-preview, #sync-section, #backup-section, #backup-file-input, #audio-section, #audio-file-input, #cloud-banner, #settings-cancel, #settings-save, #routine-tabs button[data-index]')) return;
     settingsDirty = true;
   };
   ['input', 'change'].forEach(ev => card.addEventListener(ev, markDirty));
