@@ -45,7 +45,7 @@
 <meta name="color-scheme" content="light dark">
 <title>Routikids</title>
 <!-- The code version lives here (read by the app and by the update check); bump it on every change. -->
-<meta name="app-version" content="Versão do código: 2026-09-30 21:59">
+<meta name="app-version" content="Versão do código: 2026-09-30 22:43">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@500;700;800&family=Nunito:wght@600;800&display=swap" rel="stylesheet">
@@ -387,25 +387,10 @@
   .seg.overtime.complete{ background:var(--coral); color:white; }
   #hero.done .seg{ background:rgba(255,255,255,0.3); color:white; }
 
-  #finish-early-btn{
-    margin-top:1.8vh;
-    font-family:'Baloo 2', sans-serif;
-    font-weight:800;
-    font-size:1.5vw;
-    background:var(--mint);
-    color:white;
-    border:none;
-    border-radius:18px;
-    padding:1.4vh 2.2vw;
-    cursor:pointer;
-    box-shadow:0 6px 0 rgba(29,53,87,0.15);
-    -webkit-tap-highlight-color: transparent;
-    flex-shrink:0;
-  }
-  #finish-early-btn:focus{
-    outline:5px solid var(--sun);
-    outline-offset:2px;
-  }
+  /* "I'm done" is a box to tick next to the minutes, as in the children's columns
+     (.kid-finish styles); --w sizes it like a column. */
+  #minutes-row{ display:flex; align-items:center; justify-content:center; gap:3vw; }
+  #hero{ --w:clamp(300px, 34vw, 720px); }
   #hero.done #finish-early-btn{ display:none; }
   #start-next-btn{
     display:none;
@@ -1567,7 +1552,7 @@
     cursor:pointer;
   }
   .task-row .sound-url-input{ width:100%; margin-top:0.5vh; }
-  .emoji-picker .emoji-custom{ width:9em; font-size:clamp(14px, 1vw, 22px); padding:4px 8px; margin:0; }
+  .emoji-custom{ width:9em; font-size:clamp(14px, 1vw, 22px); padding:4px 8px; margin:0; }
   .task-row .flex-toggle{ display:flex; align-items:center; gap:0.4vw; font-family:'Nunito', sans-serif; font-weight:700; font-size:clamp(13px, 0.9vw, 20px); color:var(--navy); cursor:pointer; white-space:nowrap; }
   .task-row .flex-toggle input{ width:1.3em; height:1.3em; }
   .task-row .remove-task-btn{
@@ -1682,7 +1667,9 @@
     #minutes-left .unit{ font-size:18px; margin-left:4px; }
     #segments{ gap:6px; }
     .seg{ width:34px; height:34px; font-size:13px; border-radius:8px; }
-    #finish-early-btn, #start-next-btn{ font-size:18px; padding:12px 22px; }
+    #start-next-btn{ font-size:18px; padding:12px 22px; }
+    #hero{ --w:440px; }
+    #minutes-row{ gap:28px; }
     #browse-controls{ gap:12px; }
     #browse-controls button{ font-size:20px; padding:10px 22px; }
     #timeline{ overflow:visible; gap:8px; }
@@ -1790,9 +1777,11 @@
     <div id="hero-emoji">⏰</div>
     <div id="hero-label" data-i18n="loading"></div>
     <div id="hero-sub"></div>
-    <div id="minutes-left">--<span class="unit">min</span></div>
+    <div id="minutes-row">
+      <div id="minutes-left">--<span class="unit">min</span></div>
+      <button id="finish-early-btn" class="kid-finish" data-i18n-title="finish_early"><span class="kid-box"></span><span class="kid-finish-label" data-i18n="finish_short"></span></button>
+    </div>
     <div id="segments"></div>
-    <button id="finish-early-btn" data-i18n="finish_early"></button>
     <button id="start-next-btn" data-i18n="start"></button>
     <div class="task-extra-btns"><button id="postpone-task-btn"></button><button id="skip-task-btn"></button></div>
     <div id="browse-controls">
@@ -3254,7 +3243,7 @@ function normalizeConfig(cfg){
   cfg.children = children.map((c, i) => ({
     id: String(c.id).slice(0, 32),
     name: String(c.name || '').slice(0, 30),
-    icon: c.icon || CHILD_ICONS[i % CHILD_ICONS.length],
+    icon: cleanEmoji(c.icon) || CHILD_ICONS[i % CHILD_ICONS.length],
     color: CHILD_COLORS.includes(c.color) ? c.color : CHILD_COLORS[i % CHILD_COLORS.length],
     picturesOnly: !!c.picturesOnly,
     hidden: !!c.hidden,
@@ -3262,19 +3251,22 @@ function normalizeConfig(cfg){
     confirmDefault: ['yes', 'more', 'wait'].includes(c.confirmDefault) ? c.confirmDefault : 'yes',
     confirmSeconds: [10, 20, 30, 60].includes(c.confirmSeconds) ? c.confirmSeconds : 10,
     extraMin: [3, 5, 10].includes(c.extraMin) ? c.extraMin : 5,
-    runner: CHILD_RUNNERS.includes(c.runner) ? c.runner : CHILD_RUNNERS[0],
+    runner: cleanEmoji(c.runner) || CHILD_RUNNERS[0],
     // Family audios (ids from cfg.audios) for "well done" and "let's speed up"; '' = default sound
     cheerAudio: typeof c.cheerAudio === 'string' ? c.cheerAudio.slice(0, 32) : '',
     hurryAudio: typeof c.hurryAudio === 'string' ? c.hurryAudio.slice(0, 32) : '',
-    doneIcon: CHILD_DONE_ICONS.includes(c.doneIcon) ? c.doneIcon : CHILD_DONE_ICONS[0],
+    doneIcon: cleanEmoji(c.doneIcon) || CHILD_DONE_ICONS[0],
     doneAudio: typeof c.doneAudio === 'string' ? c.doneAudio.slice(0, 32) : ''
   }));
   cfg.audios = (Array.isArray(cfg.audios) ? cfg.audios : []).filter(a => a && a.id).slice(0, MAX_AUDIOS)
     .map(a => ({ id: String(a.id).slice(0, 32), name: String(a.name || '').slice(0, 30) }));
   if(cfg.children.every(c => c.hidden)) cfg.children[0].hidden = false; // someone is always shown
   const ids = cfg.children.map(c => c.id);
+  if(cfg.onTimeIcon) cfg.onTimeIcon = cleanEmoji(cfg.onTimeIcon) || '🐆';
+  if(cfg.lateIcon) cfg.lateIcon = cleanEmoji(cfg.lateIcon) || '🐢';
   cfg.routines.forEach(r => {
     if(!ids.includes(r.childId)) r.childId = ids[0];
+    if(r.icon !== undefined) r.icon = cleanEmoji(r.icon) || '📋';
     (r.tasks || []).forEach(t => { t.emoji = cleanEmoji(t.emoji) || '⭐'; });
   });
   cfg.childName = cfg.children[0].name;
@@ -4824,7 +4816,13 @@ function finishEarly(){
   progressAction();
   render();
 }
-finishEarlyBtn.addEventListener('click', finishEarly);
+// Tick the box first, so the child sees it marked, then close the task.
+const mainFinishBtn = document.getElementById('finish-early-btn');
+mainFinishBtn.addEventListener('click', () => {
+  if(mainFinishBtn.classList.contains('checked')) return;
+  mainFinishBtn.classList.add('checked');
+  setTimeout(() => { mainFinishBtn.classList.remove('checked'); finishEarly(); }, 600);
+});
 
 // ---------- "Start" button (starts the next task and moves the rest earlier) ----------
 let startNextBtn = document.getElementById('start-next-btn');
@@ -5183,11 +5181,32 @@ let draftLateIcon = DEFAULT_LATE_ICON;
 function renderIconPickers(){
   document.getElementById('ontime-icon-picker').innerHTML = ONTIME_ICON_PRESETS.map(e =>
     `<button type="button" data-icon="${e}" class="${draftOnTimeIcon===e?'selected':''}">${e}</button>`
-  ).join('');
+  ).join('') + customEmojiField(draftOnTimeIcon, ONTIME_ICON_PRESETS);
   document.getElementById('late-icon-picker').innerHTML = LATE_ICON_PRESETS.map(e =>
     `<button type="button" data-icon="${e}" class="${draftLateIcon===e?'selected':''}">${e}</button>`
-  ).join('');
+  ).join('') + customEmojiField(draftLateIcon, LATE_ICON_PRESETS);
 }
+// Every picture picker also takes any emoji typed from the phone's keyboard.
+// Typing doesn't redraw the picker, so the keyboard stays open.
+function customEmojiField(value, presets){
+  return `<input type="text" class="settings-text-input emoji-custom" maxlength="16" autocomplete="off" placeholder="${escHtml(tr('other_emoji_ph'))}" value="${presets.includes(value) ? '' : escHtml(value || '')}">`;
+}
+function onCustomEmoji(pickerId, apply){
+  const picker = document.getElementById(pickerId);
+  picker.addEventListener('input', (e) => {
+    if(!e.target.classList.contains('emoji-custom')) return;
+    const emoji = cleanEmoji(e.target.value);
+    if(!emoji) return;
+    picker.querySelectorAll('button.selected').forEach(b => b.classList.remove('selected'));
+    apply(emoji);
+  });
+}
+onCustomEmoji('ontime-icon-picker', emoji => { draftOnTimeIcon = emoji; });
+onCustomEmoji('late-icon-picker', emoji => { draftLateIcon = emoji; });
+onCustomEmoji('child-icon-picker', emoji => { draftChild().icon = emoji; renderChildTabs(); });
+onCustomEmoji('child-runner-picker', emoji => { draftChild().runner = emoji; });
+onCustomEmoji('child-done-picker', emoji => { draftChild().doneIcon = emoji; });
+onCustomEmoji('routine-icon-picker', emoji => { draftRoutines[selectedRoutineIndex].icon = emoji; renderRoutineTabs(); });
 document.getElementById('ontime-icon-picker').addEventListener('click', (e) => {
   const btn = e.target.closest('button');
   if(!btn) return;
@@ -5359,12 +5378,12 @@ function renderChildEditor(){
   const c = draftChild();
   settingsChildNameInput.value = c.name;
   document.getElementById('child-icon-picker').innerHTML = CHILD_ICONS.map(e =>
-    `<button type="button" data-icon="${e}" class="${c.icon === e ? 'selected' : ''}">${e}</button>`).join('');
+    `<button type="button" data-icon="${e}" class="${c.icon === e ? 'selected' : ''}">${e}</button>`).join('') + customEmojiField(c.icon, CHILD_ICONS);
   document.getElementById('child-color-picker').innerHTML = CHILD_COLORS.map(col =>
     `<button type="button" data-color="${col}" class="${c.color === col ? 'selected' : ''}" style="background:var(--${col});" aria-label="${col}"></button>`).join('');
   document.getElementById('child-pictures-only').checked = !!c.picturesOnly;
   document.getElementById('child-runner-picker').innerHTML = CHILD_RUNNERS.map(e =>
-    `<button type="button" data-runner="${e}" class="${(c.runner || CHILD_RUNNERS[0]) === e ? 'selected' : ''}">${e}</button>`).join('');
+    `<button type="button" data-runner="${e}" class="${(c.runner || CHILD_RUNNERS[0]) === e ? 'selected' : ''}">${e}</button>`).join('') + customEmojiField(c.runner, CHILD_RUNNERS);
   const opts = (list, value) => list.map(([v, label]) => `<option value="${v}"${String(v) === String(value) ? ' selected' : ''}>${label}</option>`).join('');
   document.getElementById('child-confirm-default').innerHTML = opts([['yes', tr('confirm_default_yes')], ['more', tr('confirm_default_more')], ['wait', tr('confirm_default_wait')]], c.confirmDefault || 'yes');
   document.getElementById('child-confirm-seconds').innerHTML = opts([10, 20, 30, 60].map(n => [n, `${n} s`]), c.confirmSeconds || 10);
@@ -5375,7 +5394,7 @@ function renderChildEditor(){
   document.getElementById('child-cheer-audio').innerHTML = audioOpts(tr('cheer_audio_default'), c.cheerAudio);
   document.getElementById('child-done-audio').innerHTML = audioOpts(tr('done_audio_default'), c.doneAudio);
   document.getElementById('child-done-picker').innerHTML = CHILD_DONE_ICONS.map(e =>
-    `<button type="button" data-done="${e}" class="${(c.doneIcon || CHILD_DONE_ICONS[0]) === e ? 'selected' : ''}">${e}</button>`).join('');
+    `<button type="button" data-done="${e}" class="${(c.doneIcon || CHILD_DONE_ICONS[0]) === e ? 'selected' : ''}">${e}</button>`).join('') + customEmojiField(c.doneIcon, CHILD_DONE_ICONS);
   const visible = document.getElementById('child-visible');
   visible.checked = !c.hidden;
   visible.disabled = !c.hidden && draftChildren.filter(x => !x.hidden).length <= 1; // the last one shown stays
@@ -5512,7 +5531,7 @@ function renderRoutineEditRow(){
   document.getElementById('routine-name-input').value = r.name;
   document.getElementById('routine-icon-picker').innerHTML = ROUTINE_ICON_PRESETS.map(e =>
     `<button type="button" data-icon="${e}" class="${r.icon===e?'selected':''}">${e}</button>`
-  ).join('');
+  ).join('') + customEmojiField(r.icon, ROUTINE_ICON_PRESETS);
   const limitVal = r.limitMin !== undefined ? r.limitMin : computeDraftRoutineNaturalLimit(r);
   document.getElementById('routine-limit-hour').textContent = String(Math.floor(limitVal/60)).padStart(2,'0');
   document.getElementById('routine-limit-min').textContent = String(Math.round(limitVal%60)).padStart(2,'0');
