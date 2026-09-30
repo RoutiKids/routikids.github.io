@@ -49,6 +49,12 @@ The app used to live at `fabiofialho1.github.io/rotina-infantil-na-tv/` (reposit
 - A cloud read that started before this device's last config push is ignored for the config (`lastConfigPushAt`), so it cannot undo a save that was just made.
 - Feedback uses pictures, not words: extra time sends the child's `runner` (🏎️ 🚀 🐕 🐇, chosen per child) racing across their column with a synthesized "vroom"; a task finished late pops the late icon with a soft sound. There is no text banner or speech synthesis (it was hard to understand). In a column, "Já terminei" is a box to tick ("Terminei"), shown ticked for 0.6 s before the task closes.
 
+## Forecast, skipping and sound
+
+- Times shown are forecasts: the list refreshes them every second (`refreshStepTimes`), and while the next task waits for "Começar" past its time they move on from now (`forecastTimes`). A time that differs from the plan shows in red (later) or green (earlier) with the planned one in brackets (`stepTimeHtml`, `timeShiftHtml`); the same goes for the current task's "até" and for the routine's expected end (`showForecastFor`: under the list title on the main screen, "🏁" in a column's header). The deadline stays the parents' goal; the forecast is what is happening.
+- "⏭️ Pular" skips a task for today only (`askSkip` asks first, then `skipTask`): the current one closes at once with no star or turtle; a later one gets `userSkipped` and no time, and is passed over when its turn comes (`passSkipped`), and can be brought back (↩️, `unskipTask`). `userSkipped` travels in the day snapshot and survives `mergeDayProgress`. The list shows ⏭️ for skipped tasks.
+- The sound choice is remembered (`rotinaSoundOn_v1`). After a reload the browser may hold sound back (`soundBlocked`): the balloon shows, and any tap or key press brings the sound back. The app no longer reloads itself periodically, only for a new version at a safe moment, since each reload can cost the sound.
+
 ## Family audios
 
 - Settings has "🎙️ Áudios da família": record in the browser (`MediaRecorder`, 32 kbps, at most 15 s with a countdown) or send a file (at most 200 KB, `audio/*`), then rename, play or delete. At most 10 (`MAX_AUDIOS`). Changes save at once (`saveAudioList`), not with "Salvar", and never mark the settings as edited.
