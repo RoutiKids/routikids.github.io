@@ -45,7 +45,7 @@
 <meta name="color-scheme" content="light dark">
 <title>Routikids</title>
 <!-- The code version lives here (read by the app and by the update check); bump it on every change. -->
-<meta name="app-version" content="Versão do código: 2026-09-30 14:05">
+<meta name="app-version" content="Versão do código: 2026-09-30 14:53">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@500;700;800&family=Nunito:wght@600;800&display=swap" rel="stylesheet">
@@ -180,22 +180,29 @@
     border-radius:16px;
     padding:0.8vh 1vw;
   }
-  .timeline-forecast{
+  /* The routine's expected end, in the footer where the deadline used to be. The
+     deadline is part of the routine's settings and is no longer shown on screen. */
+  #limit-control{ display:none !important; }
+  #forecast{
+    display:flex;
+    align-items:center;
+    gap:0.6vw;
     font-family:'Baloo 2', sans-serif;
     font-weight:800;
-    font-size:1.2vw;
+    font-size:1.9vw;
     color:var(--navy);
-    margin:-0.4vh 0 0.4vh 0.4vw;
+    background:rgba(255,255,255,0.85);
+    border-radius:16px;
+    padding:0.8vh 1vw;
   }
-  .timeline-forecast:empty{ display:none; }
-  .timeline-forecast .limit-title{ font-family:'Nunito', sans-serif; font-weight:700; }
-  .pictures-only .timeline-forecast{ width:100%; }
+  #forecast:empty{ display:none; }
+  #forecast .limit-title{ font-family:'Nunito', sans-serif; font-weight:700; font-size:0.95vw; }
+  #forecast .t-orig{ font-size:0.7em; }
   /* Times that moved from the plan: new time in red (later) or green (earlier), the planned one in brackets */
   .t-late{ color:#c1121f; font-weight:800; }
   .t-early{ color:#1b7f4b; font-weight:800; }
   .t-orig{ opacity:0.7; font-weight:600; }
   .kid-forecast .t-late, .kid-forecast .t-early{ background:white; border-radius:999px; padding:0 0.35em; }
-  .kid-forecast{ margin-right:0.8em; }
   #skip-task-btn, .kid-skip{
     font-family:'Baloo 2', sans-serif;
     font-weight:800;
@@ -531,7 +538,7 @@
   html.solo .step{ background:color-mix(in srgb, var(--c) 10%, white); opacity:0.85; }
   html.solo .step.active{ opacity:1; border-left-color:var(--c); box-shadow:0 0 0 0.3vh var(--c); }
   html.solo .step.finished{ opacity:1; }
-  body.multi #limit-control{ display:none; }
+  body.multi #limit-control, body.multi #forecast{ display:none; }
   body.multi #bottom-info{ top:1.2vh; bottom:auto; right:1.5vw; }
   body.multi #sound-toggle{ position:static; width:3.2vw; height:3.2vw; min-width:40px; min-height:40px; font-size:1.5vw; }
   body.multi #fullscreen-btn{ position:static; }
@@ -566,7 +573,8 @@
     font-size:calc(var(--w) * 0.05);
     line-height:1;
   }
-  .kid-deadline{ margin-left:auto; font-weight:800; font-size:calc(var(--w) * 0.026); opacity:0.9; white-space:nowrap; }
+  .kid-deadline{ margin-left:auto; font-family:'Baloo 2', sans-serif; font-weight:800; font-size:calc(var(--w) * 0.038); white-space:nowrap; }
+  .kid-deadline .t-orig{ font-size:0.75em; }
   .kid-panel.light-color .kid-head{ color:var(--navy); } /* white on yellow is hard to read */
   .kid-hero{
     display:grid;
@@ -1534,6 +1542,8 @@
     cursor:pointer;
   }
   .task-row .sound-url-input{ width:100%; margin-top:0.5vh; }
+  .task-row .flex-toggle{ display:flex; align-items:center; gap:0.4vw; font-family:'Nunito', sans-serif; font-weight:700; font-size:clamp(13px, 0.9vw, 20px); color:var(--navy); cursor:pointer; white-space:nowrap; }
+  .task-row .flex-toggle input{ width:1.3em; height:1.3em; }
   .task-row .remove-task-btn{
     background:var(--coral);
     color:white;
@@ -1651,7 +1661,8 @@
     #browse-controls button{ font-size:20px; padding:10px 22px; }
     #timeline{ overflow:visible; gap:8px; }
     .timeline-title{ font-size:18px; padding:0 4px; }
-    .timeline-forecast{ font-size:16px; margin:0 4px 4px; }
+    #forecast{ font-size:22px; padding:6px 12px; gap:6px; }
+    #forecast .limit-title{ font-size:14px; }
     .step{ padding:10px 12px; gap:12px; border-radius:14px; }
     .step .emoji{ font-size:30px; }
     .step .name{ font-size:18px; }
@@ -1723,6 +1734,7 @@
 </div>
 <div id="bottom-info">
   <div id="clock">--:--</div>
+  <div id="forecast"></div>
   <div id="limit-control">
     <span class="limit-title" data-i18n="deadline"></span>
     <div class="limit-unit">
@@ -1928,6 +1940,7 @@
     </div>
 
     <div id="routine-tasks-heading" data-i18n="tasks_heading"></div>
+    <p class="settings-hint" data-i18n="can_shorten_hint"></p>
     <div id="settings-tasks-list"></div>
 
     <button id="settings-add-task" class="settings-add-btn" data-i18n="add_task"></button>
@@ -2155,6 +2168,9 @@ const I18N = {
     welcome_title: "👋 Bem-vindo ao {app}!",
     tagline: "a rotina das crianças, passo a passo",
     runner_label: "Figura quando é hora de acelerar:",
+    can_shorten: "✂️ Pode encurtar",
+    can_shorten_hint: "✂️ Pode encurtar: se a criança atrasar, as tarefas marcadas diminuem (até a metade do tempo) para recuperar o atraso. Sem nenhuma marcada, o término da rotina é empurrado.",
+    shortened_title: "Encurtada para recuperar o atraso",
     skip_btn: "⏭️ Pular",
     skip_title: "Pular hoje",
     unskip_title: "Fazer hoje de novo",
@@ -2473,6 +2489,9 @@ const I18N = {
     welcome_title: "👋 Welcome to {app}!",
     tagline: "kids' routines, step by step",
     runner_label: "Picture when it's time to hurry:",
+    can_shorten: "✂️ Can be shortened",
+    can_shorten_hint: "✂️ Can be shortened: if the child runs late, the marked tasks shrink (down to half their time) to make up for it. With none marked, the routine's end is pushed back.",
+    shortened_title: "Shortened to make up for the delay",
     skip_btn: "⏭️ Skip",
     skip_title: "Skip today",
     unskip_title: "Do it today after all",
@@ -2791,6 +2810,9 @@ const I18N = {
     welcome_title: "👋 Willkommen bei {app}!",
     tagline: "die Kinder-Routine, Schritt für Schritt",
     runner_label: "Bild, wenn es schneller gehen soll:",
+    can_shorten: "✂️ Darf kürzer werden",
+    can_shorten_hint: "✂️ Darf kürzer werden: Wenn das Kind in Verzug gerät, werden die markierten Aufgaben kürzer (bis zur Hälfte ihrer Zeit), um die Zeit aufzuholen. Ist keine markiert, verschiebt sich das Ende der Routine.",
+    shortened_title: "Gekürzt, um den Verzug aufzuholen",
     skip_btn: "⏭️ Überspringen",
     skip_title: "Heute überspringen",
     unskip_title: "Heute doch machen",
@@ -3319,6 +3341,7 @@ function buildTasksFromConfig(cfg){
     sound: t.sound,
     baseDurationMin: toMinutes(t.end) - toMinutes(t.start),
     plannedDurationMin: toMinutes(t.end) - toMinutes(t.start), // immutable, not affected by extensions
+    flex: !!t.flex, // "can be shortened" to make up for a delay
     routineId: t.routineId || null,
     plannedStartMin: toMinutes(t.start),
     redMin: 0,
@@ -3708,7 +3731,7 @@ let minutesLeftEl = document.getElementById('minutes-left');
 let segmentsEl = document.getElementById('segments');
 let finishEarlyBtn = document.getElementById('finish-early-btn');
 let skipBtn = document.getElementById('skip-task-btn');
-let forecastEl = null; // a column's forecast (the main screen's is in its list, see showForecastFor)
+let forecastEl = document.getElementById('forecast');
 let browseControlsEl = document.getElementById('browse-controls');
 let browsePrevBtn = document.getElementById('browse-prev-btn');
 let browseNextBtn = document.getElementById('browse-next-btn');
@@ -3872,7 +3895,8 @@ function stepTimeHtml(t, i, times){
   const { start, end } = times[i];
   const plannedEnd = t.plannedStartMin + t.plannedDurationMin;
   const later = Math.round(end) !== Math.round(plannedEnd) ? end > plannedEnd : start > t.plannedStartMin;
-  return shiftedHtml(`${fmtMin(start)} – ${fmtMin(end)}`, `${fmtMin(t.plannedStartMin)} – ${fmtMin(plannedEnd)}`, later);
+  const shortened = i >= pointer && t.baseDurationMin < t.plannedDurationMin ? ` <span title="${tr('shortened_title')}">✂️</span>` : '';
+  return shiftedHtml(`${fmtMin(start)} – ${fmtMin(end)}`, `${fmtMin(t.plannedStartMin)} – ${fmtMin(plannedEnd)}`, later) + shortened;
 }
 function refreshStepTimes(){
   const times = forecastTimes();
@@ -3915,7 +3939,7 @@ function skipTask(idx){
   } else {
     t.baseDurationMin = 0;
     const running = pointer < tasks.length && idx > pointer && !awaitingStart && nowMin >= tasks[pointer].startMin;
-    if(running) cascadeAfterPointer();
+    if(running) fitFlexibleTasks();
     else{ recomputeUpcoming(); passSkipped(); recomputeUpcoming(); }
   }
   lastSegTaskIndex = -1;
@@ -3927,7 +3951,7 @@ function unskipTask(idx){
   t.userSkipped = false;
   t.baseDurationMin = t.plannedDurationMin;
   const running = !awaitingStart && nowInMinutes() >= tasks[pointer].startMin;
-  if(running) cascadeAfterPointer(); else recomputeUpcoming();
+  if(running) fitFlexibleTasks(); else recomputeUpcoming();
   rebuildTimelineDOM();
   progressAction();
   render();
@@ -3961,7 +3985,7 @@ function rebuildTimelineDOM(){
   const child = CHILDREN.find(c => c.id === ACTIVE_CHILD_ID);
   timelineEl.classList.toggle('pictures-only', !!(child && child.picturesOnly));
   timelineEl.innerHTML = `<div class="timeline-title"${timelineEl.id === 'timeline' ? ' id="timeline-title"' : ''}></div>`
-    + (panelEl ? '<div class="kid-trail"></div>' : '<div class="timeline-forecast"></div>');
+    + (panelEl ? '<div class="kid-trail"></div>' : '');
   timelinePreviewKey = null;
   const times = forecastTimes();
   tasks.forEach((t, i) => {
@@ -4039,7 +4063,7 @@ function showDeadlineFor(focus){
 // When today's routine on screen will end (or ended), next to its deadline:
 // the deadline is the goal the parents set, this is what is happening.
 function showForecastFor(focus){
-  const el = panelEl ? forecastEl : timelineEl.querySelector('.timeline-forecast');
+  const el = forecastEl;
   if(!el) return;
   let html = '';
   if(focus && focus.day === 0 && tasks.length){
@@ -4472,37 +4496,40 @@ function extendCurrentTask(){
   tasks[pointer].baseDurationMin += extra;
   tasks[pointer].redMin += extra;
   tasks[pointer].endMin += extra; // extend only the end; the start doesn't change
-  cascadeAfterPointer(); // first let the delay naturally push the following tasks
+  fitFlexibleTasks();
+}
 
-  const limit = hardLimitMin();
-  const block = routineBlockAt(pointer); // only touch tasks within the SAME routine, never the next one
-  const lastIdxOfRoutine = block.endIdx;
-  const overflow = tasks[lastIdxOfRoutine].endMin - limit;
-  if(overflow > 0){
-    // only compress as much as needed to never exceed this routine's deadline
-    const after = tasks.slice(pointer+1, lastIdxOfRoutine+1);
-    if(after.length){
-      const floor = 3;
-      let newDur = after.map(t => t.baseDurationMin);
-      let toReduce = overflow;
-      for(let pass = 0; pass < 4 && toReduce > 0.01; pass++){
-        const eligible = newDur.map((d,idx) => idx).filter(idx => newDur[idx] > floor);
-        const eligibleTotal = eligible.reduce((s,idx) => s + newDur[idx], 0);
-        if(eligibleTotal <= 0) break;
-        let reduced = 0;
-        eligible.forEach(idx => {
-          const share = (newDur[idx] / eligibleTotal) * toReduce;
-          const maxRed = newDur[idx] - floor;
-          const actual = Math.min(share, maxRed);
-          newDur[idx] -= actual;
-          reduced += actual;
-        });
-        toReduce -= reduced;
-      }
-      after.forEach((t, idx) => { t.baseDurationMin = newDur[idx]; });
-    }
-    cascadeAfterPointer();
+// Making up for a delay: only the tasks the parents marked "can be shortened"
+// shrink, each by at most half its time, a minute at a time to whichever has
+// the most left (roughly in proportion to their length), until the routine
+// is back on its planned end. What can't be made up pushes the end (the
+// forecast turns red). Durations start from the plan each time, so time
+// gained later (an early finish, a skipped task) gives the minutes back.
+// startingNow: the current task is only starting, so it can be fitted too.
+function fitFlexibleTasks(startingNow){
+  if(pointer >= tasks.length) return;
+  const block = routineBlockAt(pointer); // only this routine, never the next one
+  const cur = tasks[pointer];
+  const flex = [];
+  for(let i = startingNow ? pointer : pointer + 1; i <= block.endIdx; i++){
+    const t = tasks[i];
+    if(t.flex && !t.userSkipped && !(i === pointer && t.redMin)){ t.baseDurationMin = t.plannedDurationMin; flex.push(t); }
   }
+  const place = () => { if(startingNow) cur.endMin = cur.startMin + cur.baseDurationMin; cascadeAfterPointer(); };
+  place();
+  if(!flex.length) return;
+  let over = Math.round(tasks[block.endIdx].endMin - routineTargetAndLimit(pointer).targetEndMin);
+  while(over > 0){
+    let best = null;
+    flex.forEach(t => {
+      if(t.baseDurationMin - 1 < Math.ceil(t.plannedDurationMin / 2)) return;
+      if(!best || t.baseDurationMin / t.plannedDurationMin > best.baseDurationMin / best.plannedDurationMin) best = t;
+    });
+    if(!best) break;
+    best.baseDurationMin -= 1;
+    over -= 1;
+  }
+  place();
 }
 
 // ---------- Mark task as done (shared by both ways of advancing) ----------
@@ -4525,6 +4552,8 @@ function advanceTask(actualEndMin){
   if(pointer >= tasks.length) return;
   markTaskDone(actualEndMin);
   recomputeUpcoming();
+  if(pointer < tasks.length && nowInMinutes() >= tasks[pointer].startMin) fitFlexibleTasks(true); // it starts right away
+  else fitFlexibleTasks();
   const nextTask = pointer < tasks.length ? tasks[pointer] : null;
   playForTask(nextTask);
 }
@@ -4612,6 +4641,7 @@ function startNextTask(){
   const nowMin = now.getHours()*60 + now.getMinutes() + now.getSeconds()/60;
   awaitingStart = false;
   recomputeUpcoming(nowMin); // anchor the next task (and the following ones) from now
+  fitFlexibleTasks(true);
   lastSegTaskIndex = -1;
   playForTask(tasks[pointer]);
   progressAction();
@@ -4991,7 +5021,8 @@ function configRoutineToDraft(r){
       end: arrToHHMM(t.end),
       soundType: (t.sound && ['melody', 'family'].includes(t.sound.type)) ? t.sound.type : ((t.sound && t.sound.src) ? 'url' : 'chime'),
       soundUrl: (t.sound && t.sound.src) ? t.sound.src : '',
-      soundAudioId: (t.sound && t.sound.type === 'family') ? t.sound.id : ''
+      soundAudioId: (t.sound && t.sound.type === 'family') ? t.sound.id : '',
+      flex: !!t.flex
     }))
   };
 }
@@ -5416,6 +5447,7 @@ function renderSettingsRows(){
         <button class="row-down" data-index="${i}" ${i===draftTasks.length-1?'disabled':''} title="${tr('move_down')}">▼</button>
       </div>
       <button class="remove-task-btn" data-index="${i}" title="${tr('remove_task')}">🗑</button>
+      <label class="flex-toggle" title="${tr('can_shorten_hint')}"><input type="checkbox" data-field="flex" data-index="${i}" ${t.flex ? 'checked' : ''}> ${tr('can_shorten')}</label>
       <div class="emoji-picker">
         ${EMOJI_PRESETS.map(e => `<button type="button" data-index="${i}" data-emoji="${e}" class="${t.emoji===e?'selected':''}">${e}</button>`).join('')}
       </div>
@@ -5474,6 +5506,7 @@ document.getElementById('autolink-toggle').addEventListener('change', (e) => {
 settingsTasksList.addEventListener('input', (e) => {
   const field = e.target.dataset.field;
   if(!field) return;
+  if(e.target.type === 'checkbox'){ draftTasks[parseInt(e.target.dataset.index, 10)][field] = e.target.checked; return; }
   const idx = parseInt(e.target.dataset.index, 10);
   draftTasks[idx][field] = e.target.value;
 });
@@ -5576,7 +5609,7 @@ function saveSettings(){
       if(t.soundType === 'melody') sound = { type: 'melody' };
       else if(t.soundType === 'family' && AUDIOS.some(a => a.id === t.soundAudioId)) sound = { type: 'family', id: t.soundAudioId };
       else if(t.soundType === 'url' && t.soundUrl && t.soundUrl.trim()) sound = { type: 'url', src: t.soundUrl.trim(), loop: false };
-      return { name: t.name.trim(), emoji: t.emoji, start: hhmmToArr(t.start), end: hhmmToArr(t.end), sound };
+      return { name: t.name.trim(), emoji: t.emoji, start: hhmmToArr(t.start), end: hhmmToArr(t.end), sound, flex: t.flex || undefined };
     })
   }));
 
@@ -6995,7 +7028,7 @@ function buildPanels(){
     panel.style.setProperty('--c', `var(--${child.color || 'sky'})`);
     panel.innerHTML = `
       <div class="kid-head"><span class="kid-avatar"></span><span class="kid-name"></span>
-        <span class="kid-deadline"><span class="kid-forecast"></span>🚩 <span class="kid-limit-h">--</span>:<span class="kid-limit-m">--</span></span></div>
+        <span class="kid-deadline"><span class="kid-forecast"></span><span hidden><span class="kid-limit-h"></span><span class="kid-limit-m"></span></span></span></div>
       <div class="kid-hero">
         <div class="kid-emoji">⏰</div>
         <div class="kid-info">
