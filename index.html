@@ -45,7 +45,7 @@
 <meta name="color-scheme" content="light dark">
 <title>Routikids</title>
 <!-- The code version lives here (read by the app and by the update check); bump it on every change. -->
-<meta name="app-version" content="Versão do código: 2026-09-29 23:35">
+<meta name="app-version" content="Versão do código: 2026-09-30 14:05">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@500;700;800&family=Nunito:wght@600;800&display=swap" rel="stylesheet">
@@ -180,6 +180,50 @@
     border-radius:16px;
     padding:0.8vh 1vw;
   }
+  .timeline-forecast{
+    font-family:'Baloo 2', sans-serif;
+    font-weight:800;
+    font-size:1.2vw;
+    color:var(--navy);
+    margin:-0.4vh 0 0.4vh 0.4vw;
+  }
+  .timeline-forecast:empty{ display:none; }
+  .timeline-forecast .limit-title{ font-family:'Nunito', sans-serif; font-weight:700; }
+  .pictures-only .timeline-forecast{ width:100%; }
+  /* Times that moved from the plan: new time in red (later) or green (earlier), the planned one in brackets */
+  .t-late{ color:#c1121f; font-weight:800; }
+  .t-early{ color:#1b7f4b; font-weight:800; }
+  .t-orig{ opacity:0.7; font-weight:600; }
+  .kid-forecast .t-late, .kid-forecast .t-early{ background:white; border-radius:999px; padding:0 0.35em; }
+  .kid-forecast{ margin-right:0.8em; }
+  #skip-task-btn, .kid-skip{
+    font-family:'Baloo 2', sans-serif;
+    font-weight:800;
+    font-size:clamp(14px, 1.1vw, 24px);
+    background:rgba(29,53,87,0.1);
+    color:var(--navy);
+    border:none;
+    border-radius:14px;
+    padding:0.6vh 1.2vw;
+    margin-top:1vh;
+    cursor:pointer;
+    display:none;
+  }
+  .kid-skip{ font-size:calc(var(--w) * 0.026); padding:0.4vh calc(var(--w) * 0.025); margin-top:0.6vh; }
+  #skip-task-btn:focus, .kid-skip:focus, .skip-btn:focus{ outline:4px solid var(--sun); outline-offset:2px; }
+  .skip-btn{
+    font-size:clamp(14px, 1.2vw, 26px);
+    background:rgba(29,53,87,0.08);
+    border:none;
+    border-radius:10px;
+    padding:0.4vh 0.6vw;
+    cursor:pointer;
+    flex-shrink:0;
+  }
+  .kid-timeline .skip-btn{ font-size:calc(var(--w) * 0.03); }
+  .pictures-only .step .skip-btn{ display:none; }
+  .step.skip-planned{ opacity:0.45 !important; }
+  .step.skip-planned .name{ text-decoration:line-through; }
   #limit-control{
     display:flex;
     align-items:center;
@@ -1607,6 +1651,7 @@
     #browse-controls button{ font-size:20px; padding:10px 22px; }
     #timeline{ overflow:visible; gap:8px; }
     .timeline-title{ font-size:18px; padding:0 4px; }
+    .timeline-forecast{ font-size:16px; margin:0 4px 4px; }
     .step{ padding:10px 12px; gap:12px; border-radius:14px; }
     .step .emoji{ font-size:30px; }
     .step .name{ font-size:18px; }
@@ -1710,6 +1755,7 @@
     <div id="segments"></div>
     <button id="finish-early-btn" data-i18n="finish_early"></button>
     <button id="start-next-btn" data-i18n="start"></button>
+    <button id="skip-task-btn"></button>
     <div id="browse-controls">
       <button id="browse-prev-btn" data-i18n-title="browse_prev_title">◀</button>
       <button id="browse-next-btn" data-i18n-title="browse_next_title">▶</button>
@@ -2109,6 +2155,14 @@ const I18N = {
     welcome_title: "👋 Bem-vindo ao {app}!",
     tagline: "a rotina das crianças, passo a passo",
     runner_label: "Figura quando é hora de acelerar:",
+    skip_btn: "⏭️ Pular",
+    skip_title: "Pular hoje",
+    unskip_title: "Fazer hoje de novo",
+    skip_q: "Pular \"{task}\" hoje? A rotina salva não muda.",
+    skip_yes: "Pular",
+    skipped_today: "⏭️ Pulada hoje",
+    forecast_label: "🏁 Término previsto",
+    forecast_done: "🏁 Terminou às",
     audio_title: "🎙️ Áudios da família",
     audio_hint: "Grave uma frase curta (até 15 segundos) ou envie um arquivo de áudio. Os áudios ficam guardados na hora e aparecem nas opções de som das tarefas e de cada criança. Com os aparelhos conectados, ficam no banco de dados da família e só os seus aparelhos têm acesso.",
     audio_name_ph: "Nome do áudio, ex.: Parabéns da mamãe",
@@ -2419,6 +2473,14 @@ const I18N = {
     welcome_title: "👋 Welcome to {app}!",
     tagline: "kids' routines, step by step",
     runner_label: "Picture when it's time to hurry:",
+    skip_btn: "⏭️ Skip",
+    skip_title: "Skip today",
+    unskip_title: "Do it today after all",
+    skip_q: "Skip \"{task}\" today? The saved routine doesn't change.",
+    skip_yes: "Skip",
+    skipped_today: "⏭️ Skipped today",
+    forecast_label: "🏁 Expected end",
+    forecast_done: "🏁 Ended at",
     audio_title: "🎙️ Family audios",
     audio_hint: "Record a short phrase (up to 15 seconds) or send an audio file. Audios are saved right away and show up in the sound options of the tasks and of each child. With paired devices, they're kept in the family's database and only your devices can reach them.",
     audio_name_ph: "Audio name, e.g. Well done from Mom",
@@ -2729,6 +2791,14 @@ const I18N = {
     welcome_title: "👋 Willkommen bei {app}!",
     tagline: "die Kinder-Routine, Schritt für Schritt",
     runner_label: "Bild, wenn es schneller gehen soll:",
+    skip_btn: "⏭️ Überspringen",
+    skip_title: "Heute überspringen",
+    unskip_title: "Heute doch machen",
+    skip_q: "„{task}“ heute überspringen? Die gespeicherte Routine bleibt gleich.",
+    skip_yes: "Überspringen",
+    skipped_today: "⏭️ Heute übersprungen",
+    forecast_label: "🏁 Voraussichtliches Ende",
+    forecast_done: "🏁 Fertig um",
     audio_title: "🎙️ Audios der Familie",
     audio_hint: "Nimm einen kurzen Satz auf (bis zu 15 Sekunden) oder schicke eine Audiodatei. Audios werden sofort gespeichert und erscheinen in den Tonoptionen der Aufgaben und jedes Kindes. Mit verbundenen Geräten liegen sie in der Datenbank der Familie, und nur eure Geräte haben Zugriff.",
     audio_name_ph: "Name des Audios, z. B. Super von Mama",
@@ -3421,7 +3491,8 @@ function snapshotDay(){
     child: ACTIVE_CHILD_ID, date: scheduleDate, test: runningTestStart, seq: progressSeq, pointer, awaitingStart, limitMin, limitRid: currentLimitRoutineId,
     tasks: tasks.map(t => ({
       name: t.name, routineId: t.routineId, plannedStartMin: t.plannedStartMin, plannedDurationMin: t.plannedDurationMin,
-      baseDurationMin: t.baseDurationMin, redMin: t.redMin, outcome: t.outcome, startMin: t.startMin, endMin: t.endMin
+      baseDurationMin: t.baseDurationMin, redMin: t.redMin, outcome: t.outcome, startMin: t.startMin, endMin: t.endMin,
+      userSkipped: t.userSkipped || undefined
     }))
   };
 }
@@ -3517,7 +3588,7 @@ function saveDayState(){
 function mergeDayProgress(prev, force){
   const prevPointer = Math.min(prev.pointer || 0, prev.tasks.length);
   const prevCurrent = prev.tasks[prevPointer];
-  const hasProgress = prevPointer > 0 || prev.awaitingStart || (prevCurrent && prevCurrent.redMin > 0);
+  const hasProgress = prevPointer > 0 || prev.awaitingStart || (prevCurrent && prevCurrent.redMin > 0) || prev.tasks.some(t => t.userSkipped);
   if(!hasProgress && !force) return false;
 
   // Match tasks by routine + name (+ repetition), or else by routine + planned start (a renamed task).
@@ -3540,7 +3611,7 @@ function mergeDayProgress(prev, force){
     const i = findFresh(o, oldKeys[k]);
     if(i < 0) return;
     const t = tasks[i];
-    Object.assign(t, { startMin: o.startMin, endMin: o.endMin, outcome: o.outcome, redMin: o.redMin, baseDurationMin: o.baseDurationMin });
+    Object.assign(t, { startMin: o.startMin, endMin: o.endMin, outcome: o.outcome, redMin: o.redMin, baseDurationMin: o.baseDurationMin, userSkipped: !!o.userSkipped });
     done.push(t);
   });
   const rest = [];
@@ -3556,6 +3627,7 @@ function mergeDayProgress(prev, force){
       t.redMin = o.redMin;
       t.baseDurationMin = t.plannedDurationMin + o.redMin;
     }
+    if(o.userSkipped){ t.userSkipped = true; t.baseDurationMin = 0; }
     rest.push({ t, old: o, isCurrent });
   });
 
@@ -3607,33 +3679,14 @@ function checkDayRollover(){
   }
 }
 
-// Reload the page automatically from time to time, but only at safe moments
-// (today's routine hasn't started, has finished, or is waiting for the next) —
-// never in the middle of an active task, so no progress/extension that only
-// exists in this session's memory is lost. Ensures the TV always runs the
-// latest published version and avoids any hang from continuous use.
-const AUTO_REFRESH_MIN_INTERVAL_MS = 20 * 60 * 1000; // at least 20min between reloads
-const AUTO_REFRESH_STABLE_MS = 15 * 60 * 1000;       // only reload after 15min "idle" in a safe state
-let safeStateSince = null;
-
+// Reload the page when a new version is published, but only at a safe moment
+// (no child in the middle of a task), so no progress is lost. There is no
+// periodic reload any more: each reload may make the browser hold the sound
+// back until the next tap.
 function maybeAutoRefresh(nowMin){
   // Safe only when no child is in the middle of a task.
   const isSafe = SLOTS.every(slot => withChild(slot, () => (pointer >= tasks.length) || (tasks[pointer] && nowMin < tasks[pointer].startMin)));
-  if(!isSafe){
-    safeStateSince = null;
-    return;
-  }
-  if(updateAvailable && isQuietForReload()){ reloadFresh(); return; }
-  if(safeStateSince === null) safeStateSince = Date.now();
-  const stableFor = Date.now() - safeStateSince;
-  if(stableFor < AUTO_REFRESH_STABLE_MS) return;
-
-  let lastReload = 0;
-  try{ lastReload = parseInt(localStorage.getItem('lastAutoRefresh') || '0', 10); }catch(e){}
-  if(Date.now() - lastReload < AUTO_REFRESH_MIN_INTERVAL_MS) return;
-
-  try{ localStorage.setItem('lastAutoRefresh', String(Date.now())); }catch(e){}
-  reloadFresh(); // a plain reload() may be served the same cached copy
+  if(isSafe && updateAvailable && isQuietForReload()) reloadFresh();
 }
 
 function fmt([h,m]){
@@ -3654,6 +3707,8 @@ let heroSub = document.getElementById('hero-sub');
 let minutesLeftEl = document.getElementById('minutes-left');
 let segmentsEl = document.getElementById('segments');
 let finishEarlyBtn = document.getElementById('finish-early-btn');
+let skipBtn = document.getElementById('skip-task-btn');
+let forecastEl = null; // a column's forecast (the main screen's is in its list, see showForecastFor)
 let browseControlsEl = document.getElementById('browse-controls');
 let browsePrevBtn = document.getElementById('browse-prev-btn');
 let browseNextBtn = document.getElementById('browse-next-btn');
@@ -3787,13 +3842,128 @@ function updateHeaderTitle(){
   pageTitleEl.textContent = child.name ? tr('page_title_child', { name: child.name, icon }) : `${icon} ${APP_NAME}`;
 }
 
+// ---------- Forecast: when things will happen, given what happened so far ----------
+// The tasks' times, or, while the next task waits for its "Start" past its
+// time, those times moved on from now (the same way "Start" will move them).
+function forecastTimes(){
+  const out = tasks.map(t => ({ start: t.startMin, end: t.endMin }));
+  if(!awaitingStart || pointer >= tasks.length) return out;
+  let cursor = nowInMinutes();
+  if(cursor <= tasks[pointer].startMin) return out;
+  for(let i = pointer; i < tasks.length; i++){
+    const start = i === pointer ? cursor : nextStartAfter(tasks[i - 1], tasks[i], cursor);
+    out[i] = { start, end: start + tasks[i].baseDurationMin };
+    cursor = out[i].end;
+  }
+  return out;
+}
+// A time (or range) that moved from the plan shows in red (later) or green
+// (earlier), with the planned one in brackets.
+function shiftedHtml(now, planned, later){
+  if(now === planned) return now;
+  return `<span class="${later ? 't-late' : 't-early'}">${now}</span> <span class="t-orig">(${planned})</span>`;
+}
+function timeShiftHtml(value, plannedValue){
+  return shiftedHtml(fmtMin(value), fmtMin(plannedValue), value > plannedValue);
+}
+function stepTimeHtml(t, i, times){
+  if(t.userSkipped) return tr('skipped_today');
+  if(i < pointer) return `${fmtMin(t.startMin)} – ${fmtMin(t.endMin)}${t.redMin ? ` (+${t.redMin}min)` : ''}`;
+  const { start, end } = times[i];
+  const plannedEnd = t.plannedStartMin + t.plannedDurationMin;
+  const later = Math.round(end) !== Math.round(plannedEnd) ? end > plannedEnd : start > t.plannedStartMin;
+  return shiftedHtml(`${fmtMin(start)} – ${fmtMin(end)}`, `${fmtMin(t.plannedStartMin)} – ${fmtMin(plannedEnd)}`, later);
+}
+function refreshStepTimes(){
+  const times = forecastTimes();
+  tasks.forEach((t, i) => {
+    const el = stepEl(i);
+    const timeEl = el && el.querySelector('.time');
+    if(!timeEl) return;
+    const html = stepTimeHtml(t, i, times);
+    if(timeEl.dataset.h !== html){ timeEl.innerHTML = html; timeEl.dataset.h = html; }
+  });
+}
+
+// ---------- Skipping a task (just for today) ----------
+// A skipped task takes no time and gets no star or turtle (⏭️ in the list).
+// The current one closes right away, like "I'm done"; a later one is marked
+// and passed over when its turn comes. A later one can be brought back.
+function passSkipped(){
+  while(pointer < tasks.length && tasks[pointer].userSkipped){
+    const t = tasks[pointer];
+    t.outcome = 'skipped';
+    t.baseDurationMin = 0;
+    t.endMin = t.startMin;
+    pointer++;
+  }
+  if(pointer >= tasks.length) awaitingStart = false;
+}
+function skipTask(idx){
+  if(idx < pointer || idx >= tasks.length) return;
+  const t = tasks[idx];
+  const nowMin = nowInMinutes();
+  t.userSkipped = true;
+  if(idx === pointer && !awaitingStart && nowMin >= t.startMin){
+    if(confirmState) closeConfirm();
+    t.endMin = Math.max(t.startMin, Math.min(nowMin, t.endMin));
+    t.outcome = 'skipped';
+    pointer++;
+    passSkipped();
+    if(pointer < tasks.length) awaitingStart = true;
+    else recomputeUpcoming();
+  } else {
+    t.baseDurationMin = 0;
+    const running = pointer < tasks.length && idx > pointer && !awaitingStart && nowMin >= tasks[pointer].startMin;
+    if(running) cascadeAfterPointer();
+    else{ recomputeUpcoming(); passSkipped(); recomputeUpcoming(); }
+  }
+  lastSegTaskIndex = -1;
+  rebuildTimelineDOM();
+}
+function unskipTask(idx){
+  const t = tasks[idx];
+  if(idx <= pointer || !t || !t.userSkipped) return;
+  t.userSkipped = false;
+  t.baseDurationMin = t.plannedDurationMin;
+  const running = !awaitingStart && nowInMinutes() >= tasks[pointer].startMin;
+  if(running) cascadeAfterPointer(); else recomputeUpcoming();
+  rebuildTimelineDOM();
+  progressAction();
+  render();
+}
+// Asks first, so a stray tap (or a child) doesn't skip a task.
+function askSkip(idx){
+  const slot = currentSlot;
+  const t = tasks[idx];
+  if(!t || idx < pointer) return;
+  appConfirm(tr('skip_q', { task: t.name }), tr('skip_yes')).then(ok => {
+    if(!ok || !SLOTS.includes(slot)) return;
+    withChild(slot, () => {
+      const i = tasks.indexOf(t);
+      if(i < pointer) return;
+      skipTask(i);
+      progressAction();
+      render();
+    });
+  });
+}
+function onStepSkip(idx){
+  const t = tasks[idx];
+  if(!t || idx < pointer) return;
+  if(t.userSkipped) unskipTask(idx);
+  else askSkip(idx);
+}
+skipBtn.addEventListener('click', () => askSkip(pointer));
+
 // ---------- Timeline construction (rebuilt whenever the order changes) ----------
 function rebuildTimelineDOM(){
   const child = CHILDREN.find(c => c.id === ACTIVE_CHILD_ID);
   timelineEl.classList.toggle('pictures-only', !!(child && child.picturesOnly));
   timelineEl.innerHTML = `<div class="timeline-title"${timelineEl.id === 'timeline' ? ' id="timeline-title"' : ''}></div>`
-    + (panelEl ? '<div class="kid-trail"></div>' : '');
+    + (panelEl ? '<div class="kid-trail"></div>' : '<div class="timeline-forecast"></div>');
   timelinePreviewKey = null;
+  const times = forecastTimes();
   tasks.forEach((t, i) => {
     const div = document.createElement('div');
     div.className = 'step';
@@ -3802,15 +3972,18 @@ function rebuildTimelineDOM(){
     const isDone = i < pointer;
     const canMoveUp = !isDone && i > pointer;
     const canMoveDown = !isDone && i < tasks.length - 1;
+    if(!isDone && t.userSkipped) div.classList.add('skip-planned');
+    const timeHtml = stepTimeHtml(t, i, times);
     div.innerHTML = `
       <div class="emoji">${t.emoji}</div>
       <div class="info">
         <div class="name">${t.name}</div>
-        <div class="time">${fmtMin(t.startMin)} – ${fmtMin(t.endMin)}${t.redMin ? ` (+${t.redMin}min)` : ''}</div>
+        <div class="time" data-h="${timeHtml.replace(/"/g, '&quot;')}">${timeHtml}</div>
       </div>
       ${isDone
-        ? `<div class="check">✔</div>${t.outcome === 'skipped' ? '' : `<div class="outcome-badge${t.outcome === 'late' ? '' : ' star'}">${t.outcome === 'late' ? LATE_ICON : ONTIME_ICON}</div>`}`
-        : `<div class="reorder-controls">
+        ? `<div class="check">${t.userSkipped ? '⏭️' : '✔'}</div>${t.outcome === 'skipped' ? '' : `<div class="outcome-badge${t.outcome === 'late' ? '' : ' star'}">${t.outcome === 'late' ? LATE_ICON : ONTIME_ICON}</div>`}`
+        : `<button type="button" class="skip-btn" data-index="${i}" title="${tr(t.userSkipped ? 'unskip_title' : 'skip_title')}">${t.userSkipped ? '↩️' : '⏭️'}</button>
+           <div class="reorder-controls">
              <button class="reorder-btn up" data-index="${i}" ${canMoveUp ? '' : 'disabled'} title="${tr('move_earlier')}">▲</button>
              <button class="reorder-btn down" data-index="${i}" ${canMoveDown ? '' : 'disabled'} title="${tr('move_later')}">▼</button>
            </div>`
@@ -3861,6 +4034,25 @@ function showDeadlineFor(focus){
   limitControlEl.querySelectorAll('.limit-btn').forEach(btn => { btn.disabled = !live; });
   limitHourEl.textContent = String(Math.floor(value / 60) % 24).padStart(2, '0');
   limitMinEl.textContent = String(Math.round(value % 60)).padStart(2, '0');
+  showForecastFor(focus);
+}
+// When today's routine on screen will end (or ended), next to its deadline:
+// the deadline is the goal the parents set, this is what is happening.
+function showForecastFor(focus){
+  const el = panelEl ? forecastEl : timelineEl.querySelector('.timeline-forecast');
+  if(!el) return;
+  let html = '';
+  if(focus && focus.day === 0 && tasks.length){
+    const b = focus.block;
+    const end = forecastTimes()[b.endIdx].end;
+    const value = timeShiftHtml(end, routineTargetAndLimit(b.startIdx).targetEndMin);
+    html = panelEl ? `🏁 ${value}`
+      : `<span class="limit-title">${tr(pointer > b.endIdx ? 'forecast_done' : 'forecast_label')}</span> ${value}`;
+  }
+  if(el.dataset.h !== html){
+    el.innerHTML = html;
+    el.dataset.h = html;
+  }
 }
 
 function applyTimelineFocus(){
@@ -3896,7 +4088,7 @@ function applyTimelineFocus(){
       if(el) el.classList.toggle('collapsed', hide);
       if(hide) collapsed.push(t);
     });
-    const html = collapsed.map(t => `<span class="trail-item">${t.emoji}<small>${t.outcome === 'skipped' ? '✔' : (t.outcome === 'late' ? LATE_ICON : ONTIME_ICON)}</small></span>`).join('');
+    const html = collapsed.map(t => `<span class="trail-item">${t.emoji}<small>${t.userSkipped ? '⏭️' : t.outcome === 'skipped' ? '✔' : (t.outcome === 'late' ? LATE_ICON : ONTIME_ICON)}</small></span>`).join('');
     if(trail.innerHTML !== html) trail.innerHTML = html;
   }
   if(day === 0){ clearTimelinePreview(); return; }
@@ -4322,6 +4514,7 @@ function markTaskDone(actualEndMin){
   if(tasks[pointer].outcome === 'onTime') celebrate();
   else encourage();
   pointer++;
+  passSkipped();
   lastSegTaskIndex = -1;
   rebuildTimelineDOM();
 }
@@ -4440,6 +4633,8 @@ function moveTask(idx, dir){
   render();
 }
 timelineEl.addEventListener('click', (e) => {
+  const skip = e.target.closest('.skip-btn');
+  if(skip){ onStepSkip(parseInt(skip.dataset.index, 10)); return; }
   const btn = e.target.closest('.reorder-btn');
   if(!btn || btn.disabled) return;
   const idx = parseInt(btn.dataset.index, 10);
@@ -4475,6 +4670,15 @@ function renderMain(){
     if(i < pointer) el.classList.add('finished');
     else if(i === pointer) el.classList.add('active');
   });
+  // A task skipped in advance whose turn came (e.g. after a reload): pass it.
+  if(pointer < tasks.length && tasks[pointer].userSkipped && !confirmState){
+    passSkipped();
+    recomputeUpcoming();
+    rebuildTimelineDOM();
+  }
+  refreshStepTimes();
+  skipBtn.style.display = 'none';
+  skipBtn.textContent = tr('skip_btn');
   // A column's list may not fit: keep the current task in view (scrolled once per task).
   if(panelEl && timelineEl.dataset.scrolledTo !== String(pointer)){
     const el = stepEl(Math.min(pointer, tasks.length - 1));
@@ -4534,6 +4738,7 @@ function renderMain(){
     finishEarlyBtn.style.display = 'none';
     startNextBtn.style.display = 'inline-block';
     startNextBtn.textContent = tr('start_task', { task: t.name });
+    skipBtn.style.display = 'inline-block';
     return;
   }
   finishEarlyBtn.style.display = 'inline-block';
@@ -4615,7 +4820,9 @@ function renderMain(){
   heroEl.classList.remove('done');
   heroEmoji.textContent = t.emoji;
   heroLabel.textContent = t.name;
-  heroSub.textContent = confirmState ? tr('confirming') : tr('until', { time: fmtMin(t.endMin) });
+  skipBtn.style.display = 'inline-block';
+  if(confirmState) heroSub.textContent = tr('confirming');
+  else heroSub.innerHTML = tr('until', { time: timeShiftHtml(t.endMin, t.plannedStartMin + t.plannedDurationMin) });
 
   const total = t.endMin - t.startMin;
   const elapsed = confirmState ? total : Math.max(0, nowMin - t.startMin);
@@ -4632,7 +4839,14 @@ function renderMain(){
 // ---------- Sound on/off button ----------
 const toggleBtn = document.getElementById('sound-toggle');
 
-function setSoundEnabled(enabled){
+// The choice is remembered, so a reload (e.g. a new version) doesn't turn the
+// sound off. Browsers may still hold sound back until the first tap or key
+// press after a reload (soundBlocked): any tap or key then brings it back.
+const SOUND_ON_KEY = 'rotinaSoundOn_v1';
+let soundBlocked = false;
+function setSoundEnabled(enabled, remember){
+  if(remember) lsSet(SOUND_ON_KEY, enabled ? '1' : null);
+  soundBlocked = false;
   soundEnabled = enabled;
   toggleBtn.textContent = enabled ? '🔊' : '🔇';
   toggleBtn.classList.toggle('off', !enabled);
@@ -4644,7 +4858,7 @@ function setSoundEnabled(enabled){
     stopTaskAudio();
   }
 }
-function toggleSound(){ setSoundEnabled(!soundEnabled); }
+function toggleSound(){ setSoundEnabled(!soundEnabled || soundBlocked, true); }
 toggleBtn.addEventListener('click', toggleSound);
 
 // Browsers only allow sound after a tap, and the small 🔇 button is easy to miss,
@@ -4653,17 +4867,36 @@ toggleBtn.addEventListener('click', toggleSound);
 const SOUND_PROMPT_KEY = 'rotinaSoundPrompt_v1';
 const soundPromptEl = document.getElementById('sound-prompt');
 function soundPromptWanted(){
-  return !soundEnabled && lsGet(SOUND_PROMPT_KEY) !== 'off' && guessDeviceKind() !== 'phone';
+  return (!soundEnabled || soundBlocked) && lsGet(SOUND_PROMPT_KEY) !== 'off' && guessDeviceKind() !== 'phone';
 }
 function updateSoundPrompt(){
   soundPromptEl.style.display = soundPromptWanted() ? 'flex' : 'none';
 }
-document.getElementById('sound-prompt-btn').addEventListener('click', () => setSoundEnabled(true));
+document.getElementById('sound-prompt-btn').addEventListener('click', () => setSoundEnabled(true, true));
 document.getElementById('sound-prompt-close').addEventListener('click', () => {
   lsSet(SOUND_PROMPT_KEY, 'off');
   updateSoundPrompt();
 });
-setSoundEnabled(false); // initial state: off, 🔇 icon
+function restoreSound(){
+  soundEnabled = true;
+  toggleBtn.textContent = '🔊';
+  toggleBtn.classList.remove('off');
+  const check = () => {
+    soundBlocked = !audioCtx || audioCtx.state !== 'running';
+    updateSoundPrompt();
+    if(!soundBlocked) ['pointerdown', 'keydown', 'touchend'].forEach(ev => document.removeEventListener(ev, unlock, true));
+  };
+  const unlock = () => {
+    if(!soundEnabled) return;
+    try{ ensureAudioCtx().resume().then(check, check); }catch(e){}
+  };
+  try{ ensureAudioCtx(); audioCtx.onstatechange = check; }catch(e){}
+  ['pointerdown', 'keydown', 'touchend'].forEach(ev => document.addEventListener(ev, unlock, true));
+  check();
+  setTimeout(check, 1000);
+}
+if(lsGet(SOUND_ON_KEY) === '1') restoreSound();
+else setSoundEnabled(false); // initial state: off, 🔇 icon
 
 // ---------- "Test now" and "Real time" buttons ----------
 // "Test now" starts right away, with 1-minute tasks, on this device and on
@@ -6674,10 +6907,10 @@ function maybeShowWelcome(){
 // withChild(slot, fn) swaps that child's day and elements in, runs fn and
 // swaps back. Between calls the globals hold the first child's day, so with
 // one child nothing is ever swapped and the engine works as it always did.
-const MAIN_VIEW = { heroEl, heroEmoji, heroLabel, heroSub, minutesLeftEl, segmentsEl, finishEarlyBtn, startNextBtn,
+const MAIN_VIEW = { heroEl, heroEmoji, heroLabel, heroSub, minutesLeftEl, segmentsEl, finishEarlyBtn, startNextBtn, skipBtn, forecastEl,
   browseControlsEl, browsePrevBtn, browseNextBtn, timelineEl, pageTitleEl, limitHourEl, limitMinEl, limitControlEl, panelEl: null };
 function useView(v){
-  ({ heroEl, heroEmoji, heroLabel, heroSub, minutesLeftEl, segmentsEl, finishEarlyBtn, startNextBtn,
+  ({ heroEl, heroEmoji, heroLabel, heroSub, minutesLeftEl, segmentsEl, finishEarlyBtn, startNextBtn, skipBtn, forecastEl,
      browseControlsEl, browsePrevBtn, browseNextBtn, timelineEl, pageTitleEl, limitHourEl, limitMinEl, limitControlEl, panelEl } = v);
 }
 function freshDay(){
@@ -6762,7 +6995,7 @@ function buildPanels(){
     panel.style.setProperty('--c', `var(--${child.color || 'sky'})`);
     panel.innerHTML = `
       <div class="kid-head"><span class="kid-avatar"></span><span class="kid-name"></span>
-        <span class="kid-deadline">🚩 <span class="kid-limit-h">--</span>:<span class="kid-limit-m">--</span></span></div>
+        <span class="kid-deadline"><span class="kid-forecast"></span>🚩 <span class="kid-limit-h">--</span>:<span class="kid-limit-m">--</span></span></div>
       <div class="kid-hero">
         <div class="kid-emoji">⏰</div>
         <div class="kid-info">
@@ -6773,6 +7006,7 @@ function buildPanels(){
             <button type="button" class="kid-finish"><span class="kid-box"></span><span class="kid-finish-label"></span></button>
           </div>
           <button type="button" class="kid-start"></button>
+          <button type="button" class="kid-skip"></button>
           <div class="kid-browse">
             <button type="button" class="kid-prev">◀</button>
             <button type="button" class="kid-next">▶</button>
@@ -6796,6 +7030,11 @@ function buildPanels(){
       setTimeout(() => { finishBtn.classList.remove('checked'); act(finishEarly)(); }, 600);
     });
     q('.kid-start').addEventListener('click', act(startNextTask));
+    q('.kid-skip').addEventListener('click', act(() => askSkip(pointer)));
+    q('.kid-timeline').addEventListener('click', (e) => {
+      const btn = e.target.closest('.skip-btn');
+      if(btn) act(() => onStepSkip(parseInt(btn.dataset.index, 10)))();
+    });
     q('.kid-prev').title = tr('browse_prev_title');
     q('.kid-next').title = tr('browse_next_title');
     q('.kid-prev').addEventListener('click', act(browsePrev));
@@ -6803,6 +7042,7 @@ function buildPanels(){
     slot.view = {
       heroEl: q('.kid-hero'), heroEmoji: q('.kid-emoji'), heroLabel: q('.kid-label'), heroSub: q('.kid-sub'),
       minutesLeftEl: q('.kid-minutes'), segmentsEl: q('.kid-segments'), finishEarlyBtn: q('.kid-finish'), startNextBtn: q('.kid-start'),
+      skipBtn: q('.kid-skip'), forecastEl: q('.kid-forecast'),
       browseControlsEl: q('.kid-browse'), browsePrevBtn: q('.kid-prev'), browseNextBtn: q('.kid-next'),
       pageTitleEl: document.createElement('div'), // no title per column: stays off screen
       timelineEl: q('.kid-timeline'), limitHourEl: q('.kid-limit-h'), limitMinEl: q('.kid-limit-m'), limitControlEl: q('.kid-deadline'),
