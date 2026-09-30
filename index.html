@@ -45,7 +45,7 @@
 <meta name="color-scheme" content="light dark">
 <title>Routikids</title>
 <!-- The code version lives here (read by the app and by the update check); bump it on every change. -->
-<meta name="app-version" content="Versão do código: 2026-09-30 14:53">
+<meta name="app-version" content="Versão do código: 2026-09-30 17:17">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@500;700;800&family=Nunito:wght@600;800&display=swap" rel="stylesheet">
@@ -1822,6 +1822,7 @@
         </details>
         <div class="sync-buttons">
           <button type="button" id="cloud-disconnect-btn" class="util-btn" style="background:#9aa5b1; display:none;" data-i18n="disconnect"></button>
+          <button type="button" id="cloud-delete-btn" class="util-btn" style="background:var(--coral); display:none;" data-i18n="cloud_delete"></button>
         </div>
       </div>
 
@@ -1950,6 +1951,7 @@
       <button id="settings-save" class="settings-btn save" data-i18n="save"></button>
     </div>
     <p class="settings-hint" style="margin-top:1.5vh;" data-i18n-html="test_note"></p>
+    <p class="settings-hint"><a href="privacy.html" target="_blank" rel="noopener" data-i18n="privacy_link"></a></p>
     <p id="app-version" style="text-align:right; font-size:0.7vw; color:#9aa5b1; margin-top:1vh;"></p>
   </div>
 </div>
@@ -1959,7 +1961,7 @@
     <div class="lang-picker"></div>
     <h2 data-i18n="welcome_title"></h2>
     <p class="welcome-tagline" data-i18n="tagline"></p>
-    <div class="welcome-note" data-i18n-html="welcome_note"></div>
+    <div class="welcome-note"><span data-i18n-html="welcome_note"></span> <a href="privacy.html" target="_blank" rel="noopener" data-i18n="privacy_link"></a></div>
     <div class="sync-buttons" style="margin-top:1.5vh;">
       <button type="button" id="welcome-guide-btn" class="util-btn" style="background:var(--sky);" data-i18n="open_guide"></button>
       <button type="button" id="welcome-restore-btn" class="util-btn" style="background:#9aa5b1;" data-i18n="backup_restore"></button>
@@ -2034,6 +2036,7 @@
     <div class="info-text" data-i18n-html="guide_tips_html"></div>
     <h3 data-i18n="guide_privacy_title"></h3>
     <div class="info-text" data-i18n-html="guide_privacy_html"></div>
+    <p class="info-text"><a href="privacy.html" target="_blank" rel="noopener" data-i18n="privacy_link"></a></p>
     <div class="settings-actions">
       <button type="button" id="guide-close-btn" class="settings-btn save" data-i18n="close"></button>
     </div>
@@ -2168,6 +2171,14 @@ const I18N = {
     welcome_title: "👋 Bem-vindo ao {app}!",
     tagline: "a rotina das crianças, passo a passo",
     runner_label: "Figura quando é hora de acelerar:",
+    cloud_delete: "🗑️ Apagar dados da família na nuvem",
+    cloud_delete_q: "Apagar da nuvem as rotinas, o andamento, os áudios e a lista de aparelhos? Todos os aparelhos serão desconectados. A rotina continua salva neste aparelho.",
+    cloud_delete_yes: "Apagar",
+    cloud_deleting: "Apagando os dados da nuvem...",
+    cloud_deleted: "✅ Dados apagados da nuvem. A rotina continua neste aparelho.",
+    cloud_delete_failed: "⚠️ Não deu para apagar tudo agora. Verifique a internet e tente de novo.",
+    log_cloud_deleted: "Dados da família apagados da nuvem",
+    privacy_link: "🔒 Privacidade e contato",
     can_shorten: "✂️ Pode encurtar",
     can_shorten_hint: "✂️ Pode encurtar: se a criança atrasar, as tarefas marcadas diminuem (até a metade do tempo) para recuperar o atraso. Sem nenhuma marcada, o término da rotina é empurrado.",
     shortened_title: "Encurtada para recuperar o atraso",
@@ -2489,6 +2500,14 @@ const I18N = {
     welcome_title: "👋 Welcome to {app}!",
     tagline: "kids' routines, step by step",
     runner_label: "Picture when it's time to hurry:",
+    cloud_delete: "🗑️ Delete the family's data from the cloud",
+    cloud_delete_q: "Delete the routines, the progress, the audios and the device list from the cloud? Every device will be disconnected. The routine stays saved on this device.",
+    cloud_delete_yes: "Delete",
+    cloud_deleting: "Deleting the data from the cloud...",
+    cloud_deleted: "✅ Data deleted from the cloud. The routine stays on this device.",
+    cloud_delete_failed: "⚠️ Couldn't delete everything now. Check the internet and try again.",
+    log_cloud_deleted: "Family data deleted from the cloud",
+    privacy_link: "🔒 Privacy and contact",
     can_shorten: "✂️ Can be shortened",
     can_shorten_hint: "✂️ Can be shortened: if the child runs late, the marked tasks shrink (down to half their time) to make up for it. With none marked, the routine's end is pushed back.",
     shortened_title: "Shortened to make up for the delay",
@@ -2810,6 +2829,14 @@ const I18N = {
     welcome_title: "👋 Willkommen bei {app}!",
     tagline: "die Kinder-Routine, Schritt für Schritt",
     runner_label: "Bild, wenn es schneller gehen soll:",
+    cloud_delete: "🗑️ Daten der Familie aus der Cloud löschen",
+    cloud_delete_q: "Routinen, Fortschritt, Audios und Geräteliste aus der Cloud löschen? Alle Geräte werden getrennt. Die Routine bleibt auf diesem Gerät gespeichert.",
+    cloud_delete_yes: "Löschen",
+    cloud_deleting: "Daten werden aus der Cloud gelöscht...",
+    cloud_deleted: "✅ Daten aus der Cloud gelöscht. Die Routine bleibt auf diesem Gerät.",
+    cloud_delete_failed: "⚠️ Es konnte gerade nicht alles gelöscht werden. Prüfe das Internet und versuche es noch einmal.",
+    log_cloud_deleted: "Daten der Familie aus der Cloud gelöscht",
+    privacy_link: "🔒 Datenschutz und Kontakt",
     can_shorten: "✂️ Darf kürzer werden",
     can_shorten_hint: "✂️ Darf kürzer werden: Wenn das Kind in Verzug gerät, werden die markierten Aufgaben kürzer (bis zur Hälfte ihrer Zeit), um die Zeit aufzuholen. Ist keine markiert, verschiebt sich das Ende der Routine.",
     shortened_title: "Gekürzt, um den Verzug aufzuholen",
@@ -3073,6 +3100,7 @@ function applyStaticTranslations(){
   document.querySelectorAll('[data-i18n-html]').forEach(el => { el.innerHTML = tr(el.dataset.i18nHtml, htmlVars); });
   document.querySelectorAll('[data-i18n-placeholder]').forEach(el => { el.placeholder = tr(el.dataset.i18nPlaceholder); });
   document.querySelectorAll('[data-i18n-title]').forEach(el => { el.title = tr(el.dataset.i18nTitle); });
+  document.querySelectorAll('a[href^="privacy.html"]').forEach(a => { a.href = 'privacy.html?lang=' + LANG; }); // same language as the app
   const stamp = (document.querySelector('meta[name="app-version"]').content.match(/\d{4}-\d{2}-\d{2} \d{2}:\d{2}/) || [''])[0];
   document.getElementById('app-version').textContent = `${tr('code_version')}: ${stamp}`;
 }
@@ -6122,6 +6150,7 @@ function updateCloudStatus(){
   else if(legacyPairingNotice) setCloudStatus(tr('cloud_legacy'));
   else setCloudStatus(tr('cloud_not_connected'));
   document.getElementById('cloud-disconnect-btn').style.display = connected ? '' : 'none';
+  document.getElementById('cloud-delete-btn').style.display = connected ? '' : 'none';
   if(!connected) renderDevices(null);
 }
 
@@ -6569,6 +6598,9 @@ function leaveHouse(){
   const houseId = getHouseId();
   const uid = getUid();
   if(houseId && uid) cloudFetch(`houses/${houseId}/members/${uid}`, { method: 'DELETE' }).catch(() => {});
+  forgetHouse();
+}
+function forgetHouse(){
   stopHouseSync();
   hidePairCode();
   lsSet(HOUSE_ID_KEY, null);
@@ -6582,6 +6614,37 @@ document.getElementById('cloud-join-btn').addEventListener('click', () => {
   joinWithCode(document.getElementById('cloud-code-input').value);
 });
 document.getElementById('cloud-disconnect-btn').addEventListener('click', disconnectHouse);
+document.getElementById('cloud-delete-btn').addEventListener('click', deleteCloudData);
+
+// Deletes everything the family has in the database (audios, today's progress,
+// the config, then every device, this one last) and disconnects. The routine
+// stays on this device; the other devices keep theirs and lose the connection.
+function deleteCloudData(){
+  appConfirm(tr('cloud_delete_q'), tr('cloud_delete_yes')).then(ok => {
+    const houseId = getHouseId();
+    const uid = getUid();
+    if(!ok || !houseId) return;
+    setCloudStatus(tr('cloud_deleting'));
+    stopHouseSync();
+    const del = path => cloudFetch(path, { method: 'DELETE' });
+    Promise.all(AUDIOS.map(a => del(`audio/${houseId}/${a.id}`).catch(() => {})))
+      .then(() => del(`houses/${houseId}/progress`))
+      .then(() => del(`houses/${houseId}/data`))
+      .then(() => cloudFetch(`houses/${houseId}/members`))
+      .then(members => Promise.all(Object.keys(members || {}).filter(id => id !== uid).map(id => del(`houses/${houseId}/members/${id}`))))
+      .then(() => del(`houses/${houseId}/members/${uid}`))
+      .then(() => {
+        logCloudEvent(tr('log_cloud_deleted'));
+        AUDIOS.forEach(a => { const rec = getAudioRecord(a.id); if(rec) storeAudioLocal(a.id, Object.assign({}, rec, { up: false })); });
+        forgetHouse();
+        return appAlert(tr('cloud_deleted'));
+      }, () => {
+        startHouseSync();
+        updateCloudStatus();
+        return appAlert(tr('cloud_delete_failed'));
+      });
+  });
+}
 document.getElementById('cloud-remove-others-btn').addEventListener('click', () => {
   removeMembers(Object.keys(lastMembers).filter(id => id !== getUid()));
 });

@@ -62,3 +62,9 @@ The app used to live at `fabiofialho1.github.io/rotina-infantil-na-tv/` (reposit
 - The config only has the list, `audios: [{ id, name }]`. The sound is stored apart at `audio/<houseId>/<audioId>` (`data` in base64, `mime`, `updatedAt`; members only, see `database.rules.json`), so the live house reads stay small. A new audio goes up before the config that names it. Each device keeps a copy in localStorage (`rotinaAudio_v1_<id>`, with `up` = already in the cloud); `syncAudioCache()` downloads missing ones, retries failed uploads and drops copies no longer on the list. Without pairing, audios stay on the device.
 - Uses: a task's start sound (`sound: { type: 'family', id }`), and per child `cheerAudio` (instead of the applause for a task on time) and `hurryAudio` (instead of the "vroom" with the runner). A missing or unplayable audio falls back to the default sound.
 - Backups carry the audio data (`audioData: { id: { data, mime } }`); a restore puts it back and sends it to the paired devices.
+
+## Privacy page
+
+- `privacy.html` is the privacy and contact page (pt, en, de in one file; language from `?lang=`, else the app's saved `rotinaLang_v1`, else the browser). It is plain on purpose: no web fonts or scripts from other sites. Contact: routikids.app@gmail.com. Keep it in step with what the app stores and where (update the date at the top when it changes).
+- The app links to it from the settings footer, the welcome note and the guide, always with `?lang=` of the app (`applyStaticTranslations`).
+- "🗑️ Apagar dados da família na nuvem" (sync section, when paired, `deleteCloudData`) deletes the audios, `progress`, `data`, then every member (this device last), and disconnects this device with `forgetHouse()`; the routine stays on each device. The other devices lose their access and drop the pairing on their own.
