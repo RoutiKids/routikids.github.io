@@ -1,0 +1,218 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="color-scheme" content="light dark">
+<title>Routikids · Privacidade</title>
+<!-- Privacy and contact page. Plain and self-contained on purpose: no web fonts,
+     no scripts from other sites. Same language as the app (rotinaLang_v1), or ?lang=pt|en|de. -->
+<style>
+  :root{ --navy:#1D3557; --cream:#FFF7E9; --sky:#4EA8DE; --muted:#5b6b80; }
+  *{ box-sizing:border-box; }
+  html, body{ margin:0; background:var(--cream); color:var(--navy); }
+  body{ font-family:system-ui, -apple-system, "Segoe UI", Roboto, sans-serif; line-height:1.55; padding:24px 16px 48px; }
+  main{ max-width:760px; margin:0 auto; background:#fff; border-radius:20px; padding:24px 28px; box-shadow:0 6px 0 rgba(29,53,87,0.08); }
+  h1{ font-size:28px; margin:0 0 4px; }
+  h2{ font-size:19px; margin:28px 0 8px; }
+  p, li{ font-size:16px; }
+  ul{ padding-left:22px; }
+  li{ margin:4px 0; }
+  a{ color:#1f6fb2; }
+  .updated{ color:var(--muted); font-size:14px; margin:0 0 16px; }
+  .summary{ background:rgba(78,168,222,0.1); border-radius:14px; padding:12px 16px; }
+  .langs{ display:flex; gap:8px; flex-wrap:wrap; margin-bottom:16px; }
+  .langs a{ text-decoration:none; border:2px solid rgba(29,53,87,0.15); border-radius:999px; padding:4px 12px; color:var(--navy); font-weight:600; font-size:14px; }
+  .langs a.on{ background:var(--navy); color:#fff; border-color:var(--navy); }
+  .back{ display:inline-block; margin-top:24px; font-weight:700; }
+  [data-lang]{ display:none; }
+  @media (max-width:520px){ main{ padding:18px 16px; } h1{ font-size:24px; } }
+</style>
+</head>
+<body>
+<main>
+  <nav class="langs">
+    <a href="?lang=pt" data-set="pt">🇧🇷 Português</a>
+    <a href="?lang=en" data-set="en">🇬🇧 English</a>
+    <a href="?lang=de" data-set="de">🇩🇪 Deutsch</a>
+  </nav>
+
+  <!-- ===================== Português ===================== -->
+  <section data-lang="pt">
+    <h1>Privacidade e contato</h1>
+    <p class="updated">Routikids · atualizado em 30/09/2026</p>
+    <div class="summary">
+      <p><strong>Em resumo:</strong> o Routikids não pede conta, e-mail nem telefone, não mostra anúncios e não usa rastreamento nem estatísticas de uso. A rotina fica no seu aparelho e, se você conectar outros aparelhos, num banco de dados usado só para sincronizá-los, que apenas os aparelhos da sua família conseguem ler.</p>
+    </div>
+
+    <h2>O que o app guarda</h2>
+    <ul>
+      <li>O apelido, a figura e a cor de cada criança. Use só um apelido, nada de nome completo, escola ou endereço.</li>
+      <li>As rotinas: tarefas, horários, sons e as configurações de cada criança.</li>
+      <li>O andamento do dia: quais tarefas foram feitas, quando, e se foram no tempo.</li>
+      <li>O nome e o tipo de cada aparelho conectado (por exemplo "📺 TV da sala") e quando foi usado pela última vez.</li>
+      <li>Os áudios que vocês gravarem ou enviarem em "Áudios da família".</li>
+      <li>Um histórico da conexão, só no próprio aparelho, para ajudar a entender problemas de sincronização.</li>
+    </ul>
+    <p>O microfone só é usado quando você toca em "Gravar", e a gravação para em no máximo 15 segundos.</p>
+
+    <h2>Onde ficam os dados</h2>
+    <ul>
+      <li><strong>No aparelho:</strong> tudo fica no armazenamento do navegador de cada aparelho.</li>
+      <li><strong>Com aparelhos conectados:</strong> as rotinas, o andamento do dia, os nomes dos aparelhos e os áudios ficam também no <strong>Firebase Realtime Database</strong>, um serviço do Google, com servidores nos <strong>Estados Unidos</strong>. Cada aparelho recebe uma identidade anônima (sem nome nem e-mail), e as regras do banco de dados só deixam ler e gravar os aparelhos que entraram no grupo da família com o código de conexão.</li>
+    </ul>
+
+    <h2>Outros serviços usados ao abrir o app</h2>
+    <ul>
+      <li><strong>GitHub Pages</strong> (GitHub, da Microsoft) hospeda o app e registra o acesso, como qualquer site.</li>
+      <li><strong>Google Fonts</strong> fornece as letras do app.</li>
+      <li><strong>cdnjs</strong> (Cloudflare) fornece o código que desenha o QR code.</li>
+    </ul>
+    <p>Ao carregar o app, esses serviços recebem dados técnicos normais da internet, como o endereço IP e o tipo de navegador. Os dados da rotina não são enviados a eles.</p>
+
+    <h2>Como apagar</h2>
+    <ul>
+      <li><strong>Da nuvem:</strong> em ⚙️ Configurar, na parte de conexão, toque em "🗑️ Apagar dados da família na nuvem". Isso apaga as rotinas, o andamento, os áudios e a lista de aparelhos do banco de dados e desconecta todos os aparelhos. A rotina continua no aparelho em que você tocou.</li>
+      <li><strong>De um aparelho:</strong> apague os dados do site nas configurações do navegador. Antes, se quiser, use "💾 Salvar cópia".</li>
+      <li><strong>Remover um aparelho do grupo:</strong> em ⚙️ Configurar, na lista de aparelhos conectados.</li>
+      <li>Se precisar de ajuda para apagar algo, escreva para o e-mail abaixo.</li>
+    </ul>
+
+    <h2>Crianças</h2>
+    <p>O app é configurado pelos pais ou responsáveis. As crianças só veem e tocam na rotina. Por isso pedimos apenas apelidos e nenhum dado que identifique a criança.</p>
+
+    <h2>Versão de teste</h2>
+    <p>O Routikids é gratuito e está em fase de testes. Funções e esta página podem mudar. Quando algo importante mudar aqui, a data no topo muda também.</p>
+
+    <h2>Contato</h2>
+    <p>Dúvidas, sugestões ou pedidos sobre seus dados: <a href="mailto:routikids.app@gmail.com">routikids.app@gmail.com</a></p>
+  </section>
+
+  <!-- ===================== English ===================== -->
+  <section data-lang="en">
+    <h1>Privacy and contact</h1>
+    <p class="updated">Routikids · updated on 2026-09-30</p>
+    <div class="summary">
+      <p><strong>In short:</strong> Routikids asks for no account, e-mail or phone number, shows no ads and uses no tracking or usage statistics. The routine stays on your device and, if you connect other devices, in a database used only to sync them, which only your family's devices can read.</p>
+    </div>
+
+    <h2>What the app stores</h2>
+    <ul>
+      <li>Each child's nickname, picture and colour. Use only a nickname, no full name, school or address.</li>
+      <li>The routines: tasks, times, sounds and each child's settings.</li>
+      <li>The day's progress: which tasks were done, when, and whether on time.</li>
+      <li>The name and kind of each connected device (for example "📺 Living room TV") and when it was last used.</li>
+      <li>The audios you record or send in "Family audios".</li>
+      <li>A connection history, on the device only, to help understand sync problems.</li>
+    </ul>
+    <p>The microphone is only used when you tap "Record", and a recording stops after 15 seconds at most.</p>
+
+    <h2>Where the data is kept</h2>
+    <ul>
+      <li><strong>On the device:</strong> everything is kept in each device's browser storage.</li>
+      <li><strong>With connected devices:</strong> the routines, the day's progress, the device names and the audios are also kept in the <strong>Firebase Realtime Database</strong>, a Google service with servers in the <strong>United States</strong>. Each device gets an anonymous identity (no name or e-mail), and the database rules only let devices that joined the family's group with the pairing code read and write.</li>
+    </ul>
+
+    <h2>Other services used when the app opens</h2>
+    <ul>
+      <li><strong>GitHub Pages</strong> (GitHub, by Microsoft) hosts the app and logs visits, like any website.</li>
+      <li><strong>Google Fonts</strong> provides the app's lettering.</li>
+      <li><strong>cdnjs</strong> (Cloudflare) provides the code that draws the QR code.</li>
+    </ul>
+    <p>When the app loads, these services receive the usual technical data of the internet, such as the IP address and the kind of browser. Routine data is not sent to them.</p>
+
+    <h2>How to delete</h2>
+    <ul>
+      <li><strong>From the cloud:</strong> in ⚙️ Settings, in the connection part, tap "🗑️ Delete the family's data from the cloud". It deletes the routines, the progress, the audios and the device list from the database and disconnects every device. The routine stays on the device you tapped on.</li>
+      <li><strong>From a device:</strong> clear the site's data in the browser settings. If you like, use "💾 Save a copy" first.</li>
+      <li><strong>Remove a device from the group:</strong> in ⚙️ Settings, in the list of connected devices.</li>
+      <li>If you need help deleting something, write to the e-mail below.</li>
+    </ul>
+
+    <h2>Children</h2>
+    <p>The app is set up by parents or carers. Children only see and tap the routine. That's why we ask only for nicknames and no data that identifies the child.</p>
+
+    <h2>Test version</h2>
+    <p>Routikids is free and still being tested. Features and this page may change. When something important changes here, the date at the top changes too.</p>
+
+    <h2>Contact</h2>
+    <p>Questions, suggestions or requests about your data: <a href="mailto:routikids.app@gmail.com">routikids.app@gmail.com</a></p>
+  </section>
+
+  <!-- ===================== Deutsch ===================== -->
+  <section data-lang="de">
+    <h1>Datenschutz und Kontakt</h1>
+    <p class="updated">Routikids · aktualisiert am 30.09.2026</p>
+    <div class="summary">
+      <p><strong>Kurz gesagt:</strong> Routikids verlangt kein Konto, keine E-Mail und keine Telefonnummer, zeigt keine Werbung und nutzt kein Tracking und keine Nutzungsstatistik. Die Routine bleibt auf deinem Gerät und, wenn du weitere Geräte verbindest, in einer Datenbank, die nur zum Synchronisieren dient und die nur die Geräte deiner Familie lesen können.</p>
+    </div>
+
+    <h2>Was die App speichert</h2>
+    <ul>
+      <li>Spitzname, Bild und Farbe jedes Kindes. Bitte nur einen Spitznamen verwenden, keinen vollen Namen, keine Schule, keine Adresse.</li>
+      <li>Die Routinen: Aufgaben, Uhrzeiten, Töne und die Einstellungen jedes Kindes.</li>
+      <li>Den Fortschritt des Tages: welche Aufgaben erledigt wurden, wann und ob pünktlich.</li>
+      <li>Name und Art jedes verbundenen Geräts (zum Beispiel „📺 Fernseher im Wohnzimmer“) und wann es zuletzt benutzt wurde.</li>
+      <li>Die Audios, die ihr unter „Audios der Familie“ aufnehmt oder schickt.</li>
+      <li>Einen Verbindungsverlauf, nur auf dem Gerät selbst, um Probleme beim Synchronisieren zu verstehen.</li>
+    </ul>
+    <p>Das Mikrofon wird nur benutzt, wenn du auf „Aufnehmen“ tippst, und eine Aufnahme endet nach höchstens 15 Sekunden.</p>
+
+    <h2>Wo die Daten liegen</h2>
+    <ul>
+      <li><strong>Auf dem Gerät:</strong> alles liegt im Browserspeicher des jeweiligen Geräts.</li>
+      <li><strong>Mit verbundenen Geräten:</strong> Routinen, Tagesfortschritt, Gerätenamen und Audios liegen außerdem in der <strong>Firebase Realtime Database</strong>, einem Dienst von Google mit Servern in den <strong>USA</strong>. Jedes Gerät erhält eine anonyme Kennung (ohne Namen oder E-Mail), und die Regeln der Datenbank erlauben Lesen und Schreiben nur den Geräten, die der Gruppe der Familie mit dem Verbindungscode beigetreten sind.</li>
+    </ul>
+
+    <h2>Weitere Dienste beim Öffnen der App</h2>
+    <ul>
+      <li><strong>GitHub Pages</strong> (GitHub, von Microsoft) stellt die App bereit und protokolliert Zugriffe wie jede Website.</li>
+      <li><strong>Google Fonts</strong> liefert die Schriften der App.</li>
+      <li><strong>cdnjs</strong> (Cloudflare) liefert den Code, der den QR-Code zeichnet.</li>
+    </ul>
+    <p>Beim Laden der App erhalten diese Dienste die üblichen technischen Daten des Internets, etwa die IP-Adresse und die Art des Browsers. Die Daten der Routine werden nicht an sie gesendet.</p>
+
+    <h2>Löschen</h2>
+    <ul>
+      <li><strong>Aus der Cloud:</strong> unter ⚙️ Einstellungen, im Bereich Verbindung, auf „🗑️ Daten der Familie aus der Cloud löschen“ tippen. Damit werden Routinen, Fortschritt, Audios und die Geräteliste aus der Datenbank gelöscht und alle Geräte getrennt. Die Routine bleibt auf dem Gerät, auf dem du getippt hast.</li>
+      <li><strong>Von einem Gerät:</strong> die Websitedaten in den Browsereinstellungen löschen. Wenn du möchtest, vorher „💾 Kopie speichern“ nutzen.</li>
+      <li><strong>Ein Gerät aus der Gruppe entfernen:</strong> unter ⚙️ Einstellungen, in der Liste der verbundenen Geräte.</li>
+      <li>Wenn du Hilfe beim Löschen brauchst, schreib an die E-Mail unten.</li>
+    </ul>
+
+    <h2>Kinder</h2>
+    <p>Die App wird von Eltern oder Erziehungsberechtigten eingerichtet. Kinder sehen und tippen nur die Routine an. Deshalb bitten wir nur um Spitznamen und keine Daten, die das Kind erkennbar machen.</p>
+
+    <h2>Testversion</h2>
+    <p>Routikids ist kostenlos und wird noch getestet. Funktionen und diese Seite können sich ändern. Wenn sich hier etwas Wichtiges ändert, ändert sich auch das Datum oben.</p>
+
+    <h2>Kontakt</h2>
+    <p>Fragen, Vorschläge oder Anliegen zu deinen Daten: <a href="mailto:routikids.app@gmail.com">routikids.app@gmail.com</a></p>
+  </section>
+
+  <a class="back" href="./" data-back></a>
+</main>
+<script>
+  (function(){
+    var langs = ['pt', 'en', 'de'];
+    var lang = new URLSearchParams(location.search).get('lang');
+    if(langs.indexOf(lang) < 0){
+      try{ lang = localStorage.getItem('rotinaLang_v1'); }catch(e){ lang = null; }
+    }
+    if(langs.indexOf(lang) < 0){
+      var prefs = (navigator.languages && navigator.languages.length) ? navigator.languages : [navigator.language || 'en'];
+      lang = 'en';
+      for(var i = 0; i < prefs.length; i++){
+        var code = String(prefs[i]).slice(0, 2).toLowerCase();
+        if(langs.indexOf(code) >= 0){ lang = code; break; }
+      }
+    }
+    document.documentElement.lang = { pt: 'pt-BR', en: 'en', de: 'de' }[lang];
+    document.title = 'Routikids · ' + { pt: 'Privacidade', en: 'Privacy', de: 'Datenschutz' }[lang];
+    document.querySelector('[data-lang="' + lang + '"]').style.display = 'block';
+    document.querySelector('[data-set="' + lang + '"]').classList.add('on');
+    document.querySelector('[data-back]').textContent = { pt: '← Voltar ao Routikids', en: '← Back to Routikids', de: '← Zurück zu Routikids' }[lang];
+  })();
+</script>
+</body>
+</html>
