@@ -45,7 +45,7 @@
 <meta name="color-scheme" content="light dark">
 <title>Routikids</title>
 <!-- The code version lives here (read by the app and by the update check); bump it on every change. -->
-<meta name="app-version" content="Versão do código: 2026-10-01 12:34">
+<meta name="app-version" content="Versão do código: 2026-10-01 15:50">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@500;700;800&family=Nunito:wght@600;800&display=swap" rel="stylesheet">
@@ -1208,16 +1208,6 @@
     cursor:pointer;
   }
   .step-size-btn.selected{ background:var(--sky); color:white; border-color:var(--sky); }
-  #autolink-row{
-    display:flex;
-    align-items:center;
-    gap:0.5vw;
-    margin-bottom:2vh;
-    font-family:'Nunito', sans-serif;
-    font-size:0.95vw;
-    color:var(--navy);
-  }
-  #autolink-row input{ width:1.4vw; height:1.4vw; min-width:16px; min-height:16px; }
 
   /* ---- Weekly routines (tabs + table) ---- */
   #routines-section{
@@ -1712,8 +1702,6 @@
     #sync-section, #routines-section, #backup-section, #children-section, #audio-section{ padding:12px; }
     #sync-section h3, #routines-section h3, #backup-section h3, #children-section h3, #audio-section h3, #routine-tasks-heading{ font-size:18px; }
     .step-size-btn{ font-size:14px; padding:6px 12px; }
-    #autolink-row{ font-size:14px; }
-    #autolink-row input{ width:20px; height:20px; }
     .routine-tab, #routine-add-btn, #routine-delete-btn{ font-size:14px; padding:6px 12px; }
     #routine-icon-picker button, .emoji-picker button{ font-size:20px; padding:4px 6px; }
     #week-matrix{ font-size:13px; }
@@ -1864,10 +1852,6 @@
       <button type="button" class="step-size-btn" data-step="10">10 min</button>
       <button type="button" class="step-size-btn" data-step="15">15 min</button>
       <button type="button" class="step-size-btn" data-step="30">30 min</button>
-    </div>
-    <div id="autolink-row">
-      <input type="checkbox" id="autolink-toggle" checked>
-      <label for="autolink-toggle" data-i18n="autolink"></label>
     </div>
 
     <label class="settings-label" data-i18n="ontime_icon"></label>
@@ -2159,7 +2143,6 @@ const I18N = {
     nickname_placeholder: "Ex: Lulu",
     nickname_hint: "🔒 Use só um apelido, nada de nome completo, escola ou endereço.",
     step_size: "Incremento das setas de horário:",
-    autolink: "🔗 Ajustar automaticamente o início da próxima tarefa (evita buracos na agenda)",
     ontime_icon: "Ícone quando concluir no tempo",
     late_icon: "Ícone quando atrasar",
     week_title: "🗓️ Rotinas da semana",
@@ -2497,7 +2480,6 @@ const I18N = {
     nickname_placeholder: "E.g. Lulu",
     nickname_hint: "🔒 Use only a nickname, no full name, school or address.",
     step_size: "Time arrow step:",
-    autolink: "🔗 Automatically adjust the next task's start (no gaps in the schedule)",
     ontime_icon: "Icon when finished on time",
     late_icon: "Icon when late",
     week_title: "🗓️ Weekly routines",
@@ -2835,7 +2817,6 @@ const I18N = {
     nickname_placeholder: "z. B. Lulu",
     nickname_hint: "🔒 Nur einen Spitznamen verwenden, keinen vollen Namen, keine Schule, keine Adresse.",
     step_size: "Schrittweite der Zeitpfeile:",
-    autolink: "🔗 Beginn der nächsten Aufgabe automatisch anpassen (keine Lücken im Ablauf)",
     ontime_icon: "Symbol, wenn pünktlich fertig",
     late_icon: "Symbol bei Verspätung",
     week_title: "🗓️ Routinen der Woche",
@@ -3246,6 +3227,27 @@ const CHILD_RUNNERS = ['🏎️', '🚀', '🐕', '🐇'];
 const CHILD_DONE_ICONS = ['🎉', '🏆', '🥇', '🎈', '👏', '⭐', '🦸', '🐶', '🐾', '🦄', '🚀', '🌈', '👑', '💪'];
 const CHILD_ICONS = ['🦄', '🦖', '🐱', '🐶', '🦊', '🐼', '🐸', '🐙', '🚀', '⚽', '🎧', '🌸'];
 const MAX_AUDIOS = 10;
+// A task's length from its times: across midnight when the end is many hours
+// "before" the start; a broken one (end a little before the start, left by older
+// editors) gets 5 minutes. Always at least 1 minute.
+function spanMinutes(startMin, endMin){
+  let d = endMin - startMin;
+  if(d < -720) d += 1440;
+  else if(d < 0) d = 5;
+  return Math.max(1, d);
+}
+// A routine's tasks follow one another in list order, each starting where the
+// previous one ends (the day runs them that way): repairs overlaps and gaps.
+function chainConfigTasks(list){
+  if(!list.length) return;
+  let cursor = toMinutes(list[0].start);
+  list.forEach(t => {
+    const d = spanMinutes(toMinutes(t.start), toMinutes(t.end));
+    t.start = [Math.floor(cursor / 60) % 24, cursor % 60];
+    cursor = (cursor + d) % 1440;
+    t.end = [Math.floor(cursor / 60) % 24, cursor % 60];
+  });
+}
 function normalizeConfig(cfg){
   if(!cfg || !Array.isArray(cfg.routines)) return cfg;
   let children = Array.isArray(cfg.children) ? cfg.children.filter(c => c && c.id) : [];
@@ -3278,6 +3280,7 @@ function normalizeConfig(cfg){
     if(!ids.includes(r.childId)) r.childId = ids[0];
     if(r.icon !== undefined) r.icon = cleanEmoji(r.icon) || '📋';
     (r.tasks || []).forEach(t => { t.emoji = cleanEmoji(t.emoji) || '⭐'; });
+    if(Array.isArray(r.tasks) && r.tasks.every(t => Array.isArray(t.start) && Array.isArray(t.end))) chainConfigTasks(r.tasks);
   });
   cfg.childName = cfg.children[0].name;
   return cfg;
@@ -5199,7 +5202,6 @@ const settingsTasksList = document.getElementById('settings-tasks-list');
 const settingsChildNameInput = document.getElementById('settings-child-name');
 
 let timeStepMin = 5;
-let autoLinkNext = true;
 let draftOnTimeIcon = DEFAULT_ONTIME_ICON;
 let draftLateIcon = DEFAULT_LATE_ICON;
 
@@ -5288,7 +5290,6 @@ function openSettings(){
   populateDraftFromCurrentConfig();
   setAudioStatus('');
   syncAudioCache();
-  document.getElementById('autolink-toggle').checked = autoLinkNext;
   document.querySelectorAll('.step-size-btn').forEach(b => {
     b.classList.toggle('selected', parseInt(b.dataset.step,10) === timeStepMin);
   });
@@ -5731,36 +5732,47 @@ function renderSettingsRows(){
 // When changing a task's END and auto-chaining is on, push the next task's
 // START (and end, keeping its duration) along with it, so there's never
 // a gap between them.
+// A routine's tasks always follow one another with no gap or overlap (that's
+// how the day runs them), so the editor keeps them chained: each task starts
+// where the previous one ends. The arrows change the first task's start (the
+// whole routine moves), the boundary between two tasks (the earlier task gets
+// longer or shorter) or a task's end (the later ones move along). Durations
+// are at least 1 minute.
+function draftMinutes(hhmm){ return toMinutes(hhmmToArr(hhmm)); }
+function draftDuration(t){ return spanMinutes(draftMinutes(t.start), draftMinutes(t.end)); }
+function chainDraftTasks(startMin){
+  if(!draftTasks.length) return;
+  let cursor = startMin !== undefined ? startMin : draftMinutes(draftTasks[0].start);
+  cursor = ((cursor % 1440) + 1440) % 1440;
+  draftTasks.forEach(t => {
+    const duration = draftDuration(t);
+    t.start = arrToHHMM([Math.floor(cursor / 60) % 24, cursor % 60]);
+    cursor = (cursor + duration) % 1440;
+    t.end = arrToHHMM([Math.floor(cursor / 60) % 24, cursor % 60]);
+  });
+}
+function setDraftDuration(t, minutes){
+  const start = draftMinutes(t.start);
+  const end = (start + Math.max(1, minutes)) % 1440;
+  t.end = arrToHHMM([Math.floor(end / 60), end % 60]);
+}
 function adjustDraftTime(index, field, dir){
+  const delta = dir * timeStepMin;
   const t = draftTasks[index];
-  let totalMin = toMinutes(hhmmToArr(t[field])) + (dir * timeStepMin);
-  totalMin = ((totalMin % 1440) + 1440) % 1440;
-  t[field] = arrToHHMM([Math.floor(totalMin/60), totalMin%60]);
-
-  if(field === 'end' && autoLinkNext && index < draftTasks.length - 1){
-    const next = draftTasks[index+1];
-    const nextDuration = toMinutes(hhmmToArr(next.end)) - toMinutes(hhmmToArr(next.start));
-    const newNextStart = totalMin;
-    const newNextEnd = newNextStart + nextDuration;
-    next.start = arrToHHMM([Math.floor(newNextStart/60)%24, newNextStart%60]);
-    next.end = arrToHHMM([Math.floor(newNextEnd/60)%24, newNextEnd%60]);
+  if(field === 'start' && index === 0){
+    chainDraftTasks(draftMinutes(t.start) + delta);       // the whole routine moves
+  } else if(field === 'start'){
+    const prev = draftTasks[index - 1];                     // the boundary moves
+    const room = draftDuration(prev) + draftDuration(t);
+    const prevDur = Math.min(room - 1, Math.max(1, draftDuration(prev) + delta));
+    setDraftDuration(prev, prevDur);
+    setDraftDuration(t, room - prevDur);
+    chainDraftTasks();
+  } else {
+    setDraftDuration(t, draftDuration(t) + delta);          // this task changes, the later ones move
+    chainDraftTasks();
   }
   renderSettingsRows();
-}
-
-// After reordering, recompute times in a chain: each task keeps its own
-// duration, but now starts exactly where the previous one ends, in the new
-// order — the first task in the list keeps its original
-// start time.
-function recalculateDraftTaskTimes(){
-  if(draftTasks.length === 0) return;
-  let cursor = toMinutes(hhmmToArr(draftTasks[0].start));
-  draftTasks.forEach(t => {
-    const duration = toMinutes(hhmmToArr(t.end)) - toMinutes(hhmmToArr(t.start));
-    t.start = arrToHHMM([Math.floor(cursor/60)%24, cursor%60]);
-    cursor += duration;
-    t.end = arrToHHMM([Math.floor(cursor/60)%24, cursor%60]);
-  });
 }
 
 document.querySelectorAll('.step-size-btn').forEach(btn => {
@@ -5769,9 +5781,7 @@ document.querySelectorAll('.step-size-btn').forEach(btn => {
     document.querySelectorAll('.step-size-btn').forEach(b => b.classList.toggle('selected', b === btn));
   });
 });
-document.getElementById('autolink-toggle').addEventListener('change', (e) => {
-  autoLinkNext = e.target.checked;
-});
+
 
 settingsTasksList.addEventListener('input', (e) => {
   const field = e.target.dataset.field;
@@ -5821,23 +5831,27 @@ settingsTasksList.addEventListener('click', (e) => {
   }
   const removeBtn = e.target.closest('.remove-task-btn');
   if(removeBtn){
+    const start = draftTasks.length ? draftMinutes(draftTasks[0].start) : 0;
     draftTasks.splice(parseInt(removeBtn.dataset.index,10), 1);
+    chainDraftTasks(start); // the gap closes, the routine keeps its start
     renderSettingsRows();
     return;
   }
   const upBtn = e.target.closest('.row-up');
   if(upBtn && !upBtn.disabled){
     const i = parseInt(upBtn.dataset.index,10);
+    const start = draftMinutes(draftTasks[0].start);
     [draftTasks[i-1], draftTasks[i]] = [draftTasks[i], draftTasks[i-1]];
-    recalculateDraftTaskTimes();
+    chainDraftTasks(start);
     renderSettingsRows();
     return;
   }
   const downBtn = e.target.closest('.row-down');
   if(downBtn && !downBtn.disabled){
     const i = parseInt(downBtn.dataset.index,10);
+    const start = draftMinutes(draftTasks[0].start);
     [draftTasks[i+1], draftTasks[i]] = [draftTasks[i], draftTasks[i+1]];
-    recalculateDraftTaskTimes();
+    chainDraftTasks(start);
     renderSettingsRows();
     return;
   }
