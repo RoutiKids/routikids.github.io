@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="color-scheme" content="light dark">
+<meta name="robots" content="noindex">
+<title>Routikids · uso</title>
+<!-- Summary of the anonymous usage statistics (stats/days in the database, written by
+     the app's sendStats; see the privacy page). Only numbers: no names or routines. -->
+<style>
+  :root{ --navy:#1D3557; --cream:#FFF7E9; --muted:#5b6b80; --mint:#5FC28E; }
+  *{ box-sizing:border-box; }
+  html, body{ margin:0; background:var(--cream); color:var(--navy); }
+  body{ font-family:system-ui, -apple-system, "Segoe UI", Roboto, sans-serif; padding:20px 14px 40px; }
+  main{ max-width:900px; margin:0 auto; }
+  h1{ font-size:26px; margin:0 0 4px; }
+  p{ color:var(--muted); margin:4px 0 14px; }
+  .cards{ display:flex; flex-wrap:wrap; gap:10px; margin:12px 0 18px; }
+  .card{ background:#fff; border-radius:14px; padding:10px 16px; box-shadow:0 4px 0 rgba(29,53,87,0.08); min-width:140px; }
+  .card b{ display:block; font-size:28px; }
+  .card span{ color:var(--muted); font-size:14px; }
+  .wrap{ overflow-x:auto; background:#fff; border-radius:14px; box-shadow:0 4px 0 rgba(29,53,87,0.08); }
+  table{ border-collapse:collapse; width:100%; font-size:15px; }
+  th, td{ padding:8px 10px; text-align:right; border-bottom:1px solid #eee; white-space:nowrap; }
+  th:first-child, td:first-child{ text-align:left; }
+  th{ font-size:13px; color:var(--muted); font-weight:700; }
+  .bar{ display:inline-block; height:10px; background:var(--mint); border-radius:5px; vertical-align:middle; margin-right:6px; }
+</style>
+</head>
+<body>
+<main>
+  <h1>📊 Routikids · uso</h1>
+  <p>Estatísticas anônimas dos últimos 30 dias: um registro por aparelho por dia, sem nomes nem rotinas. Aparelhos com a opção desligada não aparecem.</p>
+  <div class="cards" id="cards"></div>
+  <div class="wrap"><table>
+    <thead><tr><th>Dia</th><th>Aparelhos</th><th>📺 TV</th><th>📱 Celular/tablet</th><th>💻 Computador</th><th>Conectados</th><th>Com tarefas feitas</th><th>Tarefas feitas</th><th>Idiomas</th></tr></thead>
+    <tbody id="rows"><tr><td colspan="9">Carregando...</td></tr></tbody>
+  </table></div>
+  <p id="note"></p>
+</main>
+<script>
+  var DB = 'https://rotina-infantil-7dc80-default-rtdb.firebaseio.com';
+  function cell(v){ var td = document.createElement('td'); td.textContent = v; return td; }
+  fetch(DB + '/stats/days.json?orderBy=%22$key%22&limitToLast=30', { cache: 'no-store' })
+    .then(function(r){ if(!r.ok) throw new Error('HTTP ' + r.status); return r.json(); })
+    .then(function(days){
+      days = days || {};
+      var keys = Object.keys(days).sort().reverse();
+      var rows = document.getElementById('rows');
+      rows.innerHTML = '';
+      if(!keys.length){ rows.innerHTML = '<tr><td colspan="9">Ainda sem registros.</td></tr>'; }
+      var allIds = {}, week = {}, weekActive = {}, weekTasks = 0;
+      var weekStart = new Date(Date.now() - 6 * 86400000).toISOString().slice(0, 10);
+      var max = 1;
+      keys.forEach(function(k){ max = Math.max(max, Object.keys(days[k] || {}).length); });
+      keys.forEach(function(k){
+        var recs = days[k] || {}, ids = Object.keys(recs);
+        var tv = 0, phone = 0, comp = 0, paired = 0, active = 0, tasks = 0, langs = {};
+        ids.forEach(function(id){
+          var r = recs[id] || {};
+          allIds[id] = 1;
+          if(r.k === 'tv') tv++; else if(r.k === 'computer') comp++; else phone++;
+          if(r.p) paired++;
+          if(r.d > 0) active++;
+          tasks += r.d || 0;
+          langs[r.l || '?'] = (langs[r.l || '?'] || 0) + 1;
+          if(k >= weekStart){ week[id] = 1; if(r.d > 0) weekActive[id] = 1; weekTasks += r.d || 0; }
+        });
+        var tr = document.createElement('tr');
+        tr.appendChild(cell(k.split('-').reverse().join('/')));
+        var dev = document.createElement('td');
+        var bar = document.createElement('span'); bar.className = 'bar'; bar.style.width = Math.round(80 * ids.length / max) + 'px';
+        dev.appendChild(bar); dev.appendChild(document.createTextNode(ids.length)); tr.appendChild(dev);
+        [tv, phone, comp, paired, active, tasks].forEach(function(v){ tr.appendChild(cell(v)); });
+        tr.appendChild(cell(Object.keys(langs).map(function(l){ return l + ' ' + langs[l]; }).join(' · ')));
+        rows.appendChild(tr);
+      });
+      var cards = [[Object.keys(week).length, 'aparelhos nos últimos 7 dias'], [Object.keys(weekActive).length, 'com tarefas feitas (7 dias)'],
+                   [weekTasks, 'tarefas feitas (7 dias)'], [Object.keys(allIds).length, 'aparelhos em 30 dias']];
+      document.getElementById('cards').innerHTML = '';
+      cards.forEach(function(c){
+        var d = document.createElement('div'); d.className = 'card';
+        var b = document.createElement('b'); b.textContent = c[0];
+        var s = document.createElement('span'); s.textContent = c[1];
+        d.appendChild(b); d.appendChild(s); document.getElementById('cards').appendChild(d);
+      });
+      document.getElementById('note').textContent = 'Uma família com celular e TV conta como 2 aparelhos. Os seus aparelhos também entram na conta.';
+    })
+    .catch(function(e){ document.getElementById('rows').innerHTML = '<tr><td colspan="9">Não deu para carregar (' + e.message + '). As regras do banco de dados já foram atualizadas?</td></tr>'; });
+</script>
+</body>
+</html>
