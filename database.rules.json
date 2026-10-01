@@ -49,6 +49,25 @@
         }
       }
     },
+    "stats": {
+      ".read": true,
+      "days": {
+        "$day": {
+          "$id": {
+            ".write": "newData.exists() && $day.length == 10 && $id.length >= 8 && $id.length <= 32",
+            ".validate": "newData.hasChildren(['k', 'p', 'c', 'l', 'v', 'd', 'u'])",
+            "k": { ".validate": "newData.isString() && newData.val().length <= 10" },
+            "p": { ".validate": "newData.isBoolean()" },
+            "c": { ".validate": "newData.isNumber() && newData.val() >= 0 && newData.val() <= 10" },
+            "l": { ".validate": "newData.isString() && newData.val().length <= 5" },
+            "v": { ".validate": "newData.isString() && newData.val().length <= 20" },
+            "d": { ".validate": "newData.isNumber() && newData.val() >= 0 && newData.val() <= 500" },
+            "u": { ".validate": "newData.isNumber()" },
+            "$other": { ".validate": false }
+          }
+        }
+      }
+    },
     "pairCodes": {
       "$code": {
         ".read": "auth != null && $code.length == 6",
