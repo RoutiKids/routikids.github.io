@@ -20,7 +20,8 @@
 <meta property="og:video:width" content="1280">
 <meta property="og:video:height" content="720">
 <meta name="twitter:card" content="summary_large_image">
-<!-- Demo page: the narrated demo video and a way into the app. Plain on purpose:
+<!-- Demo page: the narrated demo video (English or Portuguese: ?lang=, else the
+     browser's language) and a way into the app. Plain on purpose:
      no web fonts or scripts from other sites. The video is made by recording the
      real app (see CLAUDE.md, "Demo video"). -->
 <style>
@@ -36,19 +37,46 @@
   .cta:focus{ outline:4px solid #FFC145; outline-offset:3px; }
   .small{ font-size:15px; color:var(--muted); margin:6px 0; }
   .small a{ color:#1f6fb2; }
+  .langs{ margin:0 0 14px; font-size:15px; }
+  .langs a{ color:var(--navy); margin:0 6px; }
+  .langs a.on{ font-weight:800; text-decoration:none; }
   @media (max-width:520px){ h1{ font-size:26px; } .lead{ font-size:16px; } .cta{ font-size:19px; padding:12px 26px; } }
 </style>
 </head>
 <body>
 <main>
+  <p class="langs"><a href="?lang=en" data-lang="en">English</a> · <a href="?lang=pt" data-lang="pt">Português</a></p>
   <h1>📺 Routikids</h1>
-  <p class="lead">Your TV as a picture routine chart for kids. Here is how it works, in about a minute.</p>
-  <video controls playsinline preload="metadata" poster="poster.jpg">
-    <source src="routikids-demo-en.mp4" type="video/mp4">
-  </video>
-  <a class="cta" href="../">Try Routikids ▶</a>
-  <p class="small">Free · no account · English, Português, Deutsch</p>
-  <p class="small">Questions or ideas: <a href="mailto:routikids.app@gmail.com">routikids.app@gmail.com</a> · <a href="../privacy.html">Privacy</a></p>
+  <p class="lead" data-t="lead">Your TV as a picture routine chart for kids. Here is how it works, in about a minute.</p>
+  <video controls playsinline preload="metadata" poster="poster.jpg" src="routikids-demo-en.mp4"></video>
+  <a class="cta" href="../" data-t="cta">Try Routikids ▶</a>
+  <p class="small" data-t="free">Free · no account · English, Português, Deutsch</p>
+  <p class="small"><span data-t="questions">Questions or ideas:</span> <a href="mailto:routikids.app@gmail.com">routikids.app@gmail.com</a> · <a href="../privacy.html" data-t="privacy">Privacy</a></p>
 </main>
+<script>
+  (function(){
+    var T = {
+      en: { lead: 'Your TV as a picture routine chart for kids. Here is how it works, in about a minute.', cta: 'Try Routikids ▶',
+            free: 'Free · no account · English, Português, Deutsch', questions: 'Questions or ideas:', privacy: 'Privacy',
+            video: 'routikids-demo-en.mp4', poster: 'poster.jpg', title: 'Routikids · 1 minute demo' },
+      pt: { lead: 'Sua TV como um quadro de rotina com figuras para as crianças. Veja como funciona em cerca de um minuto.', cta: 'Experimentar o Routikids ▶',
+            free: 'Grátis · sem cadastro · Português, English, Deutsch', questions: 'Dúvidas ou ideias:', privacy: 'Privacidade',
+            video: 'routikids-demo-pt.mp4', poster: 'poster-pt.jpg', title: 'Routikids · demonstração de 1 minuto' }
+    };
+    var lang = new URLSearchParams(location.search).get('lang');
+    if(!T[lang]){
+      var prefs = (navigator.languages && navigator.languages.length) ? navigator.languages : [navigator.language || 'en'];
+      lang = 'en';
+      for(var i = 0; i < prefs.length; i++){ if(String(prefs[i]).slice(0, 2).toLowerCase() === 'pt'){ lang = 'pt'; break; } if(String(prefs[i]).slice(0, 2).toLowerCase() === 'en') break; }
+    }
+    var t = T[lang];
+    document.documentElement.lang = lang === 'pt' ? 'pt-BR' : 'en';
+    document.title = t.title;
+    document.querySelectorAll('[data-t]').forEach(function(el){ el.textContent = t[el.getAttribute('data-t')]; });
+    var v = document.querySelector('video');
+    if(v.getAttribute('src') !== t.video){ v.setAttribute('poster', t.poster); v.setAttribute('src', t.video); }
+    document.querySelector('.langs a[data-lang="' + lang + '"]').classList.add('on');
+  })();
+</script>
 </body>
 </html>
