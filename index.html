@@ -45,7 +45,7 @@
 <meta name="color-scheme" content="light dark">
 <title>Routikids</title>
 <!-- The code version lives here (read by the app and by the update check); bump it on every change. -->
-<meta name="app-version" content="Versão do código: 2026-10-01 15:50">
+<meta name="app-version" content="Versão do código: 2026-10-01 17:31">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@500;700;800&family=Nunito:wght@600;800&display=swap" rel="stylesheet">
@@ -203,7 +203,7 @@
   .t-early{ color:#1b7f4b; font-weight:800; }
   .t-orig{ opacity:0.7; font-weight:600; }
   .kid-forecast .t-late, .kid-forecast .t-early{ background:white; border-radius:999px; padding:0 0.35em; }
-  #skip-task-btn, .kid-skip, #postpone-task-btn, .kid-postpone{
+  #skip-task-btn, .kid-skip, #postpone-task-btn, .kid-postpone, #start-now-btn, .kid-start-now, #delay-start-btn, .kid-delay, #undo-delay-btn, .kid-undo-delay{
     font-family:'Baloo 2', sans-serif;
     font-weight:800;
     font-size:clamp(14px, 1.1vw, 24px);
@@ -217,8 +217,8 @@
     display:none;
   }
   #skip-task-btn, #postpone-task-btn{ margin-left:0.4vw; margin-right:0.4vw; }
-  .kid-skip, .kid-postpone{ font-size:calc(var(--w) * 0.026); padding:0.4vh calc(var(--w) * 0.025); margin-top:0.6vh; }
-  #skip-task-btn:focus, .kid-skip:focus, #postpone-task-btn:focus, .kid-postpone:focus, .skip-btn:focus{ outline:4px solid var(--sun); outline-offset:2px; }
+  .kid-skip, .kid-postpone, .kid-start-now, .kid-delay, .kid-undo-delay{ font-size:calc(var(--w) * 0.026); padding:0.4vh calc(var(--w) * 0.025); margin-top:0.6vh; }
+  #skip-task-btn:focus, .kid-skip:focus, #postpone-task-btn:focus, .kid-postpone:focus, #start-now-btn:focus, .kid-start-now:focus, #delay-start-btn:focus, .kid-delay:focus, #undo-delay-btn:focus, .kid-undo-delay:focus, .skip-btn:focus{ outline:4px solid var(--sun); outline-offset:2px; }
   .skip-btn{
     font-size:clamp(14px, 1.2vw, 26px);
     background:rgba(29,53,87,0.08);
@@ -1773,7 +1773,7 @@
     </div>
     <div id="segments"></div>
     <button id="start-next-btn" data-i18n="start"></button>
-    <div class="task-extra-btns"><button id="postpone-task-btn"></button><button id="skip-task-btn"></button></div>
+    <div class="task-extra-btns"><button id="start-now-btn"></button><button id="delay-start-btn"></button><button id="undo-delay-btn"></button><button id="postpone-task-btn"></button><button id="skip-task-btn"></button></div>
     <div id="browse-controls">
       <button id="browse-prev-btn" data-i18n-title="browse_prev_title">◀</button>
       <button id="browse-next-btn" data-i18n-title="browse_next_title">▶</button>
@@ -1943,8 +1943,11 @@
           <span class="limit-value" id="routine-limit-min">55</span>
           <button type="button" class="limit-btn" id="routine-limit-min-minus">▼</button>
         </div>
+        <span class="settings-label" style="margin:0;" data-i18n="start_mode_label"></span>
+        <select id="routine-start-mode" class="settings-select"></select>
         <button type="button" id="routine-delete-btn" data-i18n="delete_routine"></button>
       </div>
+      <p class="settings-hint" data-i18n="start_mode_hint"></p>
 
       <table id="week-matrix"><thead></thead><tbody></tbody></table>
       <div id="conflict-warning"></div>
@@ -2180,6 +2183,14 @@ const I18N = {
     welcome_title: "👋 Bem-vindo ao {app}!",
     tagline: "a rotina das crianças, passo a passo",
     runner_label: "Figura quando é hora de acelerar:",
+    start_mode_label: "Início da rotina:",
+    start_mode_fixed: "⏰ Horário fixo",
+    start_mode_button: "▶ Botão Começar",
+    start_mode_hint: "Horário fixo: começa sozinha na hora. Botão Começar: na hora, espera alguém tocar em Começar, e os horários contam a partir daí. Nos dois casos dá para começar antes ou adiar.",
+    start_now: "▶ Começar agora",
+    restart_now: "↻ Começar agora",
+    delay_start: "⏰ Adiar 10 min",
+    undo_delay: "↩️ Voltar para {time}",
     stats_label: "📊 Enviar estatísticas anônimas de uso",
     stats_hint: "Só números (tipo de aparelho, idioma, versão, tarefas feitas no dia), sem nomes nem rotinas. Ajuda a melhorar o app.",
     change_picture: "Trocar a figura",
@@ -2517,6 +2528,14 @@ const I18N = {
     welcome_title: "👋 Welcome to {app}!",
     tagline: "kids' routines, step by step",
     runner_label: "Picture when it's time to hurry:",
+    start_mode_label: "Routine start:",
+    start_mode_fixed: "⏰ Fixed time",
+    start_mode_button: "▶ Start button",
+    start_mode_hint: "Fixed time: it starts by itself on time. Start button: at its time it waits for someone to tap Start, and the times count from then. Either way you can start earlier or delay it.",
+    start_now: "▶ Start now",
+    restart_now: "↻ Start now",
+    delay_start: "⏰ Delay 10 min",
+    undo_delay: "↩️ Back to {time}",
     stats_label: "📊 Send anonymous usage statistics",
     stats_hint: "Only numbers (kind of device, language, version, tasks done that day), no names or routines. It helps improve the app.",
     change_picture: "Change the picture",
@@ -2854,6 +2873,14 @@ const I18N = {
     welcome_title: "👋 Willkommen bei {app}!",
     tagline: "die Kinder-Routine, Schritt für Schritt",
     runner_label: "Bild, wenn es schneller gehen soll:",
+    start_mode_label: "Beginn der Routine:",
+    start_mode_fixed: "⏰ Feste Uhrzeit",
+    start_mode_button: "▶ Start-Taste",
+    start_mode_hint: "Feste Uhrzeit: beginnt pünktlich von selbst. Start-Taste: zur Uhrzeit wartet sie, bis jemand auf Starten tippt, und die Zeiten zählen ab dann. In beiden Fällen kannst du früher starten oder sie verschieben.",
+    start_now: "▶ Jetzt starten",
+    restart_now: "↻ Jetzt neu starten",
+    delay_start: "⏰ 10 Min. später",
+    undo_delay: "↩️ Zurück auf {time}",
     stats_label: "📊 Anonyme Nutzungsstatistik senden",
     stats_hint: "Nur Zahlen (Gerätetyp, Sprache, Version, erledigte Aufgaben des Tages), keine Namen oder Routinen. Das hilft, die App zu verbessern.",
     change_picture: "Bild ändern",
@@ -3186,7 +3213,7 @@ const ROUTINE_TEMPLATES = [
     { name: tr('task_teeth'),     emoji: '🪥', start: [7,35], end: [7,40] },
     { name: tr('task_shoes'),     emoji: '👟', start: [7,40], end: [7,45] }
   ]},
-  { key: 'afternoon', name: tr('tpl_afternoon_name'), label: tr('tpl_afternoon_label'), icon: '🎒', days: WEEKDAYS, daysLabel: tr('days_weekdays'), tasks: [
+  { key: 'afternoon', name: tr('tpl_afternoon_name'), label: tr('tpl_afternoon_label'), icon: '🎒', days: WEEKDAYS, daysLabel: tr('days_weekdays'), startMode: 'button', tasks: [
     { name: tr('task_snack'),    emoji: '🍎', start: [15,30], end: [15,45] },
     { name: tr('task_homework'), emoji: '📚', start: [15,45], end: [16,15] },
     { name: tr('task_play'),     emoji: '🧸', start: [16,15], end: [17,0] },
@@ -3212,7 +3239,9 @@ const BLANK_TEMPLATE = { key: 'blank', name: tr('tpl_blank_name'), icon: '📋',
   { name: tr('new_task'), emoji: '⭐', start: [8,0], end: [8,10] }
 ]};
 function makeTemplateRoutine(tpl, id){
-  return { id, name: tpl.name, icon: tpl.icon, tasks: JSON.parse(JSON.stringify(tpl.tasks)) };
+  const routine = { id, name: tpl.name, icon: tpl.icon, tasks: JSON.parse(JSON.stringify(tpl.tasks)) };
+  if(tpl.startMode) routine.startMode = tpl.startMode;
+  return routine;
 }
 // ---------- Children ----------
 // The config has a list of children ({ id, name, icon, color, picturesOnly }),
@@ -3279,6 +3308,7 @@ function normalizeConfig(cfg){
   cfg.routines.forEach(r => {
     if(!ids.includes(r.childId)) r.childId = ids[0];
     if(r.icon !== undefined) r.icon = cleanEmoji(r.icon) || '📋';
+    if(r.startMode !== 'button') delete r.startMode;
     (r.tasks || []).forEach(t => { t.emoji = cleanEmoji(t.emoji) || '⭐'; });
     if(Array.isArray(r.tasks) && r.tasks.every(t => Array.isArray(t.start) && Array.isArray(t.end))) chainConfigTasks(r.tasks);
   });
@@ -3497,14 +3527,35 @@ function hardLimitMin(){ return limitMin; }
 // they belong to the same routine; if it's a different routine and its
 // planned time hasn't arrived yet, wait until that time (actual gap).
 function nextStartAfter(prevTask, nextTask, cursor){
-  if(prevTask && nextTask.routineId !== prevTask.routineId && nextTask.plannedStartMin > cursor){
-    return nextTask.plannedStartMin;
+  if(prevTask && nextTask.routineId !== prevTask.routineId && effectiveStart(nextTask) > cursor){
+    return effectiveStart(nextTask);
   }
   return cursor;
 }
+// A routine's start can move for the day ("⏰ Adiar", "▶ Começar agora", or
+// the Start button): its first task keeps startShift, the minutes from the
+// planned start. Times are then compared with the moved plan.
+function effectiveStart(t){ return t.plannedStartMin + (t.startShift || 0); }
+function isBlockFirst(i){ return i >= 0 && i < tasks.length && (i === 0 || tasks[i - 1].routineId !== tasks[i].routineId); }
+function blockShift(i){ const b = routineBlockAt(i); return b ? (tasks[b.startIdx].startShift || 0) : 0; }
+// The shift the plan is compared with: while a routine waits for its start past
+// its time, the plan moves on with now (as starting it will), so waiting shows no delay.
+function shownShift(i){
+  const b = routineBlockAt(i);
+  if(!b) return 0;
+  const first = tasks[b.startIdx];
+  const shift = first.startShift || 0;
+  if(b.startIdx !== pointer || !awaitingStart || first.started) return shift;
+  return Math.max(shift, nowInMinutes() - first.plannedStartMin);
+}
+// "Início da rotina": 'fixed' (starts by itself at its time) or 'button' (waits for "Começar").
+function routineStartMode(t){
+  const r = t && ROUTINES.find(r => r.id === t.routineId);
+  return r && r.startMode === 'button' ? 'button' : 'fixed';
+}
 
 function recomputeUpcoming(overrideCursor){
-  let cursor = (overrideCursor !== undefined) ? overrideCursor : (pointer > 0 ? tasks[pointer-1].endMin : dayStartMin);
+  let cursor = (overrideCursor !== undefined) ? overrideCursor : (pointer > 0 ? tasks[pointer-1].endMin : (tasks.length ? effectiveStart(tasks[0]) : dayStartMin));
   for(let i = pointer; i < tasks.length; i++){
     const prev = i > 0 ? tasks[i-1] : null;
     const start = (i === pointer && overrideCursor !== undefined) ? cursor : nextStartAfter(prev, tasks[i], cursor);
@@ -3528,6 +3579,7 @@ function nowInMinutes(){
 function catchUpToNow(){
   const nowMin = nowInMinutes();
   while(pointer < tasks.length && nowMin >= tasks[pointer].endMin){
+    if(isBlockFirst(pointer) && routineStartMode(tasks[pointer]) === 'button' && !tasks[pointer].started) break; // waits for "Começar"
     tasks[pointer].outcome = 'skipped';
     pointer++;
     recomputeUpcoming();
@@ -3622,7 +3674,7 @@ function snapshotDay(){
     tasks: tasks.map(t => ({
       name: t.name, routineId: t.routineId, plannedStartMin: t.plannedStartMin, plannedDurationMin: t.plannedDurationMin,
       baseDurationMin: t.baseDurationMin, redMin: t.redMin, outcome: t.outcome, startMin: t.startMin, endMin: t.endMin,
-      userSkipped: t.userSkipped || undefined
+      userSkipped: t.userSkipped || undefined, startShift: t.startShift || undefined, started: t.started || undefined
     }))
   };
 }
@@ -3718,7 +3770,7 @@ function saveDayState(){
 function mergeDayProgress(prev, force){
   const prevPointer = Math.min(prev.pointer || 0, prev.tasks.length);
   const prevCurrent = prev.tasks[prevPointer];
-  const hasProgress = prevPointer > 0 || prev.awaitingStart || (prevCurrent && prevCurrent.redMin > 0) || prev.tasks.some(t => t.userSkipped);
+  const hasProgress = prevPointer > 0 || prev.awaitingStart || (prevCurrent && prevCurrent.redMin > 0) || prev.tasks.some(t => t.userSkipped || t.startShift || t.started);
   if(!hasProgress && !force) return false;
 
   // Match tasks by routine + name (+ repetition), or else by routine + planned start (a renamed task).
@@ -3758,6 +3810,8 @@ function mergeDayProgress(prev, force){
       t.baseDurationMin = t.plannedDurationMin + o.redMin;
     }
     if(o.userSkipped){ t.userSkipped = true; t.baseDurationMin = 0; }
+    if(o.startShift) t.startShift = o.startShift;
+    if(o.started) t.started = true;
     rest.push({ t, old: o, isCurrent });
   });
 
@@ -3815,7 +3869,7 @@ function checkDayRollover(){
 // back until the next tap.
 function maybeAutoRefresh(nowMin){
   // Safe only when no child is in the middle of a task.
-  const isSafe = SLOTS.every(slot => withChild(slot, () => (pointer >= tasks.length) || (tasks[pointer] && nowMin < tasks[pointer].startMin)));
+  const isSafe = SLOTS.every(slot => withChild(slot, () => (pointer >= tasks.length) || awaitingStart || (tasks[pointer] && nowMin < tasks[pointer].startMin)));
   if(isSafe && updateAvailable && isQuietForReload()) reloadFresh();
 }
 
@@ -3839,6 +3893,9 @@ let segmentsEl = document.getElementById('segments');
 let finishEarlyBtn = document.getElementById('finish-early-btn');
 let skipBtn = document.getElementById('skip-task-btn');
 let postponeBtn = document.getElementById('postpone-task-btn');
+let startNowBtn = document.getElementById('start-now-btn');
+let delayBtn = document.getElementById('delay-start-btn');
+let undoDelayBtn = document.getElementById('undo-delay-btn');
 let forecastEl = document.getElementById('forecast');
 let browseControlsEl = document.getElementById('browse-controls');
 let browsePrevBtn = document.getElementById('browse-prev-btn');
@@ -4001,10 +4058,12 @@ function stepTimeHtml(t, i, times){
   if(t.userSkipped) return tr('skipped_today');
   if(i < pointer) return `${fmtMin(t.startMin)} – ${fmtMin(t.endMin)}${t.redMin ? ` (+${t.redMin}min)` : ''}`;
   const { start, end } = times[i];
-  const plannedEnd = t.plannedStartMin + t.plannedDurationMin;
-  const later = Math.round(end) !== Math.round(plannedEnd) ? end > plannedEnd : start > t.plannedStartMin;
+  const shift = shownShift(i);
+  const plannedStart = t.plannedStartMin + shift;
+  const plannedEnd = plannedStart + t.plannedDurationMin;
+  const later = Math.round(end) !== Math.round(plannedEnd) ? end > plannedEnd : start > plannedStart;
   const shortened = i >= pointer && t.baseDurationMin < t.plannedDurationMin ? ` <span title="${tr('shortened_title')}">✂️</span>` : '';
-  return shiftedHtml(`${fmtMin(start)} – ${fmtMin(end)}`, `${fmtMin(t.plannedStartMin)} – ${fmtMin(plannedEnd)}`, later) + shortened;
+  return shiftedHtml(`${fmtMin(start)} – ${fmtMin(end)}`, `${fmtMin(plannedStart)} – ${fmtMin(plannedEnd)}`, later) + shortened;
 }
 function refreshStepTimes(){
   const times = forecastTimes();
@@ -4243,7 +4302,7 @@ function showForecastFor(focus){
   if(focus && focus.day === 0 && tasks.length){
     const b = focus.block;
     const end = forecastTimes()[b.endIdx].end;
-    const value = timeShiftHtml(end, routineTargetAndLimit(b.startIdx).targetEndMin);
+    const value = timeShiftHtml(end, routineTargetAndLimit(b.startIdx).targetEndMin + shownShift(b.startIdx));
     html = panelEl ? `🏁 ${value}`
       : `<span class="limit-title">${tr(pointer > b.endIdx ? 'forecast_done' : 'forecast_label')}</span> ${value}`;
   }
@@ -4722,7 +4781,7 @@ function fitFlexibleTasks(startingNow){
   const place = () => { if(startingNow) cur.endMin = cur.startMin + cur.baseDurationMin; cascadeAfterPointer(); };
   place();
   if(!flex.length) return;
-  let over = Math.round(tasks[block.endIdx].endMin - routineTargetAndLimit(pointer).targetEndMin);
+  let over = Math.round(tasks[block.endIdx].endMin - routineTargetAndLimit(pointer).targetEndMin - (tasks[block.startIdx].startShift || 0));
   while(over > 0){
     let best = null;
     flex.forEach(t => {
@@ -4849,9 +4908,10 @@ mainFinishBtn.addEventListener('click', () => {
 // ---------- "Start" button (starts the next task and moves the rest earlier) ----------
 let startNextBtn = document.getElementById('start-next-btn');
 function startNextTask(){
-  if(!awaitingStart) return;
+  if(!awaitingStart){ if(canStartNow()) startRoutineNow(); return; }
   const now = new Date();
   const nowMin = now.getHours()*60 + now.getMinutes() + now.getSeconds()/60;
+  if(isBlockFirst(pointer)){ tasks[pointer].started = true; tasks[pointer].startShift = nowMin - tasks[pointer].plannedStartMin; }
   awaitingStart = false;
   recomputeUpcoming(nowMin); // anchor the next task (and the following ones) from now
   fitFlexibleTasks(true);
@@ -4861,6 +4921,59 @@ function startNextTask(){
   render();
 }
 startNextBtn.addEventListener('click', startNextTask);
+
+// "▶ Começar agora": before a routine (whenever), or while its first task runs
+// (e.g. the child got home late), the routine starts from now.
+function canStartNow(){
+  return pointer < tasks.length && isBlockFirst(pointer) && !confirmState;
+}
+function startRoutineNow(){
+  if(!canStartNow()) return;
+  const nowMin = nowInMinutes();
+  const t = tasks[pointer];
+  Object.assign(t, { started: true, startShift: nowMin - t.plannedStartMin, redMin: 0, baseDurationMin: t.plannedDurationMin, autoExtended: false, closedLate: false });
+  awaitingStart = false;
+  recomputeUpcoming(nowMin);
+  fitFlexibleTasks(true);
+  lastSegTaskIndex = -1;
+  rebuildTimelineDOM();
+  playForTask(t);
+  progressAction();
+  render();
+}
+// "⏰ Adiar": the routine (not started yet) starts 10 minutes later, from its
+// current time or from now if that has passed; "↩️" brings back the planned time.
+function canDelayStart(){
+  if(pointer >= tasks.length || !isBlockFirst(pointer)) return false;
+  const t = tasks[pointer];
+  return !t.started && (awaitingStart || nowInMinutes() < t.startMin);
+}
+function delayStart(){
+  if(!canDelayStart()) return;
+  const t = tasks[pointer];
+  const from = Math.max(t.startMin, Math.ceil(nowInMinutes()));
+  t.startShift = from + 10 - t.plannedStartMin;
+  awaitingStart = false;
+  recomputeUpcoming();
+  rebuildTimelineDOM();
+  progressAction();
+  render();
+}
+function canUndoDelay(){
+  return canDelayStart() && (tasks[pointer].startShift || 0) > 0 && tasks[pointer].plannedStartMin > nowInMinutes();
+}
+function undoDelay(){
+  if(!canUndoDelay()) return;
+  tasks[pointer].startShift = 0;
+  awaitingStart = false;
+  recomputeUpcoming();
+  rebuildTimelineDOM();
+  progressAction();
+  render();
+}
+startNowBtn.addEventListener('click', startRoutineNow);
+delayBtn.addEventListener('click', delayStart);
+undoDelayBtn.addEventListener('click', undoDelay);
 
 // ---------- Reorder tasks not done yet ----------
 function moveTask(idx, dir){
@@ -4915,9 +5028,27 @@ function renderMain(){
   });
   // A routine's first task never waits for "Start" (it starts at its own time);
   // also repairs a day saved by older versions with the next routine waiting.
-  if(awaitingStart && pointer > 0 && pointer < tasks.length && tasks[pointer].routineId !== tasks[pointer - 1].routineId){
+  const waitsForButton = i => pointer < tasks.length && isBlockFirst(i) && routineStartMode(tasks[i]) === 'button' && !tasks[i].started;
+  if(awaitingStart && pointer > 0 && pointer < tasks.length && tasks[pointer].routineId !== tasks[pointer - 1].routineId
+     && !(waitsForButton(pointer) && nowMin >= tasks[pointer].startMin)){
     awaitingStart = false;
     recomputeUpcoming();
+  }
+  // "Botão Começar": at its time the routine waits for "Começar" (no time counts);
+  // if nobody starts it before the next routine's time, it's left out of the day.
+  if(waitsForButton(pointer)){
+    const b = routineBlockAt(pointer);
+    const nextFirst = tasks[b.endIdx + 1];
+    if(nextFirst && nowMin >= effectiveStart(nextFirst)){
+      for(let i = pointer; i <= b.endIdx; i++) tasks[i].outcome = 'skipped';
+      pointer = b.endIdx + 1;
+      awaitingStart = false;
+      recomputeUpcoming();
+      catchUpToNow();
+      rebuildTimelineDOM();
+    } else if(!awaitingStart && nowMin >= tasks[pointer].startMin){
+      awaitingStart = true;
+    }
   }
   // A task skipped in advance whose turn came (e.g. after a reload): pass it.
   if(pointer < tasks.length && tasks[pointer].userSkipped && !confirmState){
@@ -4931,6 +5062,15 @@ function renderMain(){
   postponeBtn.style.display = 'none';
   postponeBtn.textContent = tr('postpone_btn');
   postponeBtn.title = tr('postpone_title');
+  startNowBtn.style.display = 'none';
+  delayBtn.style.display = 'none';
+  undoDelayBtn.style.display = 'none';
+  delayBtn.textContent = tr('delay_start');
+  const showStartControls = restart => {
+    if(canStartNow()){ startNowBtn.textContent = tr(restart ? 'restart_now' : 'start_now'); startNowBtn.style.display = 'inline-block'; }
+    if(canDelayStart()) delayBtn.style.display = 'inline-block';
+    if(canUndoDelay()){ undoDelayBtn.textContent = tr('undo_delay', { time: fmtMin(tasks[pointer].plannedStartMin) }); undoDelayBtn.style.display = 'inline-block'; }
+  };
   const showTaskExtras = () => { skipBtn.style.display = 'inline-block'; if(canPostpone()) postponeBtn.style.display = 'inline-block'; };
   // A column's list may not fit: keep the current task in view (scrolled once per task).
   if(panelEl && timelineEl.dataset.scrolledTo !== String(pointer)){
@@ -4992,6 +5132,7 @@ function renderMain(){
     startNextBtn.style.display = 'inline-block';
     startNextBtn.textContent = tr('start_task', { task: t.name });
     showTaskExtras();
+    if(canDelayStart()) delayBtn.style.display = 'inline-block'; // a routine waiting for "Começar" can still be delayed
     return;
   }
   finishEarlyBtn.style.display = 'inline-block';
@@ -5020,17 +5161,19 @@ function renderMain(){
     browseNextBtn.disabled = false; // can always try moving forward (skips to the next days with a routine)
     if(browseDay !== null){ renderBrowsedTask(); return; }
 
+    showStartControls(false);
+    const startTime = timeShiftHtml(tasks[pointer].startMin, tasks[pointer].plannedStartMin);
     if(showCountdown){
       heroEl.classList.remove('done');
       heroEmoji.textContent = '⏳';
       heroLabel.textContent = tr('next_label', { task: tasks[pointer].name });
-      heroSub.textContent = tr('starts_at', { time: fmtMin(tasks[pointer].startMin) });
+      heroSub.innerHTML = tr('starts_at', { time: startTime });
       minutesLeftEl.innerHTML = Math.ceil(minutesUntilNext) + '<span class="unit">min</span>';
     } else {
       heroEl.classList.add('done');
       heroEmoji.textContent = activeChild().doneIcon || '🎉';
       heroLabel.textContent = tr('all_good');
-      heroSub.textContent = tr('next_at', { task: tasks[pointer].name, time: fmtMin(tasks[pointer].startMin) });
+      heroSub.innerHTML = tr('next_at', { task: escHtml(tasks[pointer].name), time: startTime });
       minutesLeftEl.innerHTML = '';
     }
     return;
@@ -5074,8 +5217,12 @@ function renderMain(){
   heroEmoji.textContent = t.emoji;
   heroLabel.textContent = t.name;
   showTaskExtras();
+  if(isBlockFirst(pointer) && nowMin - tasks[pointer].startMin >= 1) showStartControls(true); // got there late? start over from now
+  // A "Botão Começar" routine already running (e.g. the setting changed mid-run) doesn't wait again.
+  // Not marked for fixed routines: a mark is progress to sync, and a fresh device has none.
+  if(!tasks[pointer].started && isBlockFirst(pointer) && routineStartMode(tasks[pointer]) === 'button') tasks[pointer].started = true;
   if(confirmState) heroSub.textContent = tr('confirming');
-  else heroSub.innerHTML = tr('until', { time: timeShiftHtml(t.endMin, t.plannedStartMin + t.plannedDurationMin) });
+  else heroSub.innerHTML = tr('until', { time: timeShiftHtml(t.endMin, t.plannedStartMin + blockShift(pointer) + t.plannedDurationMin) });
 
   const total = t.endMin - t.startMin;
   const elapsed = confirmState ? total : Math.max(0, nowMin - t.startMin);
@@ -5257,6 +5404,7 @@ function configRoutineToDraft(r){
     name: r.name,
     icon: r.icon,
     limitMin: r.limitMin,
+    startMode: r.startMode === 'button' ? 'button' : 'fixed',
     tasks: r.tasks.map(t => ({
       name: t.name,
       emoji: t.emoji,
@@ -5561,7 +5709,13 @@ function renderRoutineEditRow(){
   const limitVal = r.limitMin !== undefined ? r.limitMin : computeDraftRoutineNaturalLimit(r);
   document.getElementById('routine-limit-hour').textContent = String(Math.floor(limitVal/60)).padStart(2,'0');
   document.getElementById('routine-limit-min').textContent = String(Math.round(limitVal%60)).padStart(2,'0');
+  document.getElementById('routine-start-mode').innerHTML = [['fixed', tr('start_mode_fixed')], ['button', tr('start_mode_button')]]
+    .map(([v, label]) => `<option value="${v}"${(r.startMode || 'fixed') === v ? ' selected' : ''}>${label}</option>`).join('');
 }
+document.getElementById('routine-start-mode').addEventListener('change', (e) => {
+  const r = draftRoutines[selectedRoutineIndex];
+  if(r) r.startMode = e.target.value;
+});
 function adjustRoutineLimit(deltaMin){
   const r = draftRoutines[selectedRoutineIndex];
   const current = r.limitMin !== undefined ? r.limitMin : computeDraftRoutineNaturalLimit(r);
@@ -5907,6 +6061,7 @@ function saveSettings(){
     name: (r.name && r.name.trim()) ? r.name.trim() : tr('routine_fallback'),
     icon: r.icon,
     limitMin: r.limitMin,
+    startMode: r.startMode === 'button' ? 'button' : undefined,
     tasks: r.tasks.map(t => {
       let sound;
       if(t.soundType === 'melody') sound = { type: 'melody' };
@@ -7322,10 +7477,10 @@ function maybeShowWelcome(){
 // withChild(slot, fn) swaps that child's day and elements in, runs fn and
 // swaps back. Between calls the globals hold the first child's day, so with
 // one child nothing is ever swapped and the engine works as it always did.
-const MAIN_VIEW = { heroEl, heroEmoji, heroLabel, heroSub, minutesLeftEl, segmentsEl, finishEarlyBtn, startNextBtn, skipBtn, postponeBtn, forecastEl,
+const MAIN_VIEW = { heroEl, heroEmoji, heroLabel, heroSub, minutesLeftEl, segmentsEl, finishEarlyBtn, startNextBtn, skipBtn, postponeBtn, startNowBtn, delayBtn, undoDelayBtn, forecastEl,
   browseControlsEl, browsePrevBtn, browseNextBtn, timelineEl, pageTitleEl, limitHourEl, limitMinEl, limitControlEl, panelEl: null };
 function useView(v){
-  ({ heroEl, heroEmoji, heroLabel, heroSub, minutesLeftEl, segmentsEl, finishEarlyBtn, startNextBtn, skipBtn, postponeBtn, forecastEl,
+  ({ heroEl, heroEmoji, heroLabel, heroSub, minutesLeftEl, segmentsEl, finishEarlyBtn, startNextBtn, skipBtn, postponeBtn, startNowBtn, delayBtn, undoDelayBtn, forecastEl,
      browseControlsEl, browsePrevBtn, browseNextBtn, timelineEl, pageTitleEl, limitHourEl, limitMinEl, limitControlEl, panelEl } = v);
 }
 function freshDay(){
@@ -7421,7 +7576,7 @@ function buildPanels(){
             <button type="button" class="kid-finish"><span class="kid-box"></span><span class="kid-finish-label"></span></button>
           </div>
           <button type="button" class="kid-start"></button>
-          <div class="task-extra-btns"><button type="button" class="kid-postpone"></button><button type="button" class="kid-skip"></button></div>
+          <div class="task-extra-btns"><button type="button" class="kid-start-now"></button><button type="button" class="kid-delay"></button><button type="button" class="kid-undo-delay"></button><button type="button" class="kid-postpone"></button><button type="button" class="kid-skip"></button></div>
           <div class="kid-browse">
             <button type="button" class="kid-prev">◀</button>
             <button type="button" class="kid-next">▶</button>
@@ -7447,6 +7602,9 @@ function buildPanels(){
     q('.kid-start').addEventListener('click', act(startNextTask));
     q('.kid-skip').addEventListener('click', act(() => askSkip(pointer)));
     q('.kid-postpone').addEventListener('click', act(() => { postponeTask(); progressAction(); render(); }));
+    q('.kid-start-now').addEventListener('click', act(startRoutineNow));
+    q('.kid-delay').addEventListener('click', act(delayStart));
+    q('.kid-undo-delay').addEventListener('click', act(undoDelay));
     q('.kid-timeline').addEventListener('click', (e) => {
       const btn = e.target.closest('.skip-btn');
       if(btn) act(() => onStepSkip(parseInt(btn.dataset.index, 10)))();
@@ -7459,6 +7617,7 @@ function buildPanels(){
       heroEl: q('.kid-hero'), heroEmoji: q('.kid-emoji'), heroLabel: q('.kid-label'), heroSub: q('.kid-sub'),
       minutesLeftEl: q('.kid-minutes'), segmentsEl: q('.kid-segments'), finishEarlyBtn: q('.kid-finish'), startNextBtn: q('.kid-start'),
       skipBtn: q('.kid-skip'), postponeBtn: q('.kid-postpone'), forecastEl: q('.kid-forecast'),
+      startNowBtn: q('.kid-start-now'), delayBtn: q('.kid-delay'), undoDelayBtn: q('.kid-undo-delay'),
       browseControlsEl: q('.kid-browse'), browsePrevBtn: q('.kid-prev'), browseNextBtn: q('.kid-next'),
       pageTitleEl: document.createElement('div'), // no title per column: stays off screen
       timelineEl: q('.kid-timeline'), limitHourEl: q('.kid-limit-h'), limitMinEl: q('.kid-limit-m'), limitControlEl: q('.kid-deadline'),
