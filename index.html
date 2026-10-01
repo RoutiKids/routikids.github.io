@@ -45,7 +45,7 @@
 <meta name="color-scheme" content="light dark">
 <title>Routikids</title>
 <!-- The code version lives here (read by the app and by the update check); bump it on every change. -->
-<meta name="app-version" content="Versão do código: 2026-09-30 22:43">
+<meta name="app-version" content="Versão do código: 2026-10-01 11:56">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@500;700;800&family=Nunito:wght@600;800&display=swap" rel="stylesheet">
@@ -4008,6 +4008,13 @@ function refreshStepTimes(){
 // A skipped task takes no time and gets no star or turtle (⏭️ in the list).
 // The current one closes right away, like "I'm done"; a later one is marked
 // and passed over when its turn comes. A later one can be brought back.
+// After a task closes, the next one waits for "Start" only within the same
+// routine. A new routine starts at its own time: until then the screen shows
+// the wait between routines (and the morning's last tick never starts the afternoon).
+function afterTaskClosed(finishedRoutineId){
+  if(pointer < tasks.length && tasks[pointer].routineId === finishedRoutineId) awaitingStart = true;
+  else{ awaitingStart = false; recomputeUpcoming(); }
+}
 function passSkipped(){
   while(pointer < tasks.length && tasks[pointer].userSkipped){
     const t = tasks[pointer];
@@ -4029,13 +4036,17 @@ function skipTask(idx){
     t.outcome = 'skipped';
     pointer++;
     passSkipped();
-    if(pointer < tasks.length) awaitingStart = true;
-    else recomputeUpcoming();
+    afterTaskClosed(t.routineId);
   } else {
     t.baseDurationMin = 0;
+    const wasAwaiting = awaitingStart && idx === pointer;
     const running = pointer < tasks.length && idx > pointer && !awaitingStart && nowMin >= tasks[pointer].startMin;
     if(running) fitFlexibleTasks();
-    else{ recomputeUpcoming(); passSkipped(); recomputeUpcoming(); }
+    else{
+      recomputeUpcoming(); passSkipped();
+      if(wasAwaiting && (pointer >= tasks.length || tasks[pointer].routineId !== t.routineId)) awaitingStart = false;
+      recomputeUpcoming();
+    }
   }
   lastSegTaskIndex = -1;
   rebuildTimelineDOM();
@@ -4807,12 +4818,9 @@ function finishEarly(){
   const nowMin = now.getHours()*60 + now.getMinutes() + now.getSeconds()/60;
   if(nowMin < tasks[pointer].startMin) return; // still in the waiting gap between routines
   const finishAt = Math.max(tasks[pointer].startMin, Math.min(nowMin, tasks[pointer].endMin));
+  const routineId = tasks[pointer].routineId;
   markTaskDone(finishAt);
-  if(pointer < tasks.length){
-    awaitingStart = true; // next task waits for a tap on "Start"
-  } else {
-    recomputeUpcoming();
-  }
+  afterTaskClosed(routineId); // within the routine, the next task waits for a tap on Start
   progressAction();
   render();
 }
@@ -4891,6 +4899,12 @@ function renderMain(){
     if(i < pointer) el.classList.add('finished');
     else if(i === pointer) el.classList.add('active');
   });
+  // A routine's first task never waits for "Start" (it starts at its own time);
+  // also repairs a day saved by older versions with the next routine waiting.
+  if(awaitingStart && pointer > 0 && pointer < tasks.length && tasks[pointer].routineId !== tasks[pointer - 1].routineId){
+    awaitingStart = false;
+    recomputeUpcoming();
+  }
   // A task skipped in advance whose turn came (e.g. after a reload): pass it.
   if(pointer < tasks.length && tasks[pointer].userSkipped && !confirmState){
     passSkipped();
