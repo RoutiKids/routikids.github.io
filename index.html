@@ -45,7 +45,7 @@
 <meta name="color-scheme" content="light dark">
 <title>Routikids</title>
 <!-- The code version lives here (read by the app and by the update check); bump it on every change. -->
-<meta name="app-version" content="Versão do código: 2026-10-02 09:17">
+<meta name="app-version" content="Versão do código: 2026-10-02 10:11">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@500;700;800&family=Nunito:wght@600;800&display=swap" rel="stylesheet">
@@ -203,7 +203,7 @@
   .t-early{ color:#1b7f4b; font-weight:800; }
   .t-orig{ opacity:0.7; font-weight:600; }
   .kid-forecast .t-late, .kid-forecast .t-early{ background:white; border-radius:999px; padding:0 0.35em; }
-  #skip-task-btn, .kid-skip, #postpone-task-btn, .kid-postpone, #start-now-btn, .kid-start-now, #delay-start-btn, .kid-delay, #undo-delay-btn, .kid-undo-delay{
+  #skip-task-btn, .kid-skip, #postpone-task-btn, .kid-postpone, #start-now-btn, .kid-start-now, #delay-start-btn, .kid-delay, #undo-delay-btn, .kid-undo-delay, #reset-routine-btn, .kid-reset-routine{
     font-family:'Baloo 2', sans-serif;
     font-weight:800;
     font-size:clamp(14px, 1.1vw, 24px);
@@ -217,8 +217,8 @@
     display:none;
   }
   #skip-task-btn, #postpone-task-btn{ margin-left:0.4vw; margin-right:0.4vw; }
-  .kid-skip, .kid-postpone, .kid-start-now, .kid-delay, .kid-undo-delay{ font-size:calc(var(--w) * 0.026); padding:0.4vh calc(var(--w) * 0.025); margin-top:0.6vh; }
-  #skip-task-btn:focus, .kid-skip:focus, #postpone-task-btn:focus, .kid-postpone:focus, #start-now-btn:focus, .kid-start-now:focus, #delay-start-btn:focus, .kid-delay:focus, #undo-delay-btn:focus, .kid-undo-delay:focus, .skip-btn:focus{ outline:4px solid var(--sun); outline-offset:2px; }
+  .kid-skip, .kid-postpone, .kid-start-now, .kid-delay, .kid-undo-delay, .kid-reset-routine{ font-size:calc(var(--w) * 0.026); padding:0.4vh calc(var(--w) * 0.025); margin-top:0.6vh; }
+  #skip-task-btn:focus, .kid-skip:focus, #postpone-task-btn:focus, .kid-postpone:focus, #start-now-btn:focus, .kid-start-now:focus, #delay-start-btn:focus, .kid-delay:focus, #undo-delay-btn:focus, .kid-undo-delay:focus, #reset-routine-btn:focus, .kid-reset-routine:focus, .skip-btn:focus{ outline:4px solid var(--sun); outline-offset:2px; }
   .skip-btn{
     font-size:clamp(14px, 1.2vw, 26px);
     background:rgba(29,53,87,0.08);
@@ -1773,7 +1773,7 @@
     </div>
     <div id="segments"></div>
     <button id="start-next-btn" data-i18n="start"></button>
-    <div class="task-extra-btns"><button id="start-now-btn"></button><button id="delay-start-btn"></button><button id="undo-delay-btn"></button><button id="postpone-task-btn"></button><button id="skip-task-btn"></button></div>
+    <div class="task-extra-btns"><button id="start-now-btn"></button><button id="delay-start-btn"></button><button id="undo-delay-btn"></button><button id="postpone-task-btn"></button><button id="skip-task-btn"></button><button id="reset-routine-btn"></button></div>
     <div id="browse-controls">
       <button id="browse-prev-btn" data-i18n-title="browse_prev_title">◀</button>
       <button id="browse-next-btn" data-i18n-title="browse_next_title">▶</button>
@@ -2191,7 +2191,6 @@ const I18N = {
     restart_now: "↻ Começar agora",
     delay_start: "⏰ Adiar 10 min",
     undo_delay: "↩️ Voltar para {time}",
-    cancel_start: "↩️ Cancelar início",
     stats_label: "📊 Enviar estatísticas anônimas de uso",
     stats_hint: "Só números (tipo de aparelho, idioma, versão, tarefas feitas no dia), sem nomes nem rotinas. Ajuda a melhorar o app.",
     change_picture: "Trocar a figura",
@@ -2213,6 +2212,12 @@ const I18N = {
     skip_btn: "⏭️ Ignorar hoje",
     skip_title: "Ignorar hoje",
     unskip_title: "Fazer hoje de novo",
+    undo_done_title: "Desfazer: a tarefa volta para a lista",
+    undo_done_q: "Desfazer \"{task}\"? A tarefa volta para a lista e a figurinha dela sai.",
+    undo_done_yes: "Desfazer",
+    reset_routine: "🔄 Reiniciar rotina",
+    reset_routine_q: "Recomeçar a rotina \"{routine}\" de hoje? Todas as tarefas dela voltam a ficar pendentes.",
+    reset_routine_yes: "Reiniciar",
     skip_q: "Ignorar \"{task}\" hoje? Dá para desfazer depois pelo ↩️ na lista.",
     skip_yes: "Ignorar",
     skipped_today: "⏭️ Ignorada hoje",
@@ -2537,7 +2542,6 @@ const I18N = {
     restart_now: "↻ Start now",
     delay_start: "⏰ Delay 10 min",
     undo_delay: "↩️ Back to {time}",
-    cancel_start: "↩️ Cancel start",
     stats_label: "📊 Send anonymous usage statistics",
     stats_hint: "Only numbers (kind of device, language, version, tasks done that day), no names or routines. It helps improve the app.",
     change_picture: "Change the picture",
@@ -2559,6 +2563,12 @@ const I18N = {
     skip_btn: "⏭️ Skip today",
     skip_title: "Skip today",
     unskip_title: "Do it today after all",
+    undo_done_title: "Undo: the task goes back to the list",
+    undo_done_q: "Undo \"{task}\"? The task goes back to the list and loses its sticker.",
+    undo_done_yes: "Undo",
+    reset_routine: "🔄 Restart routine",
+    reset_routine_q: "Start today's \"{routine}\" routine over? All its tasks will be pending again.",
+    reset_routine_yes: "Restart",
     skip_q: "Skip \"{task}\" today? You can undo it later with ↩️ in the list.",
     postpone_btn: "↪️ Do it later",
     postpone_title: "Moves this task to the end of the routine",
@@ -2883,7 +2893,6 @@ const I18N = {
     restart_now: "↻ Jetzt neu starten",
     delay_start: "⏰ 10 Min. später",
     undo_delay: "↩️ Zurück auf {time}",
-    cancel_start: "↩️ Start abbrechen",
     stats_label: "📊 Anonyme Nutzungsstatistik senden",
     stats_hint: "Nur Zahlen (Gerätetyp, Sprache, Version, erledigte Aufgaben des Tages), keine Namen oder Routinen. Das hilft, die App zu verbessern.",
     change_picture: "Bild ändern",
@@ -2905,6 +2914,12 @@ const I18N = {
     skip_btn: "⏭️ Heute überspringen",
     skip_title: "Heute überspringen",
     unskip_title: "Heute doch machen",
+    undo_done_title: "Rückgängig: die Aufgabe kommt zurück in die Liste",
+    undo_done_q: "„{task}“ rückgängig machen? Die Aufgabe kommt zurück in die Liste und verliert ihr Bild.",
+    undo_done_yes: "Rückgängig",
+    reset_routine: "🔄 Routine neu starten",
+    reset_routine_q: "Die Routine „{routine}“ von heute neu beginnen? Alle Aufgaben sind dann wieder offen.",
+    reset_routine_yes: "Neu starten",
     skip_q: "„{task}“ heute überspringen? Mit ↩️ in der Liste lässt es sich rückgängig machen.",
     postpone_btn: "↪️ Später machen",
     postpone_title: "Verschiebt diese Aufgabe ans Ende der Routine",
@@ -3539,6 +3554,21 @@ function nextStartAfter(prevTask, nextTask, cursor){
 // the Start button): its first task keeps startShift, the minutes from the
 // planned start. Times are then compared with the moved plan.
 function effectiveStart(t){ return t.plannedStartMin + (t.startShift || 0); }
+// A routine's start (startShift, started) lives on its first task: when tasks
+// are reordered ("Fazer depois", ↩️), it stays with whichever task is first.
+function blockMark(i){
+  const b = routineBlockAt(i);
+  const first = b && tasks[b.startIdx];
+  return first ? { first, started: first.started, startShift: first.startShift } : null;
+}
+function keepBlockMark(mark){
+  if(!mark) return;
+  const b = routineBlockAt(tasks.indexOf(mark.first));
+  const now = b && tasks[b.startIdx];
+  if(!now || now === mark.first) return;
+  Object.assign(now, { started: mark.started, startShift: mark.startShift });
+  Object.assign(mark.first, { started: false, startShift: 0 });
+}
 function isBlockFirst(i){ return i >= 0 && i < tasks.length && (i === 0 || tasks[i - 1].routineId !== tasks[i].routineId); }
 function blockShift(i){ const b = routineBlockAt(i); return b ? (tasks[b.startIdx].startShift || 0) : 0; }
 // The shift the plan is compared with: while a routine waits for its start past
@@ -3897,6 +3927,7 @@ let finishEarlyBtn = document.getElementById('finish-early-btn');
 let skipBtn = document.getElementById('skip-task-btn');
 let postponeBtn = document.getElementById('postpone-task-btn');
 let startNowBtn = document.getElementById('start-now-btn');
+let resetRoutineBtn = document.getElementById('reset-routine-btn');
 let delayBtn = document.getElementById('delay-start-btn');
 let undoDelayBtn = document.getElementById('undo-delay-btn');
 let forecastEl = document.getElementById('forecast');
@@ -4138,6 +4169,16 @@ function unskipTask(idx){
   render();
 }
 // Asks first, so a stray tap (or a child) doesn't skip a task.
+// "↩️" on a task already done: it comes back like a skipped one (asks first: its sticker goes).
+function askUndoDone(idx){
+  const slot = currentSlot;
+  const t = tasks[idx];
+  if(!t || !isDone(t)) return;
+  appConfirm(tr('undo_done_q', { task: t.name }), tr('undo_done_yes')).then(ok => {
+    if(!ok || !SLOTS.includes(slot)) return;
+    withChild(slot, () => restoreSkipped(tasks.indexOf(t)));
+  });
+}
 function askSkip(idx){
   const slot = currentSlot;
   const t = tasks[idx];
@@ -4156,10 +4197,11 @@ function askSkip(idx){
 function onStepSkip(idx){
   const t = tasks[idx];
   if(!t) return;
-  if(idx < pointer){ if(t.userSkipped) restoreSkipped(idx); return; }
+  if(idx < pointer){ if(t.userSkipped) restoreSkipped(idx); else if(isDone(t)) askUndoDone(idx); return; }
   if(t.userSkipped) unskipTask(idx);
   else askSkip(idx);
 }
+function isDone(t){ return t.outcome === 'onTime' || t.outcome === 'late'; }
 function currentIsRunning(){
   return pointer < tasks.length && !awaitingStart && nowInMinutes() >= tasks[pointer].startMin;
 }
@@ -4168,22 +4210,25 @@ function currentIsRunning(){
 // when nothing of another routine is running.
 function canRestore(idx){
   const t = tasks[idx];
-  if(!t || !t.userSkipped || idx >= pointer) return false;
+  if(!t || !(t.userSkipped || isDone(t)) || idx >= pointer) return false;
   if(pointer >= tasks.length) return true;
   return tasks[pointer].routineId === t.routineId || !currentIsRunning();
 }
 function restoreSkipped(idx){
   if(!canRestore(idx)) return;
+  const mark = blockMark(idx);
   const [t] = tasks.splice(idx, 1);
   pointer--;
   Object.assign(t, { userSkipped: false, outcome: null, redMin: 0, baseDurationMin: t.plannedDurationMin, autoExtended: false, closedLate: false });
   const running = currentIsRunning();
   if(pointer < tasks.length && tasks[pointer].routineId === t.routineId && running){
     tasks.splice(pointer + 1, 0, t);
+    keepBlockMark(mark);
     fitFlexibleTasks();
   } else {
     if(confirmState) closeConfirm();
     tasks.splice(pointer, 0, t);
+    keepBlockMark(mark);
     awaitingStart = true;
     recomputeUpcoming();
   }
@@ -4204,9 +4249,11 @@ function postponeTask(){
   if(!canPostpone()) return;
   if(confirmState) closeConfirm();
   const block = routineBlockAt(pointer);
+  const mark = blockMark(pointer);
   const [t] = tasks.splice(pointer, 1);
   Object.assign(t, { redMin: 0, baseDurationMin: t.plannedDurationMin, autoExtended: false, closedLate: false });
   tasks.splice(block.endIdx, 0, t);
+  keepBlockMark(mark);
   passSkipped();
   awaitingStart = pointer < tasks.length;
   recomputeUpcoming();
@@ -4241,7 +4288,7 @@ function rebuildTimelineDOM(){
         <div class="time" data-h="${timeHtml.replace(/"/g, '&quot;')}">${timeHtml}</div>
       </div>
       ${isDone
-        ? `<div class="check">${t.userSkipped ? '⏭️' : '✔'}</div>${t.outcome === 'skipped' ? '' : `<div class="outcome-badge${t.outcome === 'late' ? '' : ' star'}">${t.outcome === 'late' ? LATE_ICON : ONTIME_ICON}</div>`}${t.userSkipped && canRestore(i) ? `<button type="button" class="skip-btn restore" data-index="${i}" title="${tr('unskip_title')}">↩️</button>` : ''}`
+        ? `<div class="check">${t.userSkipped ? '⏭️' : '✔'}</div>${t.outcome === 'skipped' ? '' : `<div class="outcome-badge${t.outcome === 'late' ? '' : ' star'}">${t.outcome === 'late' ? LATE_ICON : ONTIME_ICON}</div>`}${canRestore(i) ? `<button type="button" class="skip-btn restore" data-index="${i}" title="${tr(t.userSkipped ? 'unskip_title' : 'undo_done_title')}">↩️</button>` : ''}`
         : `<button type="button" class="skip-btn${t.userSkipped ? ' restore' : ''}" data-index="${i}" title="${tr(t.userSkipped ? 'unskip_title' : 'skip_title')}">${t.userSkipped ? '↩️' : '⏭️'}</button>
            <div class="reorder-controls">
              <button class="reorder-btn up" data-index="${i}" ${canMoveUp ? '' : 'disabled'} title="${tr('move_earlier')}">▲</button>
@@ -4962,6 +5009,47 @@ function delayStart(){
   progressAction();
   render();
 }
+// "🔄 Reiniciar rotina": the routine on screen starts over (asks first): all its
+// tasks are pending again, in their planned order. A "Botão Começar" routine
+// waits for "Começar"; a "Horário fixo" one waits for its time, or runs from now.
+function canResetRoutine(){
+  if(pointer >= tasks.length || confirmState) return false;
+  const b = routineBlockAt(pointer);
+  if(!b) return false;
+  const first = tasks[b.startIdx];
+  return pointer > b.startIdx || !!first.started || currentIsRunning() || (first.startShift || 0) < 0;
+}
+function resetRoutine(){
+  if(!canResetRoutine()) return;
+  const b = routineBlockAt(pointer);
+  const block = tasks.slice(b.startIdx, b.endIdx + 1).sort((x, y) => x.plannedStartMin - y.plannedStartMin);
+  block.forEach(t => Object.assign(t, { outcome: null, userSkipped: false, redMin: 0, baseDurationMin: t.plannedDurationMin, autoExtended: false, closedLate: false, started: false, startShift: 0 }));
+  tasks.splice(b.startIdx, block.length, ...block);
+  pointer = b.startIdx;
+  awaitingStart = false;
+  const nowMin = nowInMinutes();
+  const first = tasks[pointer];
+  if(routineStartMode(first) === 'fixed' && nowMin >= first.plannedStartMin){
+    first.startShift = nowMin - first.plannedStartMin;
+    recomputeUpcoming(nowMin);
+    fitFlexibleTasks(true);
+    playForTask(first);
+  } else recomputeUpcoming();
+  lastSegTaskIndex = -1;
+  rebuildTimelineDOM();
+  progressAction();
+  render();
+}
+function askResetRoutine(){
+  const slot = currentSlot;
+  const b = canResetRoutine() && routineBlockAt(pointer);
+  if(!b) return;
+  const r = ROUTINES.find(r => r.id === tasks[b.startIdx].routineId);
+  appConfirm(tr('reset_routine_q', { routine: r ? r.name : tr('routine_fallback') }), tr('reset_routine_yes')).then(ok => {
+    if(!ok || !SLOTS.includes(slot)) return;
+    withChild(slot, resetRoutine);
+  });
+}
 function canUndoDelay(){
   return canDelayStart() && (tasks[pointer].startShift || 0) > 0 && tasks[pointer].plannedStartMin > nowInMinutes();
 }
@@ -4976,27 +5064,8 @@ function undoDelay(){
 }
 startNowBtn.addEventListener('click', startRoutineNow);
 delayBtn.addEventListener('click', delayStart);
-// "↩️ Cancelar início": a routine started by mistake goes back to waiting, while
-// its first task runs: a "Botão Começar" one waits for "Começar" again, a
-// "Horário fixo" one (started early) waits for its planned time.
-function canCancelStart(){
-  if(pointer >= tasks.length || !isBlockFirst(pointer) || awaitingStart || confirmState) return false;
-  const t = tasks[pointer];
-  return !!t.started && (routineStartMode(t) === 'button' || nowInMinutes() < t.plannedStartMin);
-}
-function cancelStart(){
-  if(!canCancelStart()) return;
-  Object.assign(tasks[pointer], { started: false, startShift: 0, redMin: 0, baseDurationMin: tasks[pointer].plannedDurationMin, autoExtended: false, closedLate: false });
-  awaitingStart = false;
-  recomputeUpcoming();
-  lastSegTaskIndex = -1;
-  rebuildTimelineDOM();
-  progressAction();
-  render();
-}
-// The same button undoes a delay or a start, whichever is on screen.
-function undoStartChange(){ if(canCancelStart()) cancelStart(); else undoDelay(); }
-undoDelayBtn.addEventListener('click', undoStartChange);
+undoDelayBtn.addEventListener('click', undoDelay);
+resetRoutineBtn.addEventListener('click', askResetRoutine);
 
 // ---------- Reorder tasks not done yet ----------
 function moveTask(idx, dir){
@@ -5089,6 +5158,8 @@ function renderMain(){
   delayBtn.style.display = 'none';
   undoDelayBtn.style.display = 'none';
   delayBtn.textContent = tr('delay_start');
+  resetRoutineBtn.textContent = tr('reset_routine');
+  resetRoutineBtn.style.display = canResetRoutine() ? 'inline-block' : 'none';
   const showStartControls = restart => {
     if(canStartNow()){ startNowBtn.textContent = tr(restart ? 'restart_now' : 'start_now'); startNowBtn.style.display = 'inline-block'; }
     if(canDelayStart()) delayBtn.style.display = 'inline-block';
@@ -5241,7 +5312,6 @@ function renderMain(){
   heroLabel.textContent = t.name;
   showTaskExtras();
   if(isBlockFirst(pointer) && nowMin - tasks[pointer].startMin >= 1) showStartControls(true); // got there late? start over from now
-  if(canCancelStart()){ undoDelayBtn.textContent = tr('cancel_start'); undoDelayBtn.style.display = 'inline-block'; }
   // A "Botão Começar" routine already running (e.g. the setting changed mid-run) doesn't wait again.
   // Not marked for fixed routines: a mark is progress to sync, and a fresh device has none.
   if(!tasks[pointer].started && isBlockFirst(pointer) && routineStartMode(tasks[pointer]) === 'button') tasks[pointer].started = true;
@@ -7501,10 +7571,10 @@ function maybeShowWelcome(){
 // withChild(slot, fn) swaps that child's day and elements in, runs fn and
 // swaps back. Between calls the globals hold the first child's day, so with
 // one child nothing is ever swapped and the engine works as it always did.
-const MAIN_VIEW = { heroEl, heroEmoji, heroLabel, heroSub, minutesLeftEl, segmentsEl, finishEarlyBtn, startNextBtn, skipBtn, postponeBtn, startNowBtn, delayBtn, undoDelayBtn, forecastEl,
+const MAIN_VIEW = { heroEl, heroEmoji, heroLabel, heroSub, minutesLeftEl, segmentsEl, finishEarlyBtn, startNextBtn, skipBtn, postponeBtn, startNowBtn, delayBtn, undoDelayBtn, resetRoutineBtn, forecastEl,
   browseControlsEl, browsePrevBtn, browseNextBtn, timelineEl, pageTitleEl, limitHourEl, limitMinEl, limitControlEl, panelEl: null };
 function useView(v){
-  ({ heroEl, heroEmoji, heroLabel, heroSub, minutesLeftEl, segmentsEl, finishEarlyBtn, startNextBtn, skipBtn, postponeBtn, startNowBtn, delayBtn, undoDelayBtn, forecastEl,
+  ({ heroEl, heroEmoji, heroLabel, heroSub, minutesLeftEl, segmentsEl, finishEarlyBtn, startNextBtn, skipBtn, postponeBtn, startNowBtn, delayBtn, undoDelayBtn, resetRoutineBtn, forecastEl,
      browseControlsEl, browsePrevBtn, browseNextBtn, timelineEl, pageTitleEl, limitHourEl, limitMinEl, limitControlEl, panelEl } = v);
 }
 function freshDay(){
@@ -7600,7 +7670,7 @@ function buildPanels(){
             <button type="button" class="kid-finish"><span class="kid-box"></span><span class="kid-finish-label"></span></button>
           </div>
           <button type="button" class="kid-start"></button>
-          <div class="task-extra-btns"><button type="button" class="kid-start-now"></button><button type="button" class="kid-delay"></button><button type="button" class="kid-undo-delay"></button><button type="button" class="kid-postpone"></button><button type="button" class="kid-skip"></button></div>
+          <div class="task-extra-btns"><button type="button" class="kid-start-now"></button><button type="button" class="kid-delay"></button><button type="button" class="kid-undo-delay"></button><button type="button" class="kid-postpone"></button><button type="button" class="kid-skip"></button><button type="button" class="kid-reset-routine"></button></div>
           <div class="kid-browse">
             <button type="button" class="kid-prev">◀</button>
             <button type="button" class="kid-next">▶</button>
@@ -7628,7 +7698,8 @@ function buildPanels(){
     q('.kid-postpone').addEventListener('click', act(() => { postponeTask(); progressAction(); render(); }));
     q('.kid-start-now').addEventListener('click', act(startRoutineNow));
     q('.kid-delay').addEventListener('click', act(delayStart));
-    q('.kid-undo-delay').addEventListener('click', act(undoStartChange));
+    q('.kid-undo-delay').addEventListener('click', act(undoDelay));
+    q('.kid-reset-routine').addEventListener('click', act(askResetRoutine));
     q('.kid-timeline').addEventListener('click', (e) => {
       const btn = e.target.closest('.skip-btn');
       if(btn) act(() => onStepSkip(parseInt(btn.dataset.index, 10)))();
@@ -7641,7 +7712,7 @@ function buildPanels(){
       heroEl: q('.kid-hero'), heroEmoji: q('.kid-emoji'), heroLabel: q('.kid-label'), heroSub: q('.kid-sub'),
       minutesLeftEl: q('.kid-minutes'), segmentsEl: q('.kid-segments'), finishEarlyBtn: q('.kid-finish'), startNextBtn: q('.kid-start'),
       skipBtn: q('.kid-skip'), postponeBtn: q('.kid-postpone'), forecastEl: q('.kid-forecast'),
-      startNowBtn: q('.kid-start-now'), delayBtn: q('.kid-delay'), undoDelayBtn: q('.kid-undo-delay'),
+      startNowBtn: q('.kid-start-now'), delayBtn: q('.kid-delay'), undoDelayBtn: q('.kid-undo-delay'), resetRoutineBtn: q('.kid-reset-routine'),
       browseControlsEl: q('.kid-browse'), browsePrevBtn: q('.kid-prev'), browseNextBtn: q('.kid-next'),
       pageTitleEl: document.createElement('div'), // no title per column: stays off screen
       timelineEl: q('.kid-timeline'), limitHourEl: q('.kid-limit-h'), limitMinEl: q('.kid-limit-m'), limitControlEl: q('.kid-deadline'),
