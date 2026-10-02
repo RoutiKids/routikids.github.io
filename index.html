@@ -45,7 +45,7 @@
 <meta name="color-scheme" content="light dark">
 <title>Routikids</title>
 <!-- The code version lives here (read by the app and by the update check); bump it on every change. -->
-<meta name="app-version" content="Versão do código: 2026-10-01 17:31">
+<meta name="app-version" content="Versão do código: 2026-10-02 09:17">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@500;700;800&family=Nunito:wght@600;800&display=swap" rel="stylesheet">
@@ -2191,6 +2191,7 @@ const I18N = {
     restart_now: "↻ Começar agora",
     delay_start: "⏰ Adiar 10 min",
     undo_delay: "↩️ Voltar para {time}",
+    cancel_start: "↩️ Cancelar início",
     stats_label: "📊 Enviar estatísticas anônimas de uso",
     stats_hint: "Só números (tipo de aparelho, idioma, versão, tarefas feitas no dia), sem nomes nem rotinas. Ajuda a melhorar o app.",
     change_picture: "Trocar a figura",
@@ -2536,6 +2537,7 @@ const I18N = {
     restart_now: "↻ Start now",
     delay_start: "⏰ Delay 10 min",
     undo_delay: "↩️ Back to {time}",
+    cancel_start: "↩️ Cancel start",
     stats_label: "📊 Send anonymous usage statistics",
     stats_hint: "Only numbers (kind of device, language, version, tasks done that day), no names or routines. It helps improve the app.",
     change_picture: "Change the picture",
@@ -2881,6 +2883,7 @@ const I18N = {
     restart_now: "↻ Jetzt neu starten",
     delay_start: "⏰ 10 Min. später",
     undo_delay: "↩️ Zurück auf {time}",
+    cancel_start: "↩️ Start abbrechen",
     stats_label: "📊 Anonyme Nutzungsstatistik senden",
     stats_hint: "Nur Zahlen (Gerätetyp, Sprache, Version, erledigte Aufgaben des Tages), keine Namen oder Routinen. Das hilft, die App zu verbessern.",
     change_picture: "Bild ändern",
@@ -4973,7 +4976,27 @@ function undoDelay(){
 }
 startNowBtn.addEventListener('click', startRoutineNow);
 delayBtn.addEventListener('click', delayStart);
-undoDelayBtn.addEventListener('click', undoDelay);
+// "↩️ Cancelar início": a routine started by mistake goes back to waiting, while
+// its first task runs: a "Botão Começar" one waits for "Começar" again, a
+// "Horário fixo" one (started early) waits for its planned time.
+function canCancelStart(){
+  if(pointer >= tasks.length || !isBlockFirst(pointer) || awaitingStart || confirmState) return false;
+  const t = tasks[pointer];
+  return !!t.started && (routineStartMode(t) === 'button' || nowInMinutes() < t.plannedStartMin);
+}
+function cancelStart(){
+  if(!canCancelStart()) return;
+  Object.assign(tasks[pointer], { started: false, startShift: 0, redMin: 0, baseDurationMin: tasks[pointer].plannedDurationMin, autoExtended: false, closedLate: false });
+  awaitingStart = false;
+  recomputeUpcoming();
+  lastSegTaskIndex = -1;
+  rebuildTimelineDOM();
+  progressAction();
+  render();
+}
+// The same button undoes a delay or a start, whichever is on screen.
+function undoStartChange(){ if(canCancelStart()) cancelStart(); else undoDelay(); }
+undoDelayBtn.addEventListener('click', undoStartChange);
 
 // ---------- Reorder tasks not done yet ----------
 function moveTask(idx, dir){
@@ -5218,6 +5241,7 @@ function renderMain(){
   heroLabel.textContent = t.name;
   showTaskExtras();
   if(isBlockFirst(pointer) && nowMin - tasks[pointer].startMin >= 1) showStartControls(true); // got there late? start over from now
+  if(canCancelStart()){ undoDelayBtn.textContent = tr('cancel_start'); undoDelayBtn.style.display = 'inline-block'; }
   // A "Botão Começar" routine already running (e.g. the setting changed mid-run) doesn't wait again.
   // Not marked for fixed routines: a mark is progress to sync, and a fresh device has none.
   if(!tasks[pointer].started && isBlockFirst(pointer) && routineStartMode(tasks[pointer]) === 'button') tasks[pointer].started = true;
@@ -7604,7 +7628,7 @@ function buildPanels(){
     q('.kid-postpone').addEventListener('click', act(() => { postponeTask(); progressAction(); render(); }));
     q('.kid-start-now').addEventListener('click', act(startRoutineNow));
     q('.kid-delay').addEventListener('click', act(delayStart));
-    q('.kid-undo-delay').addEventListener('click', act(undoDelay));
+    q('.kid-undo-delay').addEventListener('click', act(undoStartChange));
     q('.kid-timeline').addEventListener('click', (e) => {
       const btn = e.target.closest('.skip-btn');
       if(btn) act(() => onStepSkip(parseInt(btn.dataset.index, 10)))();
