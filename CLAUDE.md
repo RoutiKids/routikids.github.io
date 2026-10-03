@@ -73,6 +73,11 @@ The app used to live at `fabiofialho1.github.io/rotina-infantil-na-tv/` (reposit
 - Uses: a task's start sound (`sound: { type: 'family', id }`), and per child `cheerAudio` (instead of the applause for a task on time) and `hurryAudio` (instead of the "vroom" with the runner). A missing or unplayable audio falls back to the default sound.
 - Backups carry the audio data (`audioData: { id: { data, mime } }`); a restore puts it back and sends it to the paired devices.
 
+## Home screen icon
+
+- `manifest.webmanifest` (name, `display: standalone`, theme `#B983FF`) and `icons/`: `icon.svg` is the source (a TV with a checklist on the app's purple, drawn inside the maskable safe zone); `icon-192.png`, `icon-512.png` (also the maskable one), `apple-touch-icon.png` (180) and `favicon-32.png` are rendered from it with Chromium (Playwright screenshots at each size). Change the SVG, then render the PNGs again.
+- `index.html` links the manifest, the icons and `theme-color`; `privacy.html`, `stats.html` and `demo/` link the favicon. On Android, Chrome's "Add to home screen" / "Install app" uses them.
+
 ## Privacy page
 
 - `privacy.html` is the privacy and contact page (pt, en, de in one file; language from `?lang=`, else the app's saved `rotinaLang_v1`, else the browser). It is plain on purpose: no web fonts or scripts from other sites. Contact: routikids.app@gmail.com. Keep it in step with what the app stores and where (update the date at the top when it changes).
