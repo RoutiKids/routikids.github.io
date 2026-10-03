@@ -73,6 +73,11 @@ The app used to live at `fabiofialho1.github.io/rotina-infantil-na-tv/` (reposit
 - Uses: a task's start sound (`sound: { type: 'family', id }`), and per child `cheerAudio` (instead of the applause for a task on time) and `hurryAudio` (instead of the "vroom" with the runner). A missing or unplayable audio falls back to the default sound.
 - Backups carry the audio data (`audioData: { id: { data, mime } }`); a restore puts it back and sends it to the paired devices.
 
+## Back button
+
+- While a card or dialog is open (`BACK_LAYERS`: app dialog, guide, TV setup, settings, welcome), one extra history entry is kept (`syncBackGuard`, driven by a MutationObserver on the overlays' style). The phone's Back pops it and closes the card on top (`closeBackLayer`): settings with unsaved edits ask first (`leave_unsaved_q`); the welcome card stays (Back just keeps the app open). Closing a card with its own button removes the entry (`history.back()`, ignored by the popstate handler). With nothing open, Back leaves the app as before.
+- `dropPairParam()` removes `?parear=` from the address when the pairing link is read and again after Back returns to the entry below a card.
+
 ## Home screen icon
 
 - `manifest.webmanifest` (name, `display: standalone`, theme `#B983FF`) and `icons/`: `icon.svg` is the source (a TV with a checklist on the app's purple, drawn inside the maskable safe zone); `icon-192.png`, `icon-512.png` (also the maskable one), `apple-touch-icon.png` (180) and `favicon-32.png` are rendered from it with Chromium (Playwright screenshots at each size). Change the SVG, then render the PNGs again.
