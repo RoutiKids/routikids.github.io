@@ -1,0 +1,16 @@
+{
+  "name": "Routikids",
+  "short_name": "Routikids",
+  "description": "Kids' routine on the TV, one task at a time, set up from the phone.",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "background_color": "#FFF7E9",
+  "theme_color": "#B983FF",
+  "icons": [
+    { "src": "icons/icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any" },
+    { "src": "icons/icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any" },
+    { "src": "icons/icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" },
+    { "src": "icons/icon.svg", "sizes": "any", "type": "image/svg+xml", "purpose": "any" }
+  ]
+}
