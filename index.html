@@ -45,7 +45,7 @@
 <meta name="color-scheme" content="light dark">
 <title>Routikids</title>
 <!-- The code version lives here (read by the app and by the update check); bump it on every change. -->
-<meta name="app-version" content="Versão do código: 2026-10-03 23:01">
+<meta name="app-version" content="Versão do código: 2026-10-03 23:35">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <!-- Icon and manifest: "Add to home screen" on Android (and iOS) gets the Routikids icon. -->
 <link rel="manifest" href="manifest.webmanifest">
@@ -2148,6 +2148,8 @@ const I18N = {
     settings_title: "⚙️ Configurar rotina",
     lang_label: "🌐 Idioma",
     lang_change_confirm: "Trocar o idioma recarrega o app e descarta as alterações não salvas. Continuar?",
+    leave_unsaved_q: "Sair sem salvar? As mudanças feitas agora serão perdidas.",
+    leave_unsaved_yes: "Sair",
     nickname_label: "Apelido da criança (opcional)",
     nickname_placeholder: "Ex: Lulu",
     nickname_hint: "🔒 Use só um apelido, nada de nome completo, escola ou endereço.",
@@ -2499,6 +2501,8 @@ const I18N = {
     settings_title: "⚙️ Routine settings",
     lang_label: "🌐 Language",
     lang_change_confirm: "Changing the language reloads the app and discards unsaved changes. Continue?",
+    leave_unsaved_q: "Leave without saving? The changes made now will be lost.",
+    leave_unsaved_yes: "Leave",
     nickname_label: "Child's nickname (optional)",
     nickname_placeholder: "E.g. Lulu",
     nickname_hint: "🔒 Use only a nickname, no full name, school or address.",
@@ -2850,6 +2854,8 @@ const I18N = {
     settings_title: "⚙️ Routine einstellen",
     lang_label: "🌐 Sprache",
     lang_change_confirm: "Beim Sprachwechsel wird die App neu geladen und ungespeicherte Änderungen gehen verloren. Fortfahren?",
+    leave_unsaved_q: "Ohne Speichern verlassen? Die Änderungen gehen verloren.",
+    leave_unsaved_yes: "Verlassen",
     nickname_label: "Spitzname des Kindes (optional)",
     nickname_placeholder: "z. B. Lulu",
     nickname_hint: "🔒 Nur einen Spitznamen verwenden, keinen vollen Namen, keine Schule, keine Adresse.",
@@ -5601,6 +5607,56 @@ document.addEventListener('keydown', (e) => {
   }
 });
 
+// ---------- The phone's Back button closes what's on top, not the app ----------
+// While a card or dialog is open, one extra history entry is kept: Back pops it
+// and closes the card on top (settings with unsaved edits ask first). The
+// welcome card can't be closed this way: Back just keeps the app open.
+const BACK_LAYERS = ['app-dialog-overlay', 'guide-overlay', 'tvsetup-overlay', 'settings-overlay', 'welcome-overlay'];
+let backGuardOn = false;
+// The pairing link's ?parear=CODE is dropped from the address once read (here,
+// and again after Back returns to the entry below a card), so a reload doesn't pair again.
+function dropPairParam(){
+  const params = new URLSearchParams(location.search);
+  if(!params.has('parear')) return;
+  params.delete('parear');
+  const query = params.toString();
+  history.replaceState(history.state, '', location.pathname + (query ? '?' + query : '') + location.hash);
+}
+let backGuardIgnorePop = false;
+function openBackLayer(){ return BACK_LAYERS.find(id => { const el = document.getElementById(id); return el && el.style.display === 'flex'; }) || null; }
+function syncBackGuard(){
+  const open = !!openBackLayer();
+  if(open && !backGuardOn){
+    history.pushState({ routikidsLayer: true }, '', location.href);
+    backGuardOn = true;
+  } else if(!open && backGuardOn && history.state && history.state.routikidsLayer){
+    backGuardOn = false;
+    backGuardIgnorePop = true;
+    history.back();
+  }
+}
+function closeBackLayer(id){
+  if(id === 'app-dialog-overlay') closeAppDialog(false);
+  else if(id === 'guide-overlay') document.getElementById('guide-overlay').style.display = 'none';
+  else if(id === 'tvsetup-overlay') closeTvSetup();
+  else if(id === 'settings-overlay'){
+    if(!settingsDirty){ closeSettings(); return; }
+    appConfirm(tr('leave_unsaved_q'), tr('leave_unsaved_yes')).then(ok => { if(ok) closeSettings(); });
+  }
+}
+window.addEventListener('popstate', () => {
+  if(backGuardIgnorePop){ backGuardIgnorePop = false; dropPairParam(); return; }
+  backGuardOn = false;
+  dropPairParam();
+  const id = openBackLayer();
+  if(id) closeBackLayer(id);
+  syncBackGuard();
+});
+(function watchBackLayers(){
+  const observer = new MutationObserver(() => syncBackGuard());
+  BACK_LAYERS.forEach(id => { const el = document.getElementById(id); if(el) observer.observe(el, { attributes: true, attributeFilter: ['style'] }); });
+})();
+
 // ---------- "Adicionar modelo": add a template routine to the draft ----------
 (function setupTemplateAdder(){
   const select = document.getElementById('template-select');
@@ -6769,7 +6825,7 @@ let settingsDirty = false;
   const card = settingsOverlay.querySelector('.settings-card');
   const markDirty = (e) => {
     if(!card.contains(e.target)) return; // redrawn by its own handler (e.g. a renamed audio)
-    if(e.target.closest('.emoji-preview, #stats-row, #sync-section, #backup-section, #backup-file-input, #audio-section, #audio-file-input, #cloud-banner, #settings-cancel, #settings-save, #routine-tabs button[data-index]')) return;
+    if(e.target.closest('.emoji-preview, #stats-row, #sync-section, #backup-section, #backup-file-input, #audio-section, #audio-file-input, #cloud-banner, #settings-cancel, #settings-save, #settings-guide-btn, #routine-tabs button[data-index]')) return;
     settingsDirty = true;
   };
   ['input', 'change'].forEach(ev => card.addEventListener(ev, markDirty));
@@ -7221,9 +7277,7 @@ function initCloudSync(){
   const params = new URLSearchParams(location.search);
   const code = params.get('parear');
   if(code){
-    params.delete('parear');
-    const query = params.toString();
-    history.replaceState(null, '', location.pathname + (query ? '?' + query : '') + location.hash);
+    dropPairParam();
     openSettings();
     joinWithCode(code);
   }
