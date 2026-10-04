@@ -45,7 +45,7 @@
 <meta name="color-scheme" content="light dark">
 <title>Routikids</title>
 <!-- The code version lives here (read by the app and by the update check); bump it on every change. -->
-<meta name="app-version" content="Versão do código: 2026-10-04 05:40">
+<meta name="app-version" content="Versão do código: 2026-10-04 06:41">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <!-- Icon and manifest: "Add to home screen" on Android (and iOS) gets the Routikids icon. -->
 <link rel="manifest" href="manifest.webmanifest">
@@ -3451,6 +3451,14 @@ function buildTasksForDayIndex(dayIdx){
   combined.sort((a,b) => toMinutes(a.start) - toMinutes(b.start));
   return combined;
 }
+function nextRoutineDayTasks(fallback){
+  const today = new Date().getDay();
+  for(let k = 1; k <= 6; k++){
+    const list = buildTasksForDayIndex((today + k) % 7);
+    if(list.length) return list;
+  }
+  return fallback;
+}
 function buildTodaysTasks(){
   return buildTasksForDayIndex(new Date().getDay()); // 0=Sunday ... 6=Saturday
 }
@@ -3641,6 +3649,8 @@ function catchUpToNow(){
 // one after the other, from the moment "Test now" was pressed on any device.
 function initSchedule(cfg, opts){
   const testStart = activeTestStartMin();
+  // A test on a day with no routines (e.g. a weekend) runs the next day that has some.
+  if(testStart !== null && !cfg.length) cfg = TASKS = nextRoutineDayTasks(cfg);
   const given = opts && opts.progress;
   const prev = given || ((opts && opts.fresh) ? null : previousDayProgress(testStart));
   const build = () => {
