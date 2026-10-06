@@ -45,7 +45,7 @@
 <meta name="color-scheme" content="light dark">
 <title>Routikids</title>
 <!-- The code version lives here (read by the app and by the update check); bump it on every change. -->
-<meta name="app-version" content="Versão do código: 2026-10-04 06:41">
+<meta name="app-version" content="Versão do código: 2026-10-06 13:56">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <!-- Icon and manifest: "Add to home screen" on Android (and iOS) gets the Routikids icon. -->
 <link rel="manifest" href="manifest.webmanifest">
@@ -1194,26 +1194,6 @@
     max-width:320px;
     margin-bottom:1.5vh;
   }
-  #step-size-row{
-    display:flex;
-    align-items:center;
-    gap:0.6vw;
-    margin-bottom:1vh;
-    flex-wrap:wrap;
-  }
-  #step-size-row .settings-label{ display:inline; margin:0; }
-  .step-size-btn{
-    font-family:'Baloo 2', sans-serif;
-    font-weight:700;
-    font-size:0.95vw;
-    border:2px solid rgba(29,53,87,0.15);
-    background:white;
-    color:var(--navy);
-    border-radius:10px;
-    padding:0.6vh 1vw;
-    cursor:pointer;
-  }
-  .step-size-btn.selected{ background:var(--sky); color:white; border-color:var(--sky); }
 
   /* ---- Weekly routines (tabs + table) ---- */
   #routines-section{
@@ -1433,24 +1413,6 @@
     cursor:pointer;
     font-size:1vw;
   }
-  #week-matrix{
-    width:100%;
-    border-collapse:collapse;
-    margin-top:1vh;
-    font-size:0.85vw;
-  }
-  #week-matrix th, #week-matrix td{
-    text-align:center;
-    padding:0.6vh 0.4vw;
-    border-bottom:1px solid rgba(29,53,87,0.08);
-  }
-  #week-matrix th{ color:var(--navy); font-family:'Nunito', sans-serif; font-weight:700; }
-  #week-matrix td:first-child, #week-matrix th:first-child{ text-align:left; }
-  #week-matrix .matrix-routine-label{ display:flex; align-items:center; gap:0.4vw; white-space:nowrap; }
-  #week-matrix input[type="checkbox"]{ width:1.3vw; height:1.3vw; min-width:15px; min-height:15px; }
-  #week-matrix th.day-conflict{ color:var(--coral); }
-  #week-matrix td.day-conflict{ background:rgba(255,107,107,0.12); }
-  #week-matrix input.conflict-checkbox{ outline:2px solid var(--coral); }
   #conflict-warning{
     display:none;
     background:rgba(255,107,107,0.12);
@@ -1483,6 +1445,31 @@
     color:var(--navy);
     margin:1.5vh 0 1vh 0;
   }
+  /* The selected routine: one card with its name, its details (folded) and its tasks */
+  #routine-card{
+    border:3px solid var(--sky);
+    border-radius:16px;
+    padding:1.2vh 1vw;
+    margin-top:1vh;
+    background:rgba(78,168,222,0.06);
+  }
+  #routine-card-title{ font-family:'Baloo 2', sans-serif; font-weight:800; font-size:1.5vw; color:var(--navy); }
+  #routine-details{ margin:0.6vh 0 0.4vh; }
+  #routine-details > summary{
+    cursor:pointer; font-family:'Nunito', sans-serif; font-weight:700; color:var(--sky);
+    padding:0.4vh 0; list-style-position:inside;
+  }
+  #routine-details[open]{ background:rgba(255,255,255,0.7); border-radius:12px; padding:0.6vh 0.8vw 1vh; }
+  .routine-field{ display:flex; flex-wrap:wrap; align-items:center; gap:0.6vw; margin:0.8vh 0; }
+  .routine-field .settings-label{ margin:0; }
+  #routine-days{ display:flex; flex-wrap:wrap; gap:0.4vw; }
+  .day-toggle{
+    font-family:'Nunito', sans-serif; font-weight:700; min-width:3.2em; padding:0.5vh 0.6vw;
+    border-radius:10px; border:2px solid rgba(29,53,87,0.15); background:white; color:var(--navy); cursor:pointer;
+  }
+  .day-toggle.on{ background:var(--mint); border-color:var(--mint); color:white; }
+  .day-toggle.clash{ background:var(--coral); border-color:var(--coral); }
+  #template-add-row[hidden]{ display:none; }
   .task-row{
     background:white;
     border-radius:16px;
@@ -1527,27 +1514,13 @@
   }
   .emoji-picker button.selected{ border-color:var(--sky); background:rgba(78,168,222,0.2); }
   .task-time-group{ display:flex; align-items:center; gap:0.6vw; font-size:0.9vw; color:var(--navy); }
-  .time-stepper{ display:flex; flex-direction:column; align-items:center; gap:0.1vh; }
-  .time-stepper .time-value{
+  .task-time-group .time-value{
     font-family:'Baloo 2', sans-serif;
     font-weight:800;
     font-size:1.1vw;
     color:var(--navy);
     min-width:3.2vw;
     text-align:center;
-  }
-  .time-step-btn{
-    width:1.8vw;
-    height:1.6vw;
-    min-width:22px;
-    min-height:20px;
-    border-radius:6px;
-    border:none;
-    background:rgba(29,53,87,0.1);
-    color:var(--navy);
-    font-weight:800;
-    font-size:0.9vw;
-    cursor:pointer;
   }
   .task-row .sound-url-input{ width:100%; margin-top:0.5vh; }
   .emoji-custom{ width:9em; font-size:clamp(14px, 1vw, 22px); padding:4px 8px; margin:0; }
@@ -1565,12 +1538,22 @@
     cursor:pointer;
     flex-shrink:0;
   }
-  .task-row .row-reorder{ display:flex; flex-direction:column; gap:0.2vh; }
-  .task-row .row-reorder button{
-    width:1.8vw; height:1.6vw; min-width:20px; min-height:18px;
-    border-radius:5px; border:none; background:rgba(29,53,87,0.08); cursor:pointer; font-size:0.8vw;
+  /* Duration "− 10 min +" (round, sky) and the move buttons (with words, grey):
+     two different looks, so changing a time is never mistaken for moving a task. */
+  .dur-stepper{ display:inline-flex; align-items:center; gap:0.4vw; margin-left:0.6vw; }
+  .dur-btn{
+    width:2.2vw; height:2.2vw; min-width:34px; min-height:34px; border-radius:50%;
+    border:none; background:var(--sky); color:white; font-weight:800; font-size:1.2vw; cursor:pointer; line-height:1;
   }
-  .task-row .row-reorder button:disabled{ opacity:0.25; }
+  .dur-btn:focus, .row-actions button:focus, .day-toggle:focus{ outline:4px solid var(--sun); outline-offset:2px; }
+  .dur-value{ font-family:'Nunito', sans-serif; font-weight:800; min-width:4.2em; text-align:center; color:var(--navy); }
+  .task-start-input{ width:auto; }
+  .task-row .row-actions{ display:flex; align-items:center; gap:0.5vw; margin-left:auto; }
+  .task-row .row-actions .row-up, .task-row .row-actions .row-down{
+    font-family:'Nunito', sans-serif; font-weight:700; font-size:clamp(13px, 0.85vw, 18px);
+    border:none; border-radius:999px; background:rgba(29,53,87,0.08); color:var(--navy); padding:0.5vh 0.8vw; cursor:pointer;
+  }
+  .task-row .row-actions button[hidden]{ display:none; }
   .settings-add-btn{
     font-family:'Baloo 2', sans-serif;
     font-weight:700;
@@ -1707,20 +1690,19 @@
     .settings-hint{ font-size:13px; }
     #sync-section, #routines-section, #backup-section, #children-section, #audio-section{ padding:12px; }
     #sync-section h3, #routines-section h3, #backup-section h3, #children-section h3, #audio-section h3, #routine-tasks-heading{ font-size:18px; }
-    .step-size-btn{ font-size:14px; padding:6px 12px; }
     .routine-tab, #routine-add-btn, #routine-delete-btn{ font-size:14px; padding:6px 12px; }
     #routine-icon-picker button, .emoji-picker button{ font-size:20px; padding:4px 6px; }
-    #week-matrix{ font-size:13px; }
-    #week-matrix input[type="checkbox"]{ width:22px; height:22px; }
     #conflict-warning{ font-size:13px; padding:8px 10px; }
     .apply-all-days-btn{ font-size:12px; padding:3px 8px; }
     .task-row{ padding:12px 10px; }
     .task-row .emoji-preview{ font-size:26px; width:40px; height:40px; }
-    .task-time-group{ font-size:14px; gap:6px; }
-    .time-stepper .time-value{ font-size:16px; min-width:44px; }
-    .time-step-btn{ width:32px; height:26px; font-size:12px; }
+    .task-time-group{ font-size:14px; gap:6px; flex-wrap:wrap; }
+    #routine-card{ padding:10px; }
+    #routine-card-title{ font-size:20px; }
+    .dur-btn{ font-size:20px; }
+    .day-toggle{ font-size:14px; padding:6px 8px; }
+    .task-time-group .time-value{ font-size:16px; min-width:44px; }
     .task-row .remove-task-btn{ width:34px; height:34px; }
-    .task-row .row-reorder button{ width:30px; height:26px; font-size:12px; }
     .settings-add-btn{ font-size:16px; padding:10px 18px; }
     .settings-btn{ font-size:17px; padding:10px 20px; }
     #app-version{ font-size:11px !important; }
@@ -1852,13 +1834,6 @@
     <label id="stats-row"><input type="checkbox" id="stats-toggle"> <span data-i18n="stats_label"></span></label>
     <p class="settings-hint"><span data-i18n="stats_hint"></span> <a href="privacy.html" target="_blank" rel="noopener" data-i18n="privacy_link"></a></p>
 
-    <div id="step-size-row">
-      <span class="settings-label" data-i18n="step_size"></span>
-      <button type="button" class="step-size-btn selected" data-step="5">5 min</button>
-      <button type="button" class="step-size-btn" data-step="10">10 min</button>
-      <button type="button" class="step-size-btn" data-step="15">15 min</button>
-      <button type="button" class="step-size-btn" data-step="30">30 min</button>
-    </div>
 
     <label class="settings-label" data-i18n="ontime_icon"></label>
     <div class="emoji-picker" id="ontime-icon-picker"></div>
@@ -1929,41 +1904,46 @@
       <p class="settings-hint" data-i18n="week_hint"></p>
 
       <div id="routine-tabs"></div>
-      <div class="sync-buttons" id="template-add-row">
+      <!-- "+ Nova rotina": from a template or blank -->
+      <div class="sync-buttons" id="template-add-row" hidden>
+        <span class="settings-label" style="margin:0;" data-i18n="new_routine_from"></span>
         <select id="template-select" class="settings-select"></select>
-        <button type="button" id="template-add-btn" class="util-btn" style="background:var(--sky);" data-i18n="add_template"></button>
+        <button type="button" id="template-add-btn" class="util-btn" style="background:var(--mint);" data-i18n="add_template"></button>
+        <button type="button" id="template-cancel-btn" class="util-btn" style="background:#9aa5b1;" data-i18n="cancel"></button>
       </div>
 
-      <div id="routine-edit-row">
-        <input type="text" id="routine-name-input" class="settings-text-input" data-i18n-placeholder="routine_name_ph">
-        <div id="routine-icon-picker"></div>
-        <span class="settings-label" style="margin:0;" data-i18n="deadline_colon"></span>
-        <div class="limit-unit">
-          <button type="button" class="limit-btn" id="routine-limit-hour-plus">▲</button>
-          <span class="limit-value" id="routine-limit-hour">08</span>
-          <button type="button" class="limit-btn" id="routine-limit-hour-minus">▼</button>
-        </div>
-        <span class="limit-colon">:</span>
-        <div class="limit-unit">
-          <button type="button" class="limit-btn" id="routine-limit-min-plus">▲</button>
-          <span class="limit-value" id="routine-limit-min">55</span>
-          <button type="button" class="limit-btn" id="routine-limit-min-minus">▼</button>
-        </div>
-        <span class="settings-label" style="margin:0;" data-i18n="start_mode_label"></span>
-        <select id="routine-start-mode" class="settings-select"></select>
-        <button type="button" id="routine-delete-btn" data-i18n="delete_routine"></button>
-      </div>
-      <p class="settings-hint" data-i18n="start_mode_hint"></p>
+      <!-- The selected routine: its details (folded) and its tasks, in one card -->
+      <div id="routine-card">
+        <div id="routine-card-title"></div>
+        <details id="routine-details">
+          <summary data-i18n="routine_details"></summary>
+          <div id="routine-edit-row">
+            <input type="text" id="routine-name-input" class="settings-text-input" data-i18n-placeholder="routine_name_ph">
+            <div id="routine-icon-picker"></div>
+          </div>
+          <div class="routine-field">
+            <span class="settings-label" data-i18n="days_label"></span>
+            <div id="routine-days"></div>
+          </div>
+          <div class="routine-field">
+            <span class="settings-label" data-i18n="start_mode_label"></span>
+            <select id="routine-start-mode" class="settings-select"></select>
+          </div>
+          <p class="settings-hint" data-i18n="start_mode_hint"></p>
+          <div class="routine-field">
+            <span class="settings-label" data-i18n="deadline_colon"></span>
+            <input type="time" id="routine-limit-input" class="settings-time-input">
+          </div>
+          <button type="button" id="routine-delete-btn" data-i18n="delete_routine"></button>
+        </details>
+        <div id="conflict-warning"></div>
 
-      <table id="week-matrix"><thead></thead><tbody></tbody></table>
-      <div id="conflict-warning"></div>
+        <div id="routine-tasks-heading"></div>
+        <p class="settings-hint" data-i18n="can_shorten_hint"></p>
+        <div id="settings-tasks-list"></div>
+        <button id="settings-add-task" class="settings-add-btn" data-i18n="add_task"></button>
+      </div>
     </div>
-
-    <div id="routine-tasks-heading" data-i18n="tasks_heading"></div>
-    <p class="settings-hint" data-i18n="can_shorten_hint"></p>
-    <div id="settings-tasks-list"></div>
-
-    <button id="settings-add-task" class="settings-add-btn" data-i18n="add_task"></button>
 
     <div class="settings-actions">
       <button id="settings-cancel" class="settings-btn cancel" data-i18n="cancel"></button>
@@ -2153,15 +2133,23 @@ const I18N = {
     nickname_label: "Apelido da criança (opcional)",
     nickname_placeholder: "Ex: Lulu",
     nickname_hint: "🔒 Use só um apelido, nada de nome completo, escola ou endereço.",
-    step_size: "Incremento das setas de horário:",
     ontime_icon: "Ícone quando concluir no tempo",
     late_icon: "Ícone quando atrasar",
-    week_title: "🗓️ Rotinas da semana",
-    week_hint: "Marque cada rotina nos dias em que ela deve rodar. Pode combinar várias no mesmo dia: elas se juntam em ordem de horário. Só evite horários que se sobrepõem entre rotinas do mesmo dia.",
-    add_template: "📋 Adicionar modelo",
+    new_routine_from: "Nova rotina:",
+    blank_routine: "✏️ Em branco",
+    routine_details: "⚙️ Detalhes da rotina: nome, dias e início",
+    days_label: "📅 Dias:",
+    routine_start_title: "Início da rotina: muda o horário da rotina inteira",
+    duration_title: "Duração da tarefa: as seguintes andam junto",
+    shorter: "Menos tempo",
+    longer: "Mais tempo",
+    n_min: "{n} min",
+    week_title: "📋 Rotinas",
+    week_hint: "Toque numa rotina para ver e mudar as tarefas dela. Nome, dias da semana e início ficam em \"⚙️ Detalhes da rotina\".",
+    add_template: "✔ Criar",
     routine_name_ph: "Nome da rotina",
     delete_routine: "🗑 Excluir esta rotina",
-    tasks_heading: "Tarefas da rotina selecionada",
+    tasks_heading: "Tarefas: {routine}",
     add_task: "+ Adicionar tarefa",
     cancel: "Cancelar",
     save: "💾 Salvar",
@@ -2181,8 +2169,8 @@ const I18N = {
     sound_melody: "🎶 Melodia animada",
     sound_url: "🔗 Link personalizado",
     sound_url_ph: "https://.../musica.mp3 (link direto do arquivo)",
-    move_up: "Mover pra cima",
-    move_down: "Mover pra baixo",
+    move_up: "↑ Subir",
+    move_down: "↓ Descer",
     remove_task: "Remover tarefa",
     task_needs_name: "Toda tarefa precisa de um nome (rotina \"{routine}\").",
     task_end_after_start: "A tarefa \"{task}\" (rotina \"{routine}\") precisa ter o fim depois do início.",
@@ -2506,15 +2494,23 @@ const I18N = {
     nickname_label: "Child's nickname (optional)",
     nickname_placeholder: "E.g. Lulu",
     nickname_hint: "🔒 Use only a nickname, no full name, school or address.",
-    step_size: "Time arrow step:",
     ontime_icon: "Icon when finished on time",
     late_icon: "Icon when late",
-    week_title: "🗓️ Weekly routines",
-    week_hint: "Tick each routine on the days it should run. Several can share a day: they are combined in time order. Just avoid times that overlap between routines on the same day.",
-    add_template: "📋 Add template",
+    new_routine_from: "New routine:",
+    blank_routine: "✏️ Blank",
+    routine_details: "⚙️ Routine details: name, days and start",
+    days_label: "📅 Days:",
+    routine_start_title: "Routine start: moves the whole routine",
+    duration_title: "Task duration: the next tasks move along",
+    shorter: "Less time",
+    longer: "More time",
+    n_min: "{n} min",
+    week_title: "📋 Routines",
+    week_hint: "Tap a routine to see and change its tasks. Name, weekdays and start are under \"⚙️ Routine details\".",
+    add_template: "✔ Create",
     routine_name_ph: "Routine name",
     delete_routine: "🗑 Delete this routine",
-    tasks_heading: "Tasks of the selected routine",
+    tasks_heading: "Tasks: {routine}",
     add_task: "+ Add task",
     cancel: "Cancel",
     save: "💾 Save",
@@ -2534,8 +2530,8 @@ const I18N = {
     sound_melody: "🎶 Happy melody",
     sound_url: "🔗 Custom link",
     sound_url_ph: "https://.../music.mp3 (direct link to the file)",
-    move_up: "Move up",
-    move_down: "Move down",
+    move_up: "↑ Up",
+    move_down: "↓ Down",
     remove_task: "Remove task",
     task_needs_name: "Every task needs a name (routine \"{routine}\").",
     task_end_after_start: "Task \"{task}\" (routine \"{routine}\") must end after it starts.",
@@ -2859,15 +2855,23 @@ const I18N = {
     nickname_label: "Spitzname des Kindes (optional)",
     nickname_placeholder: "z. B. Lulu",
     nickname_hint: "🔒 Nur einen Spitznamen verwenden, keinen vollen Namen, keine Schule, keine Adresse.",
-    step_size: "Schrittweite der Zeitpfeile:",
     ontime_icon: "Symbol, wenn pünktlich fertig",
     late_icon: "Symbol bei Verspätung",
-    week_title: "🗓️ Routinen der Woche",
-    week_hint: "Hake jede Routine an den Tagen an, an denen sie laufen soll. Mehrere am selben Tag sind möglich: Sie werden nach Uhrzeit kombiniert. Vermeide nur Zeiten, die sich am selben Tag überschneiden.",
-    add_template: "📋 Vorlage hinzufügen",
+    new_routine_from: "Neue Routine:",
+    blank_routine: "✏️ Leer",
+    routine_details: "⚙️ Details der Routine: Name, Tage und Beginn",
+    days_label: "📅 Tage:",
+    routine_start_title: "Beginn der Routine: verschiebt die ganze Routine",
+    duration_title: "Dauer der Aufgabe: die nächsten rücken mit",
+    shorter: "Weniger Zeit",
+    longer: "Mehr Zeit",
+    n_min: "{n} Min.",
+    week_title: "📋 Routinen",
+    week_hint: "Tippe auf eine Routine, um ihre Aufgaben zu sehen und zu ändern. Name, Wochentage und Beginn stehen unter „⚙️ Details der Routine“.",
+    add_template: "✔ Erstellen",
     routine_name_ph: "Name der Routine",
     delete_routine: "🗑 Diese Routine löschen",
-    tasks_heading: "Aufgaben der ausgewählten Routine",
+    tasks_heading: "Aufgaben: {routine}",
     add_task: "+ Aufgabe hinzufügen",
     cancel: "Abbrechen",
     save: "💾 Speichern",
@@ -2887,8 +2891,8 @@ const I18N = {
     sound_melody: "🎶 Fröhliche Melodie",
     sound_url: "🔗 Eigener Link",
     sound_url_ph: "https://.../musik.mp3 (direkter Link zur Datei)",
-    move_up: "Nach oben",
-    move_down: "Nach unten",
+    move_up: "↑ Hoch",
+    move_down: "↓ Runter",
     remove_task: "Aufgabe entfernen",
     task_needs_name: "Jede Aufgabe braucht einen Namen (Routine „{routine}\").",
     task_end_after_start: "Die Aufgabe „{task}\" (Routine „{routine}\") muss nach ihrem Beginn enden.",
@@ -5466,7 +5470,6 @@ const settingsOverlay = document.getElementById('settings-overlay');
 const settingsTasksList = document.getElementById('settings-tasks-list');
 const settingsChildNameInput = document.getElementById('settings-child-name');
 
-let timeStepMin = 5;
 let draftOnTimeIcon = DEFAULT_ONTIME_ICON;
 let draftLateIcon = DEFAULT_LATE_ICON;
 
@@ -5556,9 +5559,6 @@ function openSettings(){
   populateDraftFromCurrentConfig();
   setAudioStatus('');
   syncAudioCache();
-  document.querySelectorAll('.step-size-btn').forEach(b => {
-    b.classList.toggle('selected', parseInt(b.dataset.step,10) === timeStepMin);
-  });
   settingsOverlay.style.display = 'flex';
 }
 function closeSettings(){
@@ -5672,16 +5672,25 @@ window.addEventListener('popstate', () => {
 // ---------- "Adicionar modelo": add a template routine to the draft ----------
 (function setupTemplateAdder(){
   const select = document.getElementById('template-select');
-  select.innerHTML = ROUTINE_TEMPLATES.map(t => `<option value="${t.key}">${t.icon} ${t.label} (${t.daysLabel})</option>`).join('');
+  select.innerHTML = `<option value="blank">${tr('blank_routine')}</option>`
+    + ROUTINE_TEMPLATES.map(t => `<option value="${t.key}">${t.icon} ${t.label} (${t.daysLabel})</option>`).join('');
   document.getElementById('template-add-btn').addEventListener('click', () => {
     const tpl = ROUTINE_TEMPLATES.find(t => t.key === select.value);
-    if(!tpl) return;
-    const routine = makeTemplateRoutine(tpl, `r_${tpl.key}_${Date.now()}`);
-    routine.childId = selectedChildId;
-    draftRoutines.push(configRoutineToDraft(routine));
-    tpl.days.forEach(d => { (draftWeekSchedule[d] = draftWeekSchedule[d] || []).push(routine.id); });
+    if(tpl){
+      const routine = makeTemplateRoutine(tpl, `r_${tpl.key}_${Date.now()}`);
+      routine.childId = selectedChildId;
+      draftRoutines.push(configRoutineToDraft(routine));
+      tpl.days.forEach(d => { (draftWeekSchedule[d] = draftWeekSchedule[d] || []).push(routine.id); });
+    } else {
+      draftRoutines.push({ id: 'r_' + Date.now(), childId: selectedChildId, name: tr('new_routine'), icon: '📋', tasks: [] });
+    }
+    document.getElementById('template-add-row').hidden = true;
     selectRoutine(draftRoutines.length - 1);
+    document.getElementById('routine-details').open = true; // a new routine: name, days and start first
     renderWeekMatrix();
+  });
+  document.getElementById('template-cancel-btn').addEventListener('click', () => {
+    document.getElementById('template-add-row').hidden = true;
   });
 })();
 
@@ -5837,6 +5846,7 @@ let selectedRoutineIndex = 0;
 
 function selectRoutine(idx){
   openPickerIdx = null;
+  document.getElementById('routine-details').open = false;
   selectedRoutineIndex = idx;
   draftTasks = draftRoutines[idx].tasks;
   renderRoutineTabs();
@@ -5853,9 +5863,9 @@ function renderRoutineTabs(){
     btn.addEventListener('click', () => selectRoutine(parseInt(btn.dataset.index,10)));
   });
   document.getElementById('routine-add-btn').addEventListener('click', () => {
-    draftRoutines.push({ id: 'r_' + Date.now(), childId: selectedChildId, name: tr('new_routine'), icon: '📋', tasks: [] });
-    selectRoutine(draftRoutines.length - 1);
-    renderWeekMatrix();
+    const row = document.getElementById('template-add-row');
+    row.hidden = !row.hidden;
+    if(!row.hidden) document.getElementById('template-select').focus();
   });
 }
 
@@ -5866,17 +5876,26 @@ function computeDraftRoutineNaturalLimit(routine){
   return end + 10;
 }
 
+// The selected routine's card: its name on top, its details folded (open for a
+// new routine), its tasks below. Hidden when the child has no routine yet.
+function routineLabel(r){ return `${r.icon} ${r.name || tr('routine_fallback')}`; }
+function renderRoutineTitles(){
+  const r = draftRoutines[selectedRoutineIndex];
+  if(!r) return;
+  document.getElementById('routine-card-title').textContent = routineLabel(r);
+  document.getElementById('routine-tasks-heading').textContent = tr('tasks_heading', { routine: routineLabel(r) });
+}
 function renderRoutineEditRow(){
   const r = draftRoutines[selectedRoutineIndex];
-  document.getElementById('routine-edit-row').style.display = r ? '' : 'none';
+  document.getElementById('routine-card').style.display = r ? '' : 'none';
   if(!r) return;
+  renderRoutineTitles();
   document.getElementById('routine-name-input').value = r.name;
   document.getElementById('routine-icon-picker').innerHTML = ROUTINE_ICON_PRESETS.map(e =>
     `<button type="button" data-icon="${e}" class="${r.icon===e?'selected':''}">${e}</button>`
   ).join('') + customEmojiField(r.icon, ROUTINE_ICON_PRESETS);
   const limitVal = r.limitMin !== undefined ? r.limitMin : computeDraftRoutineNaturalLimit(r);
-  document.getElementById('routine-limit-hour').textContent = String(Math.floor(limitVal/60)).padStart(2,'0');
-  document.getElementById('routine-limit-min').textContent = String(Math.round(limitVal%60)).padStart(2,'0');
+  document.getElementById('routine-limit-input').value = arrToHHMM([Math.floor(limitVal / 60) % 24, Math.round(limitVal % 60)]);
   document.getElementById('routine-start-mode').innerHTML = [['fixed', tr('start_mode_fixed')], ['button', tr('start_mode_button')]]
     .map(([v, label]) => `<option value="${v}"${(r.startMode || 'fixed') === v ? ' selected' : ''}>${label}</option>`).join('');
 }
@@ -5884,22 +5903,18 @@ document.getElementById('routine-start-mode').addEventListener('change', (e) => 
   const r = draftRoutines[selectedRoutineIndex];
   if(r) r.startMode = e.target.value;
 });
-function adjustRoutineLimit(deltaMin){
+document.getElementById('routine-limit-input').addEventListener('change', (e) => {
   const r = draftRoutines[selectedRoutineIndex];
-  const current = r.limitMin !== undefined ? r.limitMin : computeDraftRoutineNaturalLimit(r);
-  r.limitMin = Math.max(0, current + deltaMin);
-  renderRoutineEditRow();
-}
-document.getElementById('routine-limit-hour-plus').addEventListener('click', () => adjustRoutineLimit(60));
-document.getElementById('routine-limit-hour-minus').addEventListener('click', () => adjustRoutineLimit(-60));
-document.getElementById('routine-limit-min-plus').addEventListener('click', () => adjustRoutineLimit(1));
-document.getElementById('routine-limit-min-minus').addEventListener('click', () => adjustRoutineLimit(-1));
+  if(!r || !/^\d{1,2}:\d{2}$/.test(e.target.value)) return;
+  r.limitMin = draftMinutes(e.target.value);
+});
 document.getElementById('routine-name-input').addEventListener('input', (e) => {
   const r = draftRoutines[selectedRoutineIndex];
   r.name = e.target.value;
   // Update only the matching tab's text, without redrawing everything (avoids losing field focus)
   const tabBtn = document.querySelector(`.routine-tab[data-index="${selectedRoutineIndex}"]`);
   if(tabBtn) tabBtn.textContent = `${r.icon} ${r.name}`;
+  renderRoutineTitles();
 });
 document.getElementById('routine-icon-picker').addEventListener('click', (e) => {
   const btn = e.target.closest('button');
@@ -5907,6 +5922,7 @@ document.getElementById('routine-icon-picker').addEventListener('click', (e) => 
   draftRoutines[selectedRoutineIndex].icon = btn.dataset.icon;
   renderRoutineEditRow();
   renderRoutineTabs();
+  renderWeekMatrix();
 });
 document.getElementById('routine-delete-btn').addEventListener('click', () => {
   if(childRoutineIndexes().length <= 1){
@@ -5959,23 +5975,17 @@ function findScheduleConflicts(){
   return { byDay, messages };
 }
 
+// The selected routine's days, as toggles (plus "Every day"). Clashes with
+// another routine of the same child on a day show in red, with the warning.
 function renderWeekMatrix(){
   const conflicts = findScheduleConflicts();
-  const thead = document.querySelector('#week-matrix thead');
-  const tbody = document.querySelector('#week-matrix tbody');
-  thead.innerHTML = '<tr><th></th>' + DAY_NAMES.map((d,i) => `<th class="${conflicts.byDay[i]?'day-conflict':''}">${d}</th>`).join('') + '<th></th></tr>';
-  tbody.innerHTML = draftRoutines.filter(r => r.childId === selectedChildId).map(r => `
-    <tr>
-      <td><span class="matrix-routine-label">${r.icon} ${r.name}</span></td>
-      ${DAY_NAMES.map((_, d) => {
-        const checked = (draftWeekSchedule[d]||[]).includes(r.id);
-        const isConflict = checked && conflicts.byDay[d] && conflicts.byDay[d].has(r.id);
-        return `<td class="${isConflict?'day-conflict':''}"><input type="checkbox" class="${isConflict?'conflict-checkbox':''}" data-day="${d}" data-rid="${r.id}" ${checked ? 'checked' : ''}></td>`;
-      }).join('')}
-      <td><button type="button" class="apply-all-days-btn" data-rid="${r.id}">${tr('all_days_btn')}</button></td>
-    </tr>
-  `).join('');
-
+  const r = draftRoutines[selectedRoutineIndex];
+  const wrap = document.getElementById('routine-days');
+  wrap.innerHTML = r ? DAY_NAMES.map((name, d) => {
+    const on = (draftWeekSchedule[d] || []).includes(r.id);
+    const clash = on && conflicts.byDay[d] && conflicts.byDay[d].has(r.id);
+    return `<button type="button" class="day-toggle${on ? ' on' : ''}${clash ? ' clash' : ''}" data-day="${d}" aria-pressed="${on}">${name}</button>`;
+  }).join('') + `<button type="button" class="apply-all-days-btn">${tr('all_days_btn')}</button>` : '';
   const warningEl = document.getElementById('conflict-warning');
   if(conflicts.messages.length > 0){
     warningEl.innerHTML = tr('overlap_heading') + '<br>' + conflicts.messages.join('<br>');
@@ -5984,27 +5994,17 @@ function renderWeekMatrix(){
     warningEl.classList.remove('show');
   }
 }
-document.querySelector('#week-matrix').addEventListener('change', (e) => {
-  if(e.target.type !== 'checkbox') return;
-  const day = parseInt(e.target.dataset.day, 10);
-  const rid = e.target.dataset.rid;
-  let dayArr = draftWeekSchedule[day] || (draftWeekSchedule[day] = []);
-  if(e.target.checked){
-    if(!dayArr.includes(rid)) dayArr.push(rid);
-  } else {
-    draftWeekSchedule[day] = dayArr.filter(id => id !== rid);
-  }
-  renderWeekMatrix();
-});
-document.querySelector('#week-matrix').addEventListener('click', (e) => {
-  const btn = e.target.closest('.apply-all-days-btn');
-  if(!btn) return;
-  const rid = btn.dataset.rid;
-  for(let d=0; d<7; d++){
-    if(!(draftWeekSchedule[d]||[]).includes(rid)){
-      draftWeekSchedule[d] = (draftWeekSchedule[d]||[]).concat(rid);
-    }
-  }
+document.getElementById('routine-days').addEventListener('click', (e) => {
+  const r = draftRoutines[selectedRoutineIndex];
+  if(!r) return;
+  const dayBtn = e.target.closest('.day-toggle');
+  if(dayBtn){
+    const d = parseInt(dayBtn.dataset.day, 10);
+    const list = draftWeekSchedule[d] || [];
+    draftWeekSchedule[d] = list.includes(r.id) ? list.filter(id => id !== r.id) : list.concat(r.id);
+  } else if(e.target.closest('.apply-all-days-btn')){
+    for(let d = 0; d < 7; d++) if(!(draftWeekSchedule[d] || []).includes(r.id)) draftWeekSchedule[d] = (draftWeekSchedule[d] || []).concat(r.id);
+  } else return;
   renderWeekMatrix();
 });
 
@@ -6016,16 +6016,15 @@ function renderSettingsRows(){
       <button type="button" class="emoji-preview" data-index="${i}" title="${tr('change_picture')}">${t.emoji}</button>
       <input type="text" class="settings-text-input task-name-input" data-field="name" data-index="${i}" value="${t.name.replace(/"/g,'&quot;')}" placeholder="${tr('task_name_ph')}">
       <div class="task-time-group">
-        <div class="time-stepper">
-          <button type="button" class="time-step-btn" data-index="${i}" data-field="start" data-dir="1">▲</button>
-          <span class="time-value">${t.start}</span>
-          <button type="button" class="time-step-btn" data-index="${i}" data-field="start" data-dir="-1">▼</button>
-        </div>
+        ${i === 0
+          ? `<input type="time" class="settings-time-input task-start-input" data-index="0" value="${t.start}" title="${tr('routine_start_title')}">`
+          : `<span class="time-value">${t.start}</span>`}
         <span>–</span>
-        <div class="time-stepper">
-          <button type="button" class="time-step-btn" data-index="${i}" data-field="end" data-dir="1">▲</button>
-          <span class="time-value">${t.end}</span>
-          <button type="button" class="time-step-btn" data-index="${i}" data-field="end" data-dir="-1">▼</button>
+        <span class="time-value">${t.end}</span>
+        <div class="dur-stepper" title="${tr('duration_title')}">
+          <button type="button" class="dur-btn" data-index="${i}" data-dir="-1" aria-label="${tr('shorter')}">−</button>
+          <span class="dur-value">${tr('n_min', { n: draftDuration(t) })}</span>
+          <button type="button" class="dur-btn" data-index="${i}" data-dir="1" aria-label="${tr('longer')}">+</button>
         </div>
       </div>
       <select class="settings-select" data-field="soundType" data-index="${i}">
@@ -6034,12 +6033,12 @@ function renderSettingsRows(){
         <option value="url" ${t.soundType==='url'?'selected':''}>${tr('sound_url')}</option>
         ${AUDIOS.map(a => `<option value="fa:${a.id}" ${t.soundType==='family' && t.soundAudioId===a.id?'selected':''}>🎙️ ${escHtml(a.name)}</option>`).join('')}
       </select>
-      <div class="row-reorder">
-        <button class="row-up" data-index="${i}" ${i===0?'disabled':''} title="${tr('move_up')}">▲</button>
-        <button class="row-down" data-index="${i}" ${i===draftTasks.length-1?'disabled':''} title="${tr('move_down')}">▼</button>
-      </div>
-      <button class="remove-task-btn" data-index="${i}" title="${tr('remove_task')}">🗑</button>
       <label class="flex-toggle" title="${tr('can_shorten_hint')}"><input type="checkbox" data-field="flex" data-index="${i}" ${t.flex ? 'checked' : ''}> ${tr('can_shorten')}</label>
+      <div class="row-actions">
+        <button type="button" class="row-up" data-index="${i}"${i === 0 ? ' hidden' : ''}>${tr('move_up')}</button>
+        <button type="button" class="row-down" data-index="${i}"${i === draftTasks.length - 1 ? ' hidden' : ''}>${tr('move_down')}</button>
+        <button type="button" class="remove-task-btn" data-index="${i}" title="${tr('remove_task')}">🗑</button>
+      </div>
       <div class="emoji-picker"${openPickerIdx === i ? '' : ' hidden'}>
         ${EMOJI_PRESETS.map(e => `<button type="button" data-index="${i}" data-emoji="${e}" class="${t.emoji===e?'selected':''}">${e}</button>`).join('')}
         <input type="text" class="settings-text-input emoji-custom" data-field="emoji" data-index="${i}" maxlength="16" autocomplete="off" placeholder="${tr('other_emoji_ph')}" value="${EMOJI_PRESETS.includes(t.emoji) ? '' : t.emoji}">
@@ -6078,31 +6077,21 @@ function setDraftDuration(t, minutes){
   const end = (start + Math.max(1, minutes)) % 1440;
   t.end = arrToHHMM([Math.floor(end / 60), end % 60]);
 }
-function adjustDraftTime(index, field, dir){
-  const delta = dir * timeStepMin;
+// "− / +" on a task's duration: 1 minute at a time up to 5, then to the next
+// multiple of 5. The later tasks move along (the chain is kept).
+function stepDuration(minutes, dir){
+  if(dir > 0) return minutes < 5 ? minutes + 1 : (Math.floor(minutes / 5) + 1) * 5;
+  return minutes <= 5 ? Math.max(1, minutes - 1) : (Math.ceil(minutes / 5) - 1) * 5;
+}
+function adjustDraftDuration(index, dir){
   const t = draftTasks[index];
-  if(field === 'start' && index === 0){
-    chainDraftTasks(draftMinutes(t.start) + delta);       // the whole routine moves
-  } else if(field === 'start'){
-    const prev = draftTasks[index - 1];                     // the boundary moves
-    const room = draftDuration(prev) + draftDuration(t);
-    const prevDur = Math.min(room - 1, Math.max(1, draftDuration(prev) + delta));
-    setDraftDuration(prev, prevDur);
-    setDraftDuration(t, room - prevDur);
-    chainDraftTasks();
-  } else {
-    setDraftDuration(t, draftDuration(t) + delta);          // this task changes, the later ones move
-    chainDraftTasks();
-  }
+  setDraftDuration(t, Math.min(12 * 60, stepDuration(draftDuration(t), dir)));
+  chainDraftTasks();
   renderSettingsRows();
+  const again = settingsTasksList.querySelector(`.dur-btn[data-index="${index}"][data-dir="${dir}"]`);
+  if(again) again.focus({ preventScroll: true }); // keep tapping (or the remote's OK) on the same button
 }
 
-document.querySelectorAll('.step-size-btn').forEach(btn => {
-  btn.addEventListener('click', () => {
-    timeStepMin = parseInt(btn.dataset.step, 10);
-    document.querySelectorAll('.step-size-btn').forEach(b => b.classList.toggle('selected', b === btn));
-  });
-});
 
 
 settingsTasksList.addEventListener('input', (e) => {
@@ -6123,6 +6112,10 @@ settingsTasksList.addEventListener('input', (e) => {
   draftTasks[idx][field] = e.target.value;
 });
 settingsTasksList.addEventListener('change', (e) => {
+  if(e.target.classList.contains('task-start-input')){ // the routine's start: the whole routine moves
+    if(/^\d{1,2}:\d{2}$/.test(e.target.value)){ chainDraftTasks(draftMinutes(e.target.value)); renderSettingsRows(); }
+    return;
+  }
   if(e.target.dataset.field === 'soundType'){
     const idx = parseInt(e.target.dataset.index, 10);
     const value = e.target.value;
@@ -6132,9 +6125,9 @@ settingsTasksList.addEventListener('change', (e) => {
   }
 });
 settingsTasksList.addEventListener('click', (e) => {
-  const timeBtn = e.target.closest('.time-step-btn');
-  if(timeBtn){
-    adjustDraftTime(parseInt(timeBtn.dataset.index,10), timeBtn.dataset.field, parseInt(timeBtn.dataset.dir,10));
+  const durBtn = e.target.closest('.dur-btn');
+  if(durBtn){
+    adjustDraftDuration(parseInt(durBtn.dataset.index, 10), parseInt(durBtn.dataset.dir, 10));
     return;
   }
   const previewBtn = e.target.closest('.emoji-preview');
@@ -6160,7 +6153,7 @@ settingsTasksList.addEventListener('click', (e) => {
     return;
   }
   const upBtn = e.target.closest('.row-up');
-  if(upBtn && !upBtn.disabled){
+  if(upBtn && !upBtn.hidden){
     const i = parseInt(upBtn.dataset.index,10);
     const start = draftMinutes(draftTasks[0].start);
     [draftTasks[i-1], draftTasks[i]] = [draftTasks[i], draftTasks[i-1]];
@@ -6169,7 +6162,7 @@ settingsTasksList.addEventListener('click', (e) => {
     return;
   }
   const downBtn = e.target.closest('.row-down');
-  if(downBtn && !downBtn.disabled){
+  if(downBtn && !downBtn.hidden){
     const i = parseInt(downBtn.dataset.index,10);
     const start = draftMinutes(draftTasks[0].start);
     [draftTasks[i+1], draftTasks[i]] = [draftTasks[i], draftTasks[i+1]];
