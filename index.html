@@ -45,7 +45,7 @@
 <meta name="color-scheme" content="light dark">
 <title>Routikids</title>
 <!-- The code version lives here (read by the app and by the update check); bump it on every change. -->
-<meta name="app-version" content="Versão do código: 2026-10-07 20:27">
+<meta name="app-version" content="Versão do código: 2026-10-08 02:03">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <!-- Icon and manifest: "Add to home screen" on Android (and iOS) gets the Routikids icon. -->
 <link rel="manifest" href="manifest.webmanifest">
@@ -1353,6 +1353,8 @@
   .cloud-device-name{ font-weight:800; overflow-wrap:anywhere; }
   .cloud-device-seen{ color:#6b7a90; font-size:0.9em; }
   .cloud-remove-btn{ flex:none; background:var(--coral); font-size:clamp(13px, 0.9vw, 18px); }
+  .cloud-sound-btn{ flex:none; background:var(--mint); font-size:clamp(13px, 0.9vw, 18px); }
+  .cloud-sound-btn.off{ background:#9aa5b1; }
   #cloud-banner .sync-buttons{ margin-top:1vh; }
   #cloud-banner .settings-text-input,
   #cloud-banner .util-btn{ font-size:clamp(16px, 1vw, 22px); }
@@ -2438,6 +2440,10 @@ const I18N = {
     kind_computer: "Computador",
     cloud_connected: "✅ Conectado! O que for salvo aqui aparece sozinho nos outros aparelhos do grupo.",
     cloud_legacy: "ℹ️ O app foi atualizado e agora mostra quais aparelhos estão conectados. Para isso, conecte os aparelhos de novo: toque em \"Mostrar código\" na TV.",
+    remote_sound_on: "🔊 Som ligado",
+    remote_sound_off: "🔇 Som desligado",
+    remote_sound_blocked: "🔊 Ligado, falta um toque no aparelho",
+    remote_sound_title: "Liga ou desliga o som daquele aparelho. O som deste aqui não muda.",
     cloud_not_connected: "Este aparelho ainda não está conectado a nenhum outro.",
     cloud_send_failed: "⚠️ Não consegui enviar para os outros aparelhos. Verifique a internet e salve de novo.",
     cloud_changes_waiting: "🔄 Chegaram mudanças de outro aparelho. Elas serão aplicadas quando você fechar esta tela (se você salvar, vale o que você salvar).",
@@ -2805,6 +2811,10 @@ const I18N = {
     kind_computer: "Computer",
     cloud_connected: "✅ Connected! Whatever is saved here shows up on the group's other devices by itself.",
     cloud_legacy: "ℹ️ The app was updated and now shows which devices are connected. For that, connect your devices again: tap \"Show code\" on the TV.",
+    remote_sound_on: "🔊 Sound on",
+    remote_sound_off: "🔇 Sound off",
+    remote_sound_blocked: "🔊 On, needs a tap on that device",
+    remote_sound_title: "Turns that device's sound on or off. This one stays as it is.",
     cloud_not_connected: "This device is not connected to any other yet.",
     cloud_send_failed: "⚠️ Couldn't send to the other devices. Check the internet and save again.",
     cloud_changes_waiting: "🔄 Changes arrived from another device. They'll be applied when you close this screen (if you save, your version wins).",
@@ -3172,6 +3182,10 @@ const I18N = {
     kind_computer: "Computer",
     cloud_connected: "✅ Verbunden! Was hier gespeichert wird, erscheint automatisch auf den anderen Geräten der Gruppe.",
     cloud_legacy: "ℹ️ Die App wurde aktualisiert und zeigt jetzt an, welche Geräte verbunden sind. Verbinde deine Geräte dafür bitte neu: Tippe auf dem Fernseher auf „Code anzeigen\".",
+    remote_sound_on: "🔊 Ton an",
+    remote_sound_off: "🔇 Ton aus",
+    remote_sound_blocked: "🔊 An, braucht dort einen Tipp",
+    remote_sound_title: "Schaltet den Ton jenes Geräts ein oder aus. Dieses hier bleibt, wie es ist.",
     cloud_not_connected: "Dieses Gerät ist noch mit keinem anderen verbunden.",
     cloud_send_failed: "⚠️ Senden an die anderen Geräte fehlgeschlagen. Prüfe die Internetverbindung und speichere erneut.",
     cloud_changes_waiting: "🔄 Änderungen von einem anderen Gerät sind eingetroffen. Sie werden übernommen, wenn du diesen Bildschirm schließt (wenn du speicherst, gilt deine Version).",
@@ -5444,9 +5458,16 @@ function setSoundEnabled(enabled, remember){
   if(enabled){
     ensureAudioCtx();
     beep(880,0.15,0); // confirmation beep when turning on
+    // Turned on without a tap (a command from another device): the browser may hold it back.
+    if(audioCtx && audioCtx.state !== 'running'){
+      soundBlocked = true;
+      updateSoundPrompt();
+      watchSoundUnlock();
+    }
   } else {
     stopTaskAudio();
   }
+  publishSoundState();
 }
 function toggleSound(){ setSoundEnabled(!soundEnabled || soundBlocked, true); }
 toggleBtn.addEventListener('click', toggleSound);
@@ -5467,13 +5488,13 @@ document.getElementById('sound-prompt-close').addEventListener('click', () => {
   lsSet(SOUND_PROMPT_KEY, 'off');
   updateSoundPrompt();
 });
-function restoreSound(){
-  soundEnabled = true;
-  toggleBtn.textContent = '🔊';
-  toggleBtn.classList.remove('off');
+// While the sound is on but held back, any tap or key brings it back (and the
+// state is shared, so a phone sees when the TV still needs a tap).
+function watchSoundUnlock(){
   const check = () => {
-    soundBlocked = !audioCtx || audioCtx.state !== 'running';
+    soundBlocked = soundEnabled && (!audioCtx || audioCtx.state !== 'running');
     updateSoundPrompt();
+    publishSoundState();
     if(!soundBlocked) ['pointerdown', 'keydown', 'touchend'].forEach(ev => document.removeEventListener(ev, unlock, true));
   };
   const unlock = () => {
@@ -5484,6 +5505,12 @@ function restoreSound(){
   ['pointerdown', 'keydown', 'touchend'].forEach(ev => document.addEventListener(ev, unlock, true));
   check();
   setTimeout(check, 1000);
+}
+function restoreSound(){
+  soundEnabled = true;
+  toggleBtn.textContent = '🔊';
+  toggleBtn.classList.remove('off');
+  watchSoundUnlock();
 }
 if(lsGet(SOUND_ON_KEY) === '1') restoreSound();
 else setSoundEnabled(false); // initial state: off, 🔇 icon
@@ -6809,6 +6836,8 @@ function guessDeviceKind(){
 function getDeviceName(){ return lsGet(DEVICE_NAME_KEY) || DEVICE_KINDS[guessDeviceKind()].name; }
 function newMemberRecord(extra){
   const now = Date.now();
+  // (the sound state is shared separately, by publishSoundState: a database with older
+  // rules refuses unknown fields, and pairing must keep working there)
   return Object.assign({ name: getDeviceName(), kind: guessDeviceKind(), joinedAt: now, lastSeen: now }, extra || {});
 }
 
@@ -6998,6 +7027,47 @@ function refreshFromCloud(){
   return refreshInFlight;
 }
 
+// ---------- Turning another device's sound on or off ----------
+// Each device keeps its own sound, and shares it in its member record (sound,
+// soundBlocked: on but held back by the browser until a tap). Another device
+// can switch it from the device list: it writes sound plus soundCmdAt, and the
+// device applies each command once (SOUND_CMD_KEY keeps the last one applied).
+const SOUND_CMD_KEY = 'rotinaSoundCmdAt_v1';
+var soundShared = null; // what this device last shared, e.g. "1|0" (var: the sound is restored before this code runs)
+function soundStateNow(){ return { sound: !!soundEnabled, soundBlocked: !!(soundEnabled && soundBlocked) }; }
+function publishSoundState(force){
+  let houseId, uid;
+  // (called once before the cloud code is set up; and only while this device is in the
+  // member list it last received, so a removed device never writes its record back)
+  try{ houseId = getHouseId(); uid = getUid(); if(!cloudEnabled() || !lastMembers[uid]) return; }catch(e){ return; }
+  if(!houseId || !uid) return;
+  const st = soundStateNow();
+  const key = `${st.sound ? 1 : 0}|${st.soundBlocked ? 1 : 0}`;
+  if(!force && key === soundShared) return;
+  soundShared = key;
+  cloudFetch(`houses/${houseId}/members/${uid}`, { method: 'PATCH', body: JSON.stringify(st) }).catch(() => { soundShared = null; });
+}
+function syncSoundWithHouse(members){
+  const mine = members && members[getUid()];
+  if(!mine) return;
+  const lastCmd = parseInt(lsGet(SOUND_CMD_KEY) || '0', 10);
+  if(typeof mine.soundCmdAt === 'number' && mine.soundCmdAt > lastCmd && typeof mine.sound === 'boolean'){
+    lsSet(SOUND_CMD_KEY, String(mine.soundCmdAt));
+    if(mine.sound !== !!soundEnabled) setSoundEnabled(mine.sound, true);
+  }
+  const st = soundStateNow();
+  if(mine.sound !== st.sound || !!mine.soundBlocked !== st.soundBlocked) publishSoundState(true);
+}
+function sendSoundCommand(id, on){
+  const houseId = getHouseId();
+  if(!houseId || !lastMembers[id]) return;
+  const patch = { sound: on, soundBlocked: false, soundCmdAt: Date.now() };
+  Object.assign(lastMembers[id], patch);
+  renderDevices({ members: lastMembers });
+  cloudFetch(`houses/${houseId}/members/${id}`, { method: 'PATCH', body: JSON.stringify(patch) })
+    .catch(() => setCloudStatus(tr('cloud_send_failed')));
+}
+
 function touchLastSeen(){
   const houseId = getHouseId();
   const uid = getUid();
@@ -7111,6 +7181,7 @@ function renderDevices(house){
   const list = document.getElementById('cloud-devices');
   lastMembers = (house && house.members) || {};
   const me = getUid();
+  if(house && house.data !== undefined) syncSoundWithHouse(lastMembers); // a full house record (not a local redraw)
   const ids = Object.keys(lastMembers).sort((a, b) =>
     (a === me) ? -1 : (b === me) ? 1 : (lastMembers[a].joinedAt || 0) - (lastMembers[b].joinedAt || 0));
   if(!getHouseId() || !ids.length){ box.style.display = 'none'; return; }
@@ -7131,6 +7202,15 @@ function renderDevices(house){
     info.appendChild(name);
     info.appendChild(seen);
     li.appendChild(info);
+    if(id !== me && typeof m.sound === 'boolean'){
+      const snd = document.createElement('button');
+      snd.type = 'button';
+      snd.className = 'util-btn cloud-sound-btn' + (m.sound ? '' : ' off');
+      snd.textContent = tr(!m.sound ? 'remote_sound_off' : m.soundBlocked ? 'remote_sound_blocked' : 'remote_sound_on');
+      snd.title = tr('remote_sound_title');
+      snd.addEventListener('click', () => sendSoundCommand(id, !m.sound));
+      li.appendChild(snd);
+    }
     if(id !== me){
       const btn = document.createElement('button');
       btn.type = 'button';

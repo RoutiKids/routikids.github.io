@@ -20,6 +20,9 @@
             "joinedAt": { ".validate": "newData.isNumber()" },
             "lastSeen": { ".validate": "newData.isNumber()" },
             "code": { ".validate": "newData.isString() && newData.val().length == 6" },
+            "sound": { ".validate": "newData.isBoolean()" },
+            "soundBlocked": { ".validate": "newData.isBoolean()" },
+            "soundCmdAt": { ".validate": "newData.isNumber()" },
             "$other": { ".validate": false }
           }
         },
