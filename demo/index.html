@@ -25,7 +25,8 @@
 <!-- Demo page: the narrated demo video (English or Portuguese: ?lang=, else the
      browser's language) and a way into the app. Plain on purpose:
      no web fonts or scripts from other sites. The video is made by recording the
-     real app (see CLAUDE.md, "Demo video"). -->
+     real app (see CLAUDE.md, "Demo video"). Visits and how much of the video is
+     watched are counted anonymously (stats/demo, see the privacy page). -->
 <style>
   :root{ --navy:#1D3557; --cream:#FFF7E9; --mint:#5FC28E; --muted:#5b6b80; }
   *{ box-sizing:border-box; }
@@ -78,6 +79,44 @@
     var v = document.querySelector('video');
     if(v.getAttribute('src') !== t.video){ v.setAttribute('poster', t.poster); v.setAttribute('src', t.video); }
     document.querySelector('.langs a[data-lang="' + lang + '"]').classList.add('on');
+
+    // Anonymous count of visits and of how much of the video is watched (see the privacy
+    // page): one small record per device per day at stats/demo/<day>/<id>, with the same
+    // random id the app uses on this browser, the language, the furthest second reached and
+    // whether it got to the end. Off when the app's statistics option is off.
+    var ls = function(k, val){ try{ if(val === undefined) return localStorage.getItem(k); localStorage.setItem(k, val); }catch(e){} return null; };
+    if(ls('rotinaStatsOff_v1') === '1') return;
+    var id = ls('rotinaStatsId_v1');
+    if(!id){
+      var abc = 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789', a = new Uint32Array(16);
+      (window.crypto || window.msCrypto).getRandomValues(a);
+      id = ''; for(var j = 0; j < 16; j++) id += abc[a[j] % abc.length];
+      ls('rotinaStatsId_v1', id);
+    }
+    var now = new Date();
+    var day = now.getFullYear() + '-' + String(now.getMonth() + 1).padStart(2, '0') + '-' + String(now.getDate()).padStart(2, '0');
+    var seen = (ls('rotinaDemoSeen_v1') || '').split('|'); // the day's best so far on this device
+    var best = seen[0] === day ? (parseFloat(seen[1]) || 0) : 0, ended = seen[0] === day && seen[2] === '1', sent = '';
+    var send = function(){
+      var key = Math.round(best) + '|' + ended;
+      if(key === sent) return;
+      sent = key;
+      ls('rotinaDemoSeen_v1', day + '|' + Math.round(best) + '|' + (ended ? 1 : 0));
+      fetch('https://rotina-infantil-7dc80-default-rtdb.firebaseio.com/stats/demo/' + day + '/' + id + '.json', {
+        method: 'PUT', keepalive: true, cache: 'no-store',
+        body: JSON.stringify({ l: lang, s: Math.min(3600, Math.round(best)), e: ended, u: Date.now() })
+      }).catch(function(){});
+    };
+    var lastSent = 0;
+    v.addEventListener('timeupdate', function(){
+      if(v.currentTime > best) best = v.currentTime;
+      if(v.duration && best >= v.duration * 0.95) ended = true;
+      if(best - lastSent >= 10 || ended){ lastSent = best; send(); }
+    });
+    v.addEventListener('pause', send);
+    v.addEventListener('ended', function(){ ended = true; send(); });
+    document.addEventListener('visibilitychange', function(){ if(document.visibilityState === 'hidden') send(); });
+    setTimeout(send, 3000);
   })();
 </script>
 </body>

@@ -17,6 +17,7 @@
   body{ font-family:system-ui, -apple-system, "Segoe UI", Roboto, sans-serif; padding:20px 14px 40px; }
   main{ max-width:900px; margin:0 auto; }
   h1{ font-size:26px; margin:0 0 4px; }
+  h2{ font-size:19px; margin:22px 0 6px; }
   p{ color:var(--muted); margin:4px 0 14px; }
   .cards{ display:flex; flex-wrap:wrap; gap:10px; margin:12px 0 18px; }
   .card{ background:#fff; border-radius:14px; padding:10px 16px; box-shadow:0 4px 0 rgba(29,53,87,0.08); min-width:140px; }
@@ -35,61 +36,118 @@
   <h1>📊 Routikids · uso</h1>
   <p>Estatísticas anônimas dos últimos 30 dias: um registro por aparelho por dia, sem nomes nem rotinas. Aparelhos com a opção desligada não aparecem.</p>
   <div class="cards" id="cards"></div>
+  <h2>🪜 Últimos 7 dias, passo a passo</h2>
+  <p>Aparelhos diferentes que chegaram a cada passo. Rotina e TV são medidas desde 09/10/2026; antes disso não aparecem.</p>
+  <div class="cards" id="funnel"></div>
+  <h2>📲 App</h2>
   <div class="wrap"><table>
-    <thead><tr><th>Dia</th><th>Aparelhos</th><th>📺 TV</th><th>📱 Celular/tablet</th><th>💻 Computador</th><th>Conectados</th><th>Com tarefas feitas</th><th>Tarefas feitas</th><th>Idiomas</th></tr></thead>
-    <tbody id="rows"><tr><td colspan="9">Carregando...</td></tr></tbody>
+    <thead><tr><th>Dia</th><th>Aparelhos</th><th>📺 TV</th><th>📱 Celular/tablet</th><th>💻 Computador</th><th>Conectados</th><th>Com rotina</th><th>Com TV</th><th>Aparelhos com tarefas</th><th>Total de tarefas</th><th>Idiomas</th></tr></thead>
+    <tbody id="rows"><tr><td colspan="11">Carregando...</td></tr></tbody>
+  </table></div>
+  <h2>🎬 Vídeo de demonstração</h2>
+  <div class="wrap"><table>
+    <thead><tr><th>Dia</th><th>Abriram a página</th><th>Começaram o vídeo</th><th>Viram até o fim</th><th>Também abriram o app</th><th>Idiomas</th></tr></thead>
+    <tbody id="demo-rows"><tr><td colspan="6">Carregando...</td></tr></tbody>
   </table></div>
   <p id="note"></p>
 </main>
 <script>
   var DB = 'https://rotina-infantil-7dc80-default-rtdb.firebaseio.com';
   function cell(v){ var td = document.createElement('td'); td.textContent = v; return td; }
-  fetch(DB + '/stats/days.json?orderBy=%22$key%22&limitToLast=30', { cache: 'no-store' })
-    .then(function(r){ if(!r.ok) throw new Error('HTTP ' + r.status); return r.json(); })
-    .then(function(days){
-      days = days || {};
-      var keys = Object.keys(days).sort().reverse();
-      var rows = document.getElementById('rows');
-      rows.innerHTML = '';
-      if(!keys.length){ rows.innerHTML = '<tr><td colspan="9">Ainda sem registros.</td></tr>'; }
-      var allIds = {}, week = {}, weekActive = {}, weekTasks = 0;
-      var weekStart = new Date(Date.now() - 6 * 86400000).toISOString().slice(0, 10);
-      var max = 1;
-      keys.forEach(function(k){ max = Math.max(max, Object.keys(days[k] || {}).length); });
-      keys.forEach(function(k){
-        var recs = days[k] || {}, ids = Object.keys(recs);
-        var tv = 0, phone = 0, comp = 0, paired = 0, active = 0, tasks = 0, langs = {};
-        ids.forEach(function(id){
-          var r = recs[id] || {};
-          allIds[id] = 1;
-          if(r.k === 'tv') tv++; else if(r.k === 'computer') comp++; else phone++;
-          if(r.p) paired++;
-          if(r.d > 0) active++;
-          tasks += r.d || 0;
-          langs[r.l || '?'] = (langs[r.l || '?'] || 0) + 1;
-          if(k >= weekStart){ week[id] = 1; if(r.d > 0) weekActive[id] = 1; weekTasks += r.d || 0; }
-        });
-        var tr = document.createElement('tr');
-        tr.appendChild(cell(k.split('-').reverse().join('/')));
-        var dev = document.createElement('td');
-        var bar = document.createElement('span'); bar.className = 'bar'; bar.style.width = Math.round(80 * ids.length / max) + 'px';
-        dev.appendChild(bar); dev.appendChild(document.createTextNode(ids.length)); tr.appendChild(dev);
-        [tv, phone, comp, paired, active, tasks].forEach(function(v){ tr.appendChild(cell(v)); });
-        tr.appendChild(cell(Object.keys(langs).map(function(l){ return l + ' ' + langs[l]; }).join(' · ')));
-        rows.appendChild(tr);
+  function load(path){
+    return fetch(DB + '/stats/' + path + '.json?orderBy=%22$key%22&limitToLast=30', { cache: 'no-store' })
+      .then(function(r){ if(!r.ok) throw new Error('HTTP ' + r.status); return r.json(); })
+      .then(function(x){ return x || {}; });
+  }
+  function card(box, n, label){
+    var d = document.createElement('div'); d.className = 'card';
+    var b = document.createElement('b'); b.textContent = n;
+    var s = document.createElement('span'); s.textContent = label;
+    d.appendChild(b); d.appendChild(s); box.appendChild(d);
+  }
+  function langs(recs){
+    var out = {};
+    Object.keys(recs).forEach(function(id){ var l = (recs[id] || {}).l || '?'; out[l] = (out[l] || 0) + 1; });
+    return Object.keys(out).map(function(l){ return l + ' ' + out[l]; }).join(' · ');
+  }
+  function dmy(k){ return k.split('-').reverse().join('/'); }
+  Promise.all([load('days'), load('demo').catch(function(){ return {}; })]).then(function(res){
+    var days = res[0], demo = res[1];
+    var weekStart = new Date(Date.now() - 6 * 86400000).toISOString().slice(0, 10);
+    var appIds = {};
+    Object.keys(days).forEach(function(k){ Object.keys(days[k] || {}).forEach(function(id){ appIds[id] = 1; }); });
+
+    // app table and the week's totals
+    var keys = Object.keys(days).sort().reverse();
+    var rows = document.getElementById('rows');
+    rows.innerHTML = keys.length ? '' : '<tr><td colspan="11">Ainda sem registros.</td></tr>';
+    var allIds = {}, week = {}, weekActive = {}, weekTasks = 0, wRoutine = {}, wTv = {};
+    var max = 1;
+    keys.forEach(function(k){ max = Math.max(max, Object.keys(days[k] || {}).length); });
+    keys.forEach(function(k){
+      var recs = days[k] || {}, ids = Object.keys(recs);
+      var tv = 0, phone = 0, comp = 0, paired = 0, active = 0, tasks = 0, withR = 0, withTv = 0;
+      ids.forEach(function(id){
+        var r = recs[id] || {};
+        allIds[id] = 1;
+        if(r.k === 'tv') tv++; else if(r.k === 'computer') comp++; else phone++;
+        if(r.p) paired++;
+        if(r.d > 0) active++;
+        if(r.r > 0) withR++;
+        if(r.t) withTv++;
+        tasks += r.d || 0;
+        if(k >= weekStart){ week[id] = 1; if(r.d > 0) weekActive[id] = 1; if(r.r > 0) wRoutine[id] = 1; if(r.t) wTv[id] = 1; weekTasks += r.d || 0; }
       });
-      var cards = [[Object.keys(week).length, 'aparelhos nos últimos 7 dias'], [Object.keys(weekActive).length, 'com tarefas feitas (7 dias)'],
-                   [weekTasks, 'tarefas feitas (7 dias)'], [Object.keys(allIds).length, 'aparelhos em 30 dias']];
-      document.getElementById('cards').innerHTML = '';
-      cards.forEach(function(c){
-        var d = document.createElement('div'); d.className = 'card';
-        var b = document.createElement('b'); b.textContent = c[0];
-        var s = document.createElement('span'); s.textContent = c[1];
-        d.appendChild(b); d.appendChild(s); document.getElementById('cards').appendChild(d);
+      var tr = document.createElement('tr');
+      tr.appendChild(cell(dmy(k)));
+      var dev = document.createElement('td');
+      var bar = document.createElement('span'); bar.className = 'bar'; bar.style.width = Math.round(80 * ids.length / max) + 'px';
+      dev.appendChild(bar); dev.appendChild(document.createTextNode(ids.length)); tr.appendChild(dev);
+      [tv, phone, comp, paired, withR, withTv, active, tasks].forEach(function(v){ tr.appendChild(cell(v)); });
+      tr.appendChild(cell(langs(recs)));
+      rows.appendChild(tr);
+    });
+    var cards = document.getElementById('cards');
+    cards.innerHTML = '';
+    card(cards, Object.keys(week).length, 'aparelhos nos últimos 7 dias');
+    card(cards, Object.keys(weekActive).length, 'com tarefas feitas (7 dias)');
+    card(cards, weekTasks, 'tarefas feitas (7 dias)');
+    card(cards, Object.keys(allIds).length, 'aparelhos em 30 dias');
+
+    // demo table
+    var dkeys = Object.keys(demo).sort().reverse();
+    var drows = document.getElementById('demo-rows');
+    drows.innerHTML = dkeys.length ? '' : '<tr><td colspan="6">Ainda sem registros.</td></tr>';
+    var wOpened = {}, wStarted = {}, wEnded = {};
+    dkeys.forEach(function(k){
+      var recs = demo[k] || {}, ids = Object.keys(recs);
+      var started = 0, ended = 0, toApp = 0;
+      ids.forEach(function(id){
+        var r = recs[id] || {};
+        if(r.s >= 3) started++;
+        if(r.e) ended++;
+        if(appIds[id]) toApp++;
+        if(k >= weekStart){ wOpened[id] = 1; if(r.s >= 3) wStarted[id] = 1; if(r.e) wEnded[id] = 1; }
       });
-      document.getElementById('note').textContent = 'Uma família com celular e TV conta como 2 aparelhos. Os seus aparelhos também entram na conta.';
-    })
-    .catch(function(e){ document.getElementById('rows').innerHTML = '<tr><td colspan="9">Não deu para carregar (' + e.message + '). As regras do banco de dados já foram atualizadas?</td></tr>'; });
+      var tr = document.createElement('tr');
+      tr.appendChild(cell(dmy(k)));
+      [ids.length, started, ended, toApp].forEach(function(v){ tr.appendChild(cell(v)); });
+      tr.appendChild(cell(langs(recs)));
+      drows.appendChild(tr);
+    });
+
+    // the week, step by step
+    var funnel = document.getElementById('funnel');
+    funnel.innerHTML = '';
+    card(funnel, Object.keys(wOpened).length, '🎬 abriram a demonstração');
+    card(funnel, Object.keys(wStarted).length, '▶ começaram o vídeo');
+    card(funnel, Object.keys(wEnded).length, '🏁 viram até o fim');
+    card(funnel, Object.keys(week).length, '📲 abriram o app');
+    card(funnel, Object.keys(wRoutine).length, '📋 têm rotina com tarefas');
+    card(funnel, Object.keys(wTv).length, '📺 usam com uma TV');
+    card(funnel, Object.keys(weekActive).length, '⭐ fizeram tarefas');
+    document.getElementById('note').textContent = 'Uma família com celular e TV conta como 2 aparelhos, e as tarefas de aparelhos conectados podem contar duas vezes. Os seus aparelhos também entram na conta. "Também abriram o app": mesmo navegador no vídeo e no app (quem abre o link pelo WhatsApp pode usar outro navegador).';
+  }).catch(function(e){ document.getElementById('rows').innerHTML = '<tr><td colspan="11">Não deu para carregar (' + e.message + '). As regras do banco de dados já foram atualizadas?</td></tr>'; });
 </script>
 </body>
 </html>

@@ -45,7 +45,7 @@
 <meta name="color-scheme" content="light dark">
 <title>Routikids</title>
 <!-- The code version lives here (read by the app and by the update check); bump it on every change. -->
-<meta name="app-version" content="Versão do código: 2026-10-09 10:38">
+<meta name="app-version" content="Versão do código: 2026-10-09 11:49">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <!-- Icon and manifest: "Add to home screen" on Android (and iOS) gets the Routikids icon. -->
 <link rel="manifest" href="manifest.webmanifest">
@@ -2262,7 +2262,7 @@ const I18N = {
     delay_start: "⏰ Adiar 10 min",
     undo_delay: "↩️ Voltar para {time}",
     stats_label: "📊 Enviar estatísticas anônimas de uso",
-    stats_hint: "Só números (tipo de aparelho, idioma, versão, tarefas feitas no dia), sem nomes nem rotinas. Ajuda a melhorar o app.",
+    stats_hint: "Só números (tipo de aparelho, idioma, versão, tarefas feitas no dia, quantas rotinas existem, se usa TV), sem nomes nem o conteúdo das rotinas. Ajuda a melhorar o app.",
     change_picture: "Trocar a figura",
     other_emoji_ph: "Outro emoji...",
     done_icon_label: "Figura da rotina completa:",
@@ -2641,7 +2641,7 @@ const I18N = {
     delay_start: "⏰ Delay 10 min",
     undo_delay: "↩️ Back to {time}",
     stats_label: "📊 Send anonymous usage statistics",
-    stats_hint: "Only numbers (kind of device, language, version, tasks done that day), no names or routines. It helps improve the app.",
+    stats_hint: "Only numbers (kind of device, language, version, tasks done that day, how many routines, whether a TV is used), no names and nothing of what the routines say. It helps improve the app.",
     change_picture: "Change the picture",
     other_emoji_ph: "Other emoji...",
     done_icon_label: "Picture when a routine is complete:",
@@ -3020,7 +3020,7 @@ const I18N = {
     delay_start: "⏰ 10 Min. später",
     undo_delay: "↩️ Zurück auf {time}",
     stats_label: "📊 Anonyme Nutzungsstatistik senden",
-    stats_hint: "Nur Zahlen (Gerätetyp, Sprache, Version, erledigte Aufgaben des Tages), keine Namen oder Routinen. Das hilft, die App zu verbessern.",
+    stats_hint: "Nur Zahlen (Gerätetyp, Sprache, Version, erledigte Aufgaben des Tages, wie viele Routinen, ob ein Fernseher genutzt wird), keine Namen und nichts vom Inhalt der Routinen. Das hilft, die App zu verbessern.",
     change_picture: "Bild ändern",
     other_emoji_ph: "Anderes Emoji...",
     done_icon_label: "Bild, wenn eine Routine fertig ist:",
@@ -7655,7 +7655,8 @@ const RUNNING_VERSION = (document.querySelector('meta[name="app-version"]').cont
 // ---------- Anonymous usage statistics (can be turned off in settings) ----------
 // At most every 2 minutes after a task is done (and once per hour anyway), each device writes one small
 // record for the day at stats/days/<YYYY-MM-DD>/<random id>: kind of device, paired or
-// not, number of children shown, language, app version and tasks done today. No names,
+// not, number of children shown, language, app version, tasks done today, routines with
+// tasks and whether a TV is in use. The demo page writes stats/demo with the same id. No names,
 // routines or link to the family (the id is random and kept only on this device).
 // Written without signing in; the rules only accept this shape (database.rules.json).
 // The summary page is stats.html. Described on the privacy page.
@@ -7682,8 +7683,12 @@ function sendStats(force){
   let id = lsGet(STATS_ID_KEY);
   if(!id){ id = randomId(16, ALNUM); lsSet(STATS_ID_KEY, id); }
   lsSet(STATS_LAST_KEY, String(Date.now()));
+  // First steps, to see where new families stop: routines with tasks (r) and a TV in use (t:
+  // this device is a TV, or it is connected to one).
+  const routinesWithTasks = ROUTINES.filter(r => (r.tasks || []).length).length;
+  const withTv = guessDeviceKind() === 'tv' || (!!getHouseId() && Object.keys(lastMembers).some(id => id !== getUid() && lastMembers[id].kind === 'tv'));
   const body = JSON.stringify({ k: guessDeviceKind(), p: !!getHouseId(), c: visibleChildren().length, l: LANG,
-    v: RUNNING_VERSION, d: Math.min(500, tasksDoneToday()), u: Date.now() });
+    v: RUNNING_VERSION, d: Math.min(500, tasksDoneToday()), r: Math.min(50, routinesWithTasks), t: withTv, u: Date.now() });
   fetch(`${CLOUD_DB_URL.replace(/\/+$/, '')}/stats/days/${statsDayKey()}/${id}.json`, { method: 'PUT', body, cache: 'no-store' }).catch(() => {});
 }
 const statsToggle = document.getElementById('stats-toggle');
