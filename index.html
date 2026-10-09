@@ -45,7 +45,7 @@
 <meta name="color-scheme" content="light dark">
 <title>Routikids</title>
 <!-- The code version lives here (read by the app and by the update check); bump it on every change. -->
-<meta name="app-version" content="Versão do código: 2026-10-09 11:49">
+<meta name="app-version" content="Versão do código: 2026-10-09 21:58">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <!-- Icon and manifest: "Add to home screen" on Android (and iOS) gets the Routikids icon. -->
 <link rel="manifest" href="manifest.webmanifest">
@@ -1611,6 +1611,14 @@
     cursor:pointer;
     margin-top:0.5vh;
   }
+  .add-task-row{ display:flex; flex-wrap:wrap; gap:0.6vw; align-items:center; }
+  .settings-add-btn.copy{ background:white; color:var(--navy); border:2px solid rgba(29,53,87,0.2); }
+  #copy-task-list{ background:white; border-radius:14px; padding:1vh 0.8vw; margin-top:1vh; display:flex; flex-direction:column; gap:0.5vh; box-shadow:0 6px 18px rgba(29,53,87,0.12); }
+  #copy-task-list[hidden]{ display:none; }
+  .copy-task-head{ font-family:'Nunito', sans-serif; font-weight:800; color:#5b6b80; font-size:clamp(13px, 0.9vw, 18px); }
+  .copy-task-item{ text-align:left; border:none; border-radius:10px; background:rgba(29,53,87,0.06); padding:0.8vh 0.8vw; cursor:pointer; font-family:'Nunito', sans-serif; font-size:clamp(14px, 1vw, 20px); color:var(--navy); }
+  .copy-task-item span{ color:#5b6b80; font-size:0.85em; margin-left:0.3em; }
+  .copy-task-item:focus{ outline:4px solid var(--sun); outline-offset:2px; }
   .settings-actions{
     display:flex;
     justify-content:flex-end;
@@ -1754,6 +1762,7 @@
     .task-time-group .time-value{ font-size:16px; min-width:44px; }
     .task-row .remove-task-btn{ width:34px; height:34px; }
     .settings-add-btn{ font-size:16px; padding:10px 18px; }
+    .copy-task-item{ font-size:15px; padding:8px 10px; }
     .settings-btn{ font-size:17px; padding:10px 20px; }
     #app-version{ font-size:11px !important; }
     #cloud-sync .settings-label{ font-size:14px; }
@@ -1882,7 +1891,12 @@
         <div id="routine-tasks-heading"></div>
         <p class="settings-hint" data-i18n="can_shorten_hint"></p>
         <div id="settings-tasks-list"></div>
-        <button id="settings-add-task" class="settings-add-btn" data-i18n="add_task"></button>
+        <div class="add-task-row">
+          <button id="settings-add-task" class="settings-add-btn" data-i18n="add_task"></button>
+          <button type="button" id="settings-copy-task" class="settings-add-btn copy" data-i18n="copy_task"></button>
+        </div>
+        <!-- "📋 Copiar tarefa existente": the tasks of the other routines, to add a copy of one here -->
+        <div id="copy-task-list" hidden></div>
       </div>
     </div>
 
@@ -2224,6 +2238,9 @@ const I18N = {
     routine_name_ph: "Nome da rotina",
     delete_routine: "🗑 Excluir esta rotina",
     tasks_heading: "Tarefas: {routine}",
+    copy_task: "📋 Copiar tarefa existente",
+    copy_task_head: "Toque numa tarefa para copiar para esta rotina:",
+    copy_task_none: "Ainda não há tarefas em outras rotinas para copiar.",
     add_task: "+ Adicionar tarefa",
     cancel: "Cancelar",
     save: "💾 Salvar",
@@ -2603,6 +2620,9 @@ const I18N = {
     routine_name_ph: "Routine name",
     delete_routine: "🗑 Delete this routine",
     tasks_heading: "Tasks: {routine}",
+    copy_task: "📋 Copy an existing task",
+    copy_task_head: "Tap a task to copy it into this routine:",
+    copy_task_none: "There are no tasks in other routines to copy yet.",
     add_task: "+ Add task",
     cancel: "Cancel",
     save: "💾 Save",
@@ -2982,6 +3002,9 @@ const I18N = {
     routine_name_ph: "Name der Routine",
     delete_routine: "🗑 Diese Routine löschen",
     tasks_heading: "Aufgaben: {routine}",
+    copy_task: "📋 Vorhandene Aufgabe kopieren",
+    copy_task_head: "Tippe auf eine Aufgabe, um sie in diese Routine zu kopieren:",
+    copy_task_none: "In anderen Routinen gibt es noch keine Aufgaben zum Kopieren.",
     add_task: "+ Aufgabe hinzufügen",
     cancel: "Abbrechen",
     save: "💾 Speichern",
@@ -6147,6 +6170,7 @@ let selectedRoutineIndex = 0;
 
 function selectRoutine(idx){
   openPickerIdx = null;
+  document.getElementById('copy-task-list').hidden = true;
   document.getElementById('routine-details').open = false;
   selectedRoutineIndex = idx;
   draftTasks = draftRoutines[idx].tasks;
@@ -6475,6 +6499,55 @@ settingsTasksList.addEventListener('click', (e) => {
   }
 });
 
+// "📋 Copiar tarefa existente": the family's tasks from the other routines (one of each
+// picture and name, not those already in this routine). A tap adds an independent copy
+// at the end of this routine, with the same picture, name, duration, sound and "✂️".
+function copyableTasks(){
+  const here = new Set(draftTasks.map(t => `${t.emoji}|${t.name.trim().toLowerCase()}`));
+  const seen = new Set();
+  const out = [];
+  const order = draftRoutines.map((r, i) => i).sort((a, b) => (draftRoutines[a].childId === selectedChildId ? 0 : 1) - (draftRoutines[b].childId === selectedChildId ? 0 : 1));
+  order.forEach(i => {
+    if(i === selectedRoutineIndex) return;
+    const r = draftRoutines[i];
+    (r.tasks || []).forEach(t => {
+      const key = `${t.emoji}|${(t.name || '').trim().toLowerCase()}`;
+      if(!t.name || !t.name.trim() || here.has(key) || seen.has(key)) return;
+      seen.add(key);
+      out.push({ t, r });
+    });
+  });
+  return out;
+}
+function renderCopyTaskList(){
+  const box = document.getElementById('copy-task-list');
+  const items = copyableTasks();
+  box.innerHTML = `<div class="copy-task-head">${tr('copy_task_head')}</div>` + (items.length
+    ? items.map(({ t, r }, k) => `<button type="button" class="copy-task-item" data-k="${k}">${escHtml(t.emoji)} <b>${escHtml(t.name)}</b> <span>${tr('n_min', { n: draftDuration(t) })} · ${escHtml(r.icon)} ${escHtml(r.name)}</span></button>`).join('')
+    : `<p class="settings-hint">${tr('copy_task_none')}</p>`);
+  box._items = items;
+}
+document.getElementById('settings-copy-task').addEventListener('click', () => {
+  const box = document.getElementById('copy-task-list');
+  box.hidden = !box.hidden;
+  if(!box.hidden){ renderCopyTaskList(); const first = box.querySelector('button'); if(first) first.focus({ preventScroll: true }); }
+});
+document.getElementById('copy-task-list').addEventListener('click', (e) => {
+  const btn = e.target.closest('.copy-task-item');
+  const box = document.getElementById('copy-task-list');
+  if(!btn || !box._items) return;
+  const { t } = box._items[parseInt(btn.dataset.k, 10)];
+  const last = draftTasks[draftTasks.length - 1];
+  const startMin = last ? draftMinutes(last.end) : 8 * 60;
+  const copy = JSON.parse(JSON.stringify(t));
+  copy.start = arrToHHMM([Math.floor(startMin / 60) % 24, startMin % 60]);
+  setDraftDuration(copy, draftDuration(t));
+  draftTasks.push(copy);
+  chainDraftTasks();
+  box.hidden = true;
+  openPickerIdx = null;
+  renderSettingsRows();
+});
 document.getElementById('settings-add-task').addEventListener('click', () => {
   const last = draftTasks[draftTasks.length-1];
   const lastEndMin = last ? toMinutes(hhmmToArr(last.end)) : (8*60);
@@ -7135,7 +7208,7 @@ let settingsDirty = false;
   const card = settingsOverlay.querySelector('.settings-card');
   const markDirty = (e) => {
     if(!card.contains(e.target)) return; // redrawn by its own handler (e.g. a renamed audio)
-    if(e.target.closest('.emoji-preview, #stats-row, #sync-section, #backup-section, #backup-file-input, #audio-section, #audio-file-input, #cloud-banner, #settings-cancel, #settings-save, #settings-guide-btn, #routine-tabs button[data-index], #settings-tabs, #routine-child-switch, .child-tab, #routine-add-btn, #template-cancel-btn')) return;
+    if(e.target.closest('.emoji-preview, #stats-row, #sync-section, #backup-section, #backup-file-input, #audio-section, #audio-file-input, #cloud-banner, #settings-cancel, #settings-save, #settings-guide-btn, #routine-tabs button[data-index], #settings-tabs, #routine-child-switch, .child-tab, #routine-add-btn, #template-cancel-btn, #settings-copy-task')) return;
     settingsDirty = true;
   };
   ['input', 'change'].forEach(ev => card.addEventListener(ev, markDirty));
