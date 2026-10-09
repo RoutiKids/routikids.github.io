@@ -45,7 +45,7 @@
 <meta name="color-scheme" content="light dark">
 <title>Routikids</title>
 <!-- The code version lives here (read by the app and by the update check); bump it on every change. -->
-<meta name="app-version" content="Versão do código: 2026-10-08 02:03">
+<meta name="app-version" content="Versão do código: 2026-10-09 10:38">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <!-- Icon and manifest: "Add to home screen" on Android (and iOS) gets the Routikids icon. -->
 <link rel="manifest" href="manifest.webmanifest">
@@ -209,7 +209,8 @@
   .t-early{ color:#1b7f4b; font-weight:800; }
   .t-orig{ opacity:0.7; font-weight:600; }
   .kid-forecast .t-late, .kid-forecast .t-early{ background:white; border-radius:999px; padding:0 0.35em; }
-  #skip-task-btn, .kid-skip, #postpone-task-btn, .kid-postpone, #start-now-btn, .kid-start-now, #delay-start-btn, .kid-delay, #undo-delay-btn, .kid-undo-delay, #reset-routine-btn, .kid-reset-routine{
+  #skip-task-btn, .kid-skip, #postpone-task-btn, .kid-postpone, #start-now-btn, .kid-start-now, #delay-start-btn, .kid-delay, #undo-delay-btn, .kid-undo-delay, #reset-routine-btn, .kid-reset-routine,
+  .pause-btn, .menu-btn, .postpone-next-btn, .restart-task-btn{
     font-family:'Baloo 2', sans-serif;
     font-weight:800;
     font-size:clamp(14px, 1.1vw, 24px);
@@ -223,8 +224,8 @@
     display:none;
   }
   #skip-task-btn, #postpone-task-btn{ margin-left:0.4vw; margin-right:0.4vw; }
-  .kid-skip, .kid-postpone, .kid-start-now, .kid-delay, .kid-undo-delay, .kid-reset-routine{ font-size:calc(var(--w) * 0.026); padding:0.4vh calc(var(--w) * 0.025); margin-top:0.6vh; }
-  #skip-task-btn:focus, .kid-skip:focus, #postpone-task-btn:focus, .kid-postpone:focus, #start-now-btn:focus, .kid-start-now:focus, #delay-start-btn:focus, .kid-delay:focus, #undo-delay-btn:focus, .kid-undo-delay:focus, #reset-routine-btn:focus, .kid-reset-routine:focus, .skip-btn:focus{ outline:4px solid var(--sun); outline-offset:2px; }
+  .kid-skip, .kid-postpone, .kid-start-now, .kid-delay, .kid-undo-delay, .kid-reset-routine, .kid-panel .pause-btn, .kid-panel .menu-btn, .kid-panel .postpone-next-btn, .kid-panel .restart-task-btn{ font-size:calc(var(--w) * 0.026); padding:0.4vh calc(var(--w) * 0.025); margin-top:0.6vh; }
+  #skip-task-btn:focus, .kid-skip:focus, #postpone-task-btn:focus, .kid-postpone:focus, #start-now-btn:focus, .kid-start-now:focus, #delay-start-btn:focus, .kid-delay:focus, #undo-delay-btn:focus, .kid-undo-delay:focus, #reset-routine-btn:focus, .kid-reset-routine:focus, .skip-btn:focus, .pause-btn:focus, .menu-btn:focus, .postpone-next-btn:focus, .restart-task-btn:focus{ outline:4px solid var(--sun); outline-offset:2px; }
   .skip-btn{
     font-size:clamp(14px, 1.2vw, 26px);
     background:rgba(29,53,87,0.08);
@@ -236,7 +237,22 @@
   }
   .kid-timeline .skip-btn{ font-size:calc(var(--w) * 0.03); }
   .pictures-only .step .skip-btn:not(.restore){ display:none; } /* a child can't skip, but a parent can undo */
-  .task-extra-btns{ display:flex; flex-wrap:wrap; justify-content:center; gap:0.4vw; }
+  .task-extra-btns{ display:flex; flex-wrap:wrap; justify-content:center; gap:0.4vw; position:relative; }
+  /* ⏸️ Pausar (amber; "▶ Continuar" in green while paused) and the "⋯ Opções" menu */
+  .pause-btn{ background:var(--sun) !important; }
+  .pause-btn.paused{ background:var(--mint) !important; color:white !important; font-size:clamp(18px, 1.6vw, 34px) !important; padding:1vh 2vw !important; }
+  .task-menu{
+    position:absolute; bottom:100%; left:50%; transform:translateX(-50%); z-index:20; margin-bottom:0.6vh;
+    display:flex; flex-direction:column; align-items:stretch; gap:0.4vh; min-width:16em;
+    background:white; border-radius:16px; padding:1vh 0.8vw; box-shadow:0 10px 30px rgba(29,53,87,0.25);
+  }
+  .task-menu[hidden]{ display:none; }
+  .task-menu button{ margin:0 !important; text-align:left; width:100%; white-space:nowrap; }
+  .menu-head{ font-family:'Nunito', sans-serif; font-weight:800; font-size:clamp(12px, 0.85vw, 18px); color:#5b6b80; padding:0.4vh 0.3vw 0; }
+  .menu-routine-head{ border-top:2px solid rgba(29,53,87,0.1); margin-top:0.6vh; padding-top:0.9vh; }
+  .menu-routine-head + button{ background:rgba(255,107,107,0.15) !important; } /* restarting the whole routine stands apart */
+  #hero.paused #segments, #hero.paused #hero-emoji, #hero.paused #minutes-left, .kid-hero.paused .kid-segments, .kid-hero.paused .kid-emoji, .kid-hero.paused .kid-minutes{ opacity:0.4; }
+  #hero.paused #hero-sub, .kid-hero.paused .kid-sub{ font-weight:800; color:#b7791f; }
   .step.skip-planned{ opacity:0.45 !important; }
   .step.skip-planned .name{ text-decoration:line-through; }
   #limit-control{
@@ -1795,7 +1811,7 @@
     </div>
     <div id="segments"></div>
     <button id="start-next-btn" data-i18n="start"></button>
-    <div class="task-extra-btns"><button id="start-now-btn"></button><button id="delay-start-btn"></button><button id="undo-delay-btn"></button><button id="postpone-task-btn"></button><button id="skip-task-btn"></button><button id="reset-routine-btn"></button></div>
+    <div class="task-extra-btns" id="task-extra-btns"><button id="start-now-btn"></button><button id="delay-start-btn"></button><button id="undo-delay-btn"></button><button type="button" class="pause-btn" id="pause-task-btn"></button><button type="button" class="menu-btn" id="task-menu-btn" aria-expanded="false"></button><div class="task-menu" hidden><div class="menu-head menu-task-head"></div><button type="button" class="postpone-next-btn"></button><button id="postpone-task-btn"></button><button type="button" class="restart-task-btn"></button><button id="skip-task-btn"></button><div class="menu-head menu-routine-head"></div><button id="reset-routine-btn"></button></div></div>
     <div id="browse-controls">
       <button id="browse-prev-btn" data-i18n-title="browse_prev_title">◀</button>
       <button id="browse-next-btn" data-i18n-title="browse_next_title">▶</button>
@@ -2260,9 +2276,17 @@ const I18N = {
     cloud_delete_failed: "⚠️ Não deu para apagar tudo agora. Verifique a internet e tente de novo.",
     log_cloud_deleted: "Dados da família apagados da nuvem",
     privacy_link: "🔒 Privacidade e contato",
-    can_shorten: "✂️ Pode encurtar",
-    can_shorten_hint: "✂️ Pode encurtar: se a criança atrasar, as tarefas marcadas diminuem (até a metade do tempo) para recuperar o atraso. Sem nenhuma marcada, o término da rotina é empurrado.",
+    can_shorten: "✂️ Encurtar se atrasar",
+    can_shorten_hint: "✂️ Encurtar se atrasar: se a rotina atrasar, as tarefas marcadas diminuem (até a metade do tempo) para recuperar o tempo. Sem nenhuma marcada, o término da rotina fica mais tarde.",
     shortened_title: "Encurtada para recuperar o atraso",
+    pause_btn: "⏸️ Pausar",
+    resume_btn: "▶ Continuar",
+    paused_sub: "⏸️ Pausado. O tempo está parado.",
+    menu_btn: "⋯ Opções",
+    menu_task_head: "Esta tarefa: {task}",
+    menu_routine_head: "Rotina inteira: {routine}",
+    postpone_next: "↪️ Depois da próxima",
+    restart_task: "🔁 Recomeçar o tempo",
     skip_btn: "⏭️ Ignorar hoje",
     skip_title: "Ignorar hoje",
     unskip_title: "Fazer hoje de novo",
@@ -2275,7 +2299,7 @@ const I18N = {
     skip_q: "Ignorar \"{task}\" hoje? Dá para desfazer depois pelo ↩️ na lista.",
     skip_yes: "Ignorar",
     skipped_today: "⏭️ Ignorada hoje",
-    postpone_btn: "↪️ Fazer depois",
+    postpone_btn: "⤵️ Para o final da rotina",
     postpone_title: "Passa esta tarefa para o fim da rotina",
     forecast_label: "🏁 Término previsto",
     forecast_done: "🏁 Terminou às",
@@ -2631,9 +2655,17 @@ const I18N = {
     cloud_delete_failed: "⚠️ Couldn't delete everything now. Check the internet and try again.",
     log_cloud_deleted: "Family data deleted from the cloud",
     privacy_link: "🔒 Privacy and contact",
-    can_shorten: "✂️ Can be shortened",
-    can_shorten_hint: "✂️ Can be shortened: if the child runs late, the marked tasks shrink (down to half their time) to make up for it. With none marked, the routine's end is pushed back.",
+    can_shorten: "✂️ Shorten if late",
+    can_shorten_hint: "✂️ Shorten if late: if the routine runs late, the marked tasks get shorter (down to half their time) to catch up. With none marked, the routine just ends later.",
     shortened_title: "Shortened to make up for the delay",
+    pause_btn: "⏸️ Pause",
+    resume_btn: "▶ Continue",
+    paused_sub: "⏸️ Paused. The time is stopped.",
+    menu_btn: "⋯ Options",
+    menu_task_head: "This task: {task}",
+    menu_routine_head: "Whole routine: {routine}",
+    postpone_next: "↪️ After the next one",
+    restart_task: "🔁 Start its time over",
     skip_btn: "⏭️ Skip today",
     skip_title: "Skip today",
     unskip_title: "Do it today after all",
@@ -2644,7 +2676,7 @@ const I18N = {
     reset_routine_q: "Start today's \"{routine}\" routine over? All its tasks will be pending again.",
     reset_routine_yes: "Restart",
     skip_q: "Skip \"{task}\" today? You can undo it later with ↩️ in the list.",
-    postpone_btn: "↪️ Do it later",
+    postpone_btn: "⤵️ To the end of the routine",
     postpone_title: "Moves this task to the end of the routine",
     skip_yes: "Skip",
     skipped_today: "⏭️ Skipped today",
@@ -3002,9 +3034,17 @@ const I18N = {
     cloud_delete_failed: "⚠️ Es konnte gerade nicht alles gelöscht werden. Prüfe das Internet und versuche es noch einmal.",
     log_cloud_deleted: "Daten der Familie aus der Cloud gelöscht",
     privacy_link: "🔒 Datenschutz und Kontakt",
-    can_shorten: "✂️ Darf kürzer werden",
-    can_shorten_hint: "✂️ Darf kürzer werden: Wenn das Kind in Verzug gerät, werden die markierten Aufgaben kürzer (bis zur Hälfte ihrer Zeit), um die Zeit aufzuholen. Ist keine markiert, verschiebt sich das Ende der Routine.",
+    can_shorten: "✂️ Bei Verspätung kürzen",
+    can_shorten_hint: "✂️ Bei Verspätung kürzen: Gerät die Routine in Verzug, werden die markierten Aufgaben kürzer (bis zur Hälfte ihrer Zeit), um die Zeit aufzuholen. Ist keine markiert, endet die Routine einfach später.",
     shortened_title: "Gekürzt, um den Verzug aufzuholen",
+    pause_btn: "⏸️ Pause",
+    resume_btn: "▶ Weiter",
+    paused_sub: "⏸️ Pausiert. Die Zeit steht still.",
+    menu_btn: "⋯ Optionen",
+    menu_task_head: "Diese Aufgabe: {task}",
+    menu_routine_head: "Ganze Routine: {routine}",
+    postpone_next: "↪️ Nach der nächsten",
+    restart_task: "🔁 Zeit neu starten",
     skip_btn: "⏭️ Heute überspringen",
     skip_title: "Heute überspringen",
     unskip_title: "Heute doch machen",
@@ -3015,7 +3055,7 @@ const I18N = {
     reset_routine_q: "Die Routine „{routine}“ von heute neu beginnen? Alle Aufgaben sind dann wieder offen.",
     reset_routine_yes: "Neu starten",
     skip_q: "„{task}“ heute überspringen? Mit ↩️ in der Liste lässt es sich rückgängig machen.",
-    postpone_btn: "↪️ Später machen",
+    postpone_btn: "⤵️ Ans Ende der Routine",
     postpone_title: "Verschiebt diese Aufgabe ans Ende der Routine",
     skip_yes: "Überspringen",
     skipped_today: "⏭️ Heute übersprungen",
@@ -3817,7 +3857,8 @@ function snapshotDay(){
     tasks: tasks.map(t => ({
       name: t.name, routineId: t.routineId, plannedStartMin: t.plannedStartMin, plannedDurationMin: t.plannedDurationMin,
       baseDurationMin: t.baseDurationMin, redMin: t.redMin, outcome: t.outcome, startMin: t.startMin, endMin: t.endMin,
-      userSkipped: t.userSkipped || undefined, startShift: t.startShift || undefined, started: t.started || undefined
+      userSkipped: t.userSkipped || undefined, startShift: t.startShift || undefined, started: t.started || undefined,
+      pausedAt: t.pausedAt != null ? t.pausedAt : undefined
     }))
   };
 }
@@ -3913,7 +3954,7 @@ function saveDayState(){
 function mergeDayProgress(prev, force){
   const prevPointer = Math.min(prev.pointer || 0, prev.tasks.length);
   const prevCurrent = prev.tasks[prevPointer];
-  const hasProgress = prevPointer > 0 || prev.awaitingStart || (prevCurrent && prevCurrent.redMin > 0) || prev.tasks.some(t => t.userSkipped || t.startShift || t.started);
+  const hasProgress = prevPointer > 0 || prev.awaitingStart || (prevCurrent && prevCurrent.redMin > 0) || prev.tasks.some(t => t.userSkipped || t.startShift || t.started || t.pausedAt != null);
   if(!hasProgress && !force) return false;
 
   // Match tasks by routine + name (+ repetition), or else by routine + planned start (a renamed task).
@@ -3955,6 +3996,7 @@ function mergeDayProgress(prev, force){
     if(o.userSkipped){ t.userSkipped = true; t.baseDurationMin = 0; }
     if(o.startShift) t.startShift = o.startShift;
     if(o.started) t.started = true;
+    if(isCurrent && o.pausedAt != null) t.pausedAt = o.pausedAt;
     rest.push({ t, old: o, isCurrent });
   });
 
@@ -3982,6 +4024,7 @@ function mergeDayProgress(prev, force){
     t.endMin = t.startMin + t.baseDurationMin;
     awaitingStart = !!prev.awaitingStart;
     cascadeAfterPointer();
+    applyPauseShift(); // paused while this device was away: the time is still where it stopped
     // Reopened long after the current task ended: move on, as a fresh load would.
     if(!awaitingStart && nowInMinutes() > t.endMin + 1) catchUpToNow();
   } else {
@@ -4038,6 +4081,7 @@ let skipBtn = document.getElementById('skip-task-btn');
 let postponeBtn = document.getElementById('postpone-task-btn');
 let startNowBtn = document.getElementById('start-now-btn');
 let resetRoutineBtn = document.getElementById('reset-routine-btn');
+let extrasEl = document.getElementById('task-extra-btns');
 let delayBtn = document.getElementById('delay-start-btn');
 let undoDelayBtn = document.getElementById('undo-delay-btn');
 let forecastEl = document.getElementById('forecast');
@@ -4246,6 +4290,7 @@ function skipTask(idx){
   const t = tasks[idx];
   const nowMin = nowInMinutes();
   t.userSkipped = true;
+  t.pausedAt = undefined;
   if(idx === pointer && !awaitingStart && nowMin >= t.startMin){
     if(confirmState) closeConfirm();
     t.endMin = Math.max(t.startMin, Math.min(nowMin, t.endMin));
@@ -4329,7 +4374,7 @@ function restoreSkipped(idx){
   const mark = blockMark(idx);
   const [t] = tasks.splice(idx, 1);
   pointer--;
-  Object.assign(t, { userSkipped: false, outcome: null, redMin: 0, baseDurationMin: t.plannedDurationMin, autoExtended: false, closedLate: false });
+  Object.assign(t, { userSkipped: false, outcome: null, redMin: 0, baseDurationMin: t.plannedDurationMin, autoExtended: false, closedLate: false, pausedAt: undefined });
   const running = currentIsRunning();
   if(pointer < tasks.length && tasks[pointer].routineId === t.routineId && running){
     tasks.splice(pointer + 1, 0, t);
@@ -4361,7 +4406,7 @@ function postponeTask(){
   const block = routineBlockAt(pointer);
   const mark = blockMark(pointer);
   const [t] = tasks.splice(pointer, 1);
-  Object.assign(t, { redMin: 0, baseDurationMin: t.plannedDurationMin, autoExtended: false, closedLate: false });
+  Object.assign(t, { redMin: 0, baseDurationMin: t.plannedDurationMin, autoExtended: false, closedLate: false, pausedAt: undefined });
   tasks.splice(block.endIdx, 0, t);
   keepBlockMark(mark);
   passSkipped();
@@ -4369,6 +4414,74 @@ function postponeTask(){
   recomputeUpcoming();
   lastSegTaskIndex = -1;
   rebuildTimelineDOM();
+}
+// "↪️ Depois da próxima": the current task swaps with the next one of its routine.
+// ("⤵️ Para o final" is postponeTask.) Only offered when the two would differ.
+function laterTasksInRoutine(){
+  if(pointer >= tasks.length) return [];
+  const block = routineBlockAt(pointer);
+  const out = [];
+  for(let i = pointer + 1; i <= block.endIdx; i++) if(!tasks[i].userSkipped) out.push(i);
+  return out;
+}
+function canPostponeOne(){ return laterTasksInRoutine().length >= 2; }
+function postponeOne(){
+  const later = laterTasksInRoutine();
+  if(later.length < 2) return;
+  if(confirmState) closeConfirm();
+  const mark = blockMark(pointer);
+  const [t] = tasks.splice(pointer, 1);
+  Object.assign(t, { redMin: 0, baseDurationMin: t.plannedDurationMin, autoExtended: false, closedLate: false, pausedAt: undefined });
+  tasks.splice(later[0], 0, t); // right after the (former) next task
+  keepBlockMark(mark);
+  passSkipped();
+  awaitingStart = pointer < tasks.length;
+  recomputeUpcoming();
+  lastSegTaskIndex = -1;
+  rebuildTimelineDOM();
+}
+// "🔁 Recomeçar o tempo": the current task starts over from now, with its full time.
+function canRestartTask(){ return pointer < tasks.length && !awaitingStart && !confirmState && currentIsRunning(); }
+function restartTask(){
+  if(!canRestartTask()) return;
+  const nowMin = nowInMinutes();
+  Object.assign(tasks[pointer], { redMin: 0, baseDurationMin: tasks[pointer].plannedDurationMin, autoExtended: false, closedLate: false, pausedAt: undefined });
+  recomputeUpcoming(nowMin);
+  fitFlexibleTasks(true);
+  lastSegTaskIndex = -1;
+  progressAction();
+  render();
+}
+// "⏸️ Pausar": the current task's time stops. While paused, its start moves on
+// with the clock (applyPauseShift, on every tick and when a saved or shared day
+// is loaded), so the time left stays put and the later tasks move along. The
+// pause lives on the task (pausedAt), so it travels with the day's progress.
+function isPaused(){ return pointer < tasks.length && tasks[pointer].pausedAt != null; }
+function applyPauseShift(){
+  const t = tasks[pointer];
+  if(!t || t.pausedAt == null) return;
+  if(awaitingStart){ t.pausedAt = undefined; return; }
+  const nowMin = nowInMinutes();
+  const d = nowMin - t.pausedAt;
+  if(d <= 0) return;
+  t.startMin += d;
+  t.endMin += d;
+  t.pausedAt = nowMin;
+  cascadeAfterPointer();
+}
+function canPause(){ return pointer < tasks.length && !awaitingStart && !confirmState && (isPaused() || currentIsRunning()); }
+function togglePause(){
+  if(!canPause()) return;
+  const t = tasks[pointer];
+  if(t.pausedAt != null){
+    applyPauseShift();
+    t.pausedAt = undefined;
+    fitFlexibleTasks();
+  } else {
+    t.pausedAt = nowInMinutes();
+  }
+  progressAction();
+  render();
 }
 postponeBtn.addEventListener('click', () => { postponeTask(); progressAction(); render(); });
 skipBtn.addEventListener('click', () => askSkip(pointer));
@@ -4960,6 +5073,7 @@ let awaitingStart = false; // true = next task waiting for a tap on "Start"
 
 function markTaskDone(actualEndMin){
   tasks[pointer].endMin = actualEndMin;
+  tasks[pointer].pausedAt = undefined;
   tasks[pointer].outcome = (tasks[pointer].redMin > 0 || tasks[pointer].closedLate) ? 'late' : 'onTime';
   if(tasks[pointer].outcome === 'onTime') celebrate();
   else encourage();
@@ -5091,7 +5205,7 @@ function startRoutineNow(){
   if(!canStartNow()) return;
   const nowMin = nowInMinutes();
   const t = tasks[pointer];
-  Object.assign(t, { started: true, startShift: nowMin - t.plannedStartMin, redMin: 0, baseDurationMin: t.plannedDurationMin, autoExtended: false, closedLate: false });
+  Object.assign(t, { started: true, startShift: nowMin - t.plannedStartMin, redMin: 0, baseDurationMin: t.plannedDurationMin, autoExtended: false, closedLate: false, pausedAt: undefined });
   awaitingStart = false;
   recomputeUpcoming(nowMin);
   fitFlexibleTasks(true);
@@ -5133,7 +5247,7 @@ function resetRoutine(){
   if(!canResetRoutine()) return;
   const b = routineBlockAt(pointer);
   const block = tasks.slice(b.startIdx, b.endIdx + 1).sort((x, y) => x.plannedStartMin - y.plannedStartMin);
-  block.forEach(t => Object.assign(t, { outcome: null, userSkipped: false, redMin: 0, baseDurationMin: t.plannedDurationMin, autoExtended: false, closedLate: false, started: false, startShift: 0 }));
+  block.forEach(t => Object.assign(t, { outcome: null, userSkipped: false, redMin: 0, baseDurationMin: t.plannedDurationMin, autoExtended: false, closedLate: false, started: false, startShift: 0, pausedAt: undefined }));
   tasks.splice(b.startIdx, block.length, ...block);
   pointer = b.startIdx;
   awaitingStart = false;
@@ -5176,6 +5290,21 @@ startNowBtn.addEventListener('click', startRoutineNow);
 delayBtn.addEventListener('click', delayStart);
 undoDelayBtn.addEventListener('click', undoDelay);
 resetRoutineBtn.addEventListener('click', askResetRoutine);
+extrasEl.querySelector('.pause-btn').addEventListener('click', togglePause);
+extrasEl.querySelector('.postpone-next-btn').addEventListener('click', () => { postponeOne(); progressAction(); render(); });
+extrasEl.querySelector('.restart-task-btn').addEventListener('click', restartTask);
+// "⋯ Opções" opens the task's menu; a choice in it (or a tap elsewhere) closes it.
+document.addEventListener('click', (e) => {
+  const menuBtn = e.target.closest('.menu-btn');
+  document.querySelectorAll('.task-menu').forEach(m => {
+    const own = menuBtn && m.parentElement === menuBtn.parentElement;
+    const open = own ? m.hidden : false;
+    m.hidden = !open;
+    const b = m.parentElement.querySelector('.menu-btn');
+    if(b) b.setAttribute('aria-expanded', open ? 'true' : 'false');
+    if(open){ const first = [...m.querySelectorAll('button')].find(x => x.style.display !== 'none'); if(first) first.focus({ preventScroll: true }); }
+  });
+});
 
 // ---------- Reorder tasks not done yet ----------
 function moveTask(idx, dir){
@@ -5203,7 +5332,29 @@ timelineEl.addEventListener('click', (e) => {
 // Draws the current child's day.
 function render(){
   renderMain();
+  updateTaskMenu();
   applyTimelineFocus();
+}
+// "⋯ Opções": shown when its menu has a choice; each section's title only with
+// choices under it (this task: next, end, restart, skip; the routine: restart).
+function updateTaskMenu(){
+  const menu = extrasEl.querySelector('.task-menu');
+  const shown = b => b && b.style.display !== 'none' && b.style.display !== '';
+  const taskItems = ['.postpone-next-btn', '.restart-task-btn'].map(c => menu.querySelector(c)).concat([postponeBtn, skipBtn]);
+  const anyTask = taskItems.some(shown), anyRoutine = shown(resetRoutineBtn);
+  const t = tasks[pointer];
+  const taskHead = menu.querySelector('.menu-task-head'), routineHead = menu.querySelector('.menu-routine-head');
+  taskHead.style.display = anyTask ? '' : 'none';
+  routineHead.style.display = anyRoutine ? '' : 'none';
+  if(t){
+    taskHead.textContent = tr('menu_task_head', { task: `${t.emoji} ${t.name}` });
+    const r = ROUTINES.find(r => r.id === t.routineId);
+    routineHead.textContent = tr('menu_routine_head', { routine: r ? `${r.icon} ${r.name}` : tr('routine_fallback') });
+  }
+  const btn = extrasEl.querySelector('.menu-btn');
+  btn.textContent = tr('menu_btn');
+  btn.style.display = (anyTask || anyRoutine) ? 'inline-block' : 'none';
+  if(!anyTask && !anyRoutine) menu.hidden = true;
 }
 // Every second: the clock, each child's day, and the checks that depend on all of them.
 function renderAll(){
@@ -5215,6 +5366,7 @@ function renderAll(){
 }
 function renderMain(){
   checkDayRollover();
+  applyPauseShift(); // a paused task's time stays put
   const now = new Date();
   const nowMin = now.getHours()*60 + now.getMinutes() + now.getSeconds()/60;
   refreshLimitForCurrentRoutine(); // automatically recompute the deadline when the routine changes
@@ -5260,6 +5412,13 @@ function renderMain(){
   }
   refreshStepTimes();
   skipBtn.style.display = 'none';
+  const pauseBtn = extrasEl.querySelector('.pause-btn');
+  const postponeNextBtn = extrasEl.querySelector('.postpone-next-btn');
+  const restartTaskBtn = extrasEl.querySelector('.restart-task-btn');
+  [pauseBtn, postponeNextBtn, restartTaskBtn].forEach(b => { b.style.display = 'none'; });
+  postponeNextBtn.textContent = tr('postpone_next');
+  restartTaskBtn.textContent = tr('restart_task');
+  heroEl.classList.remove('paused');
   skipBtn.textContent = tr('skip_btn');
   postponeBtn.style.display = 'none';
   postponeBtn.textContent = tr('postpone_btn');
@@ -5275,7 +5434,11 @@ function renderMain(){
     if(canDelayStart()) delayBtn.style.display = 'inline-block';
     if(canUndoDelay()){ undoDelayBtn.textContent = tr('undo_delay', { time: fmtMin(tasks[pointer].plannedStartMin) }); undoDelayBtn.style.display = 'inline-block'; }
   };
-  const showTaskExtras = () => { skipBtn.style.display = 'inline-block'; if(canPostpone()) postponeBtn.style.display = 'inline-block'; };
+  const showTaskExtras = () => {
+    skipBtn.style.display = 'inline-block';
+    if(canPostpone()) postponeBtn.style.display = 'inline-block';
+    if(canPostponeOne()) postponeNextBtn.style.display = 'inline-block';
+  };
   // A column's list may not fit: keep the current task in view (scrolled once per task).
   if(panelEl && timelineEl.dataset.scrolledTo !== String(pointer)){
     const el = stepEl(Math.min(pointer, tasks.length - 1));
@@ -5421,11 +5584,20 @@ function renderMain(){
   heroEmoji.textContent = t.emoji;
   heroLabel.textContent = t.name;
   showTaskExtras();
-  if(isBlockFirst(pointer) && nowMin - tasks[pointer].startMin >= 1) showStartControls(true); // got there late? start over from now
+  if(isBlockFirst(pointer) && nowMin - tasks[pointer].startMin >= 1 && !isPaused()) showStartControls(true); // got there late? start over from now
   // A "Botão Começar" routine already running (e.g. the setting changed mid-run) doesn't wait again.
   // Not marked for fixed routines: a mark is progress to sync, and a fresh device has none.
   if(!tasks[pointer].started && isBlockFirst(pointer) && routineStartMode(tasks[pointer]) === 'button') tasks[pointer].started = true;
+  if(canPause()){
+    const paused = isPaused();
+    pauseBtn.textContent = tr(paused ? 'resume_btn' : 'pause_btn');
+    pauseBtn.classList.toggle('paused', paused);
+    pauseBtn.style.display = 'inline-block';
+    heroEl.classList.toggle('paused', paused);
+  }
+  if(canRestartTask() && !isPaused()) restartTaskBtn.style.display = 'inline-block';
   if(confirmState) heroSub.textContent = tr('confirming');
+  else if(isPaused()) heroSub.textContent = tr('paused_sub');
   else heroSub.innerHTML = tr('until', { time: timeShiftHtml(t.endMin, t.plannedStartMin + blockShift(pointer) + t.plannedDurationMin) });
 
   const total = t.endMin - t.startMin;
@@ -7820,10 +7992,10 @@ function maybeShowWelcome(){
 // withChild(slot, fn) swaps that child's day and elements in, runs fn and
 // swaps back. Between calls the globals hold the first child's day, so with
 // one child nothing is ever swapped and the engine works as it always did.
-const MAIN_VIEW = { heroEl, heroEmoji, heroLabel, heroSub, minutesLeftEl, segmentsEl, finishEarlyBtn, startNextBtn, skipBtn, postponeBtn, startNowBtn, delayBtn, undoDelayBtn, resetRoutineBtn, forecastEl,
+const MAIN_VIEW = { heroEl, heroEmoji, heroLabel, heroSub, minutesLeftEl, segmentsEl, finishEarlyBtn, startNextBtn, skipBtn, postponeBtn, startNowBtn, delayBtn, undoDelayBtn, resetRoutineBtn, extrasEl, forecastEl,
   browseControlsEl, browsePrevBtn, browseNextBtn, timelineEl, pageTitleEl, limitHourEl, limitMinEl, limitControlEl, panelEl: null };
 function useView(v){
-  ({ heroEl, heroEmoji, heroLabel, heroSub, minutesLeftEl, segmentsEl, finishEarlyBtn, startNextBtn, skipBtn, postponeBtn, startNowBtn, delayBtn, undoDelayBtn, resetRoutineBtn, forecastEl,
+  ({ heroEl, heroEmoji, heroLabel, heroSub, minutesLeftEl, segmentsEl, finishEarlyBtn, startNextBtn, skipBtn, postponeBtn, startNowBtn, delayBtn, undoDelayBtn, resetRoutineBtn, extrasEl, forecastEl,
      browseControlsEl, browsePrevBtn, browseNextBtn, timelineEl, pageTitleEl, limitHourEl, limitMinEl, limitControlEl, panelEl } = v);
 }
 function freshDay(){
@@ -7919,7 +8091,7 @@ function buildPanels(){
             <button type="button" class="kid-finish"><span class="kid-box"></span><span class="kid-finish-label"></span></button>
           </div>
           <button type="button" class="kid-start"></button>
-          <div class="task-extra-btns"><button type="button" class="kid-start-now"></button><button type="button" class="kid-delay"></button><button type="button" class="kid-undo-delay"></button><button type="button" class="kid-postpone"></button><button type="button" class="kid-skip"></button><button type="button" class="kid-reset-routine"></button></div>
+          <div class="task-extra-btns"><button type="button" class="kid-start-now"></button><button type="button" class="kid-delay"></button><button type="button" class="kid-undo-delay"></button><button type="button" class="pause-btn kid-pause"></button><button type="button" class="menu-btn kid-menu" aria-expanded="false"></button><div class="task-menu" hidden><div class="menu-head menu-task-head"></div><button type="button" class="postpone-next-btn"></button><button type="button" class="kid-postpone"></button><button type="button" class="restart-task-btn"></button><button type="button" class="kid-skip"></button><div class="menu-head menu-routine-head"></div><button type="button" class="kid-reset-routine"></button></div></div>
           <div class="kid-browse">
             <button type="button" class="kid-prev">◀</button>
             <button type="button" class="kid-next">▶</button>
@@ -7949,6 +8121,9 @@ function buildPanels(){
     q('.kid-delay').addEventListener('click', act(delayStart));
     q('.kid-undo-delay').addEventListener('click', act(undoDelay));
     q('.kid-reset-routine').addEventListener('click', act(askResetRoutine));
+    q('.kid-pause').addEventListener('click', act(togglePause));
+    q('.postpone-next-btn').addEventListener('click', act(() => { postponeOne(); progressAction(); render(); }));
+    q('.restart-task-btn').addEventListener('click', act(restartTask));
     q('.kid-timeline').addEventListener('click', (e) => {
       const btn = e.target.closest('.skip-btn');
       if(btn) act(() => onStepSkip(parseInt(btn.dataset.index, 10)))();
@@ -7961,7 +8136,7 @@ function buildPanels(){
       heroEl: q('.kid-hero'), heroEmoji: q('.kid-emoji'), heroLabel: q('.kid-label'), heroSub: q('.kid-sub'),
       minutesLeftEl: q('.kid-minutes'), segmentsEl: q('.kid-segments'), finishEarlyBtn: q('.kid-finish'), startNextBtn: q('.kid-start'),
       skipBtn: q('.kid-skip'), postponeBtn: q('.kid-postpone'), forecastEl: q('.kid-forecast'),
-      startNowBtn: q('.kid-start-now'), delayBtn: q('.kid-delay'), undoDelayBtn: q('.kid-undo-delay'), resetRoutineBtn: q('.kid-reset-routine'),
+      startNowBtn: q('.kid-start-now'), delayBtn: q('.kid-delay'), undoDelayBtn: q('.kid-undo-delay'), resetRoutineBtn: q('.kid-reset-routine'), extrasEl: q('.task-extra-btns'),
       browseControlsEl: q('.kid-browse'), browsePrevBtn: q('.kid-prev'), browseNextBtn: q('.kid-next'),
       pageTitleEl: document.createElement('div'), // no title per column: stays off screen
       timelineEl: q('.kid-timeline'), limitHourEl: q('.kid-limit-h'), limitMinEl: q('.kid-limit-m'), limitControlEl: q('.kid-deadline'),
