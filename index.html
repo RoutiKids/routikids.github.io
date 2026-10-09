@@ -45,7 +45,7 @@
 <meta name="color-scheme" content="light dark">
 <title>Routikids</title>
 <!-- The code version lives here (read by the app and by the update check); bump it on every change. -->
-<meta name="app-version" content="Versão do código: 2026-10-09 21:58">
+<meta name="app-version" content="Versão do código: 2026-10-09 22:40">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <!-- Icon and manifest: "Add to home screen" on Android (and iOS) gets the Routikids icon. -->
 <link rel="manifest" href="manifest.webmanifest">
@@ -1611,6 +1611,20 @@
     cursor:pointer;
     margin-top:0.5vh;
   }
+  #routine-oneday-row{ margin:0.6vh 0; }
+  #routine-oneday-row[hidden], #routine-oneday-note[hidden], #routine-oneday-dates[hidden], #routine-days-field[hidden], #routine-tasks-area[hidden], #routine-delete-btn[hidden]{ display:none; }
+  #routine-oneday-btn{ background:white; color:var(--navy); border:2px solid rgba(29,53,87,0.2); }
+  #routine-oneday-dates{ display:flex; flex-wrap:wrap; gap:0.5vw; align-items:center; margin-top:0.8vh; }
+  #routine-oneday-dates .settings-hint{ width:100%; margin:0; }
+  .oneday-date{ font-family:'Nunito', sans-serif; font-weight:800; border:2px solid rgba(29,53,87,0.15); background:white; color:var(--navy); border-radius:999px; padding:0.6vh 1vw; cursor:pointer; font-size:clamp(14px, 1vw, 20px); }
+  .oneday-date.has{ border-color:var(--sun); }
+  .oneday-date:focus{ outline:4px solid var(--sun); outline-offset:2px; }
+  #routine-oneday-note{ background:rgba(255,193,69,0.18); border:2px solid var(--sun); border-radius:14px; padding:1vh 1vw; margin:0.8vh 0; display:flex; flex-wrap:wrap; gap:0.8vh 1vw; align-items:center; }
+  #routine-oneday-note p{ width:100%; margin:0; font-family:'Nunito', sans-serif; font-weight:800; color:var(--navy); }
+  #routine-oneday-note label{ font-family:'Nunito', sans-serif; font-weight:700; color:var(--navy); display:flex; gap:0.4em; align-items:center; }
+  #routine-oneday-back{ background:white; color:var(--navy); border:2px solid rgba(29,53,87,0.2); }
+  .routine-tab.oneday{ border-style:dashed; border-color:var(--sun); }
+  .routine-tab.oneday.selected{ border-style:solid; }
   .add-task-row{ display:flex; flex-wrap:wrap; gap:0.6vw; align-items:center; }
   .settings-add-btn.copy{ background:white; color:var(--navy); border:2px solid rgba(29,53,87,0.2); }
   #copy-task-list{ background:white; border-radius:14px; padding:1vh 0.8vw; margin-top:1vh; display:flex; flex-direction:column; gap:0.5vh; box-shadow:0 6px 18px rgba(29,53,87,0.12); }
@@ -1865,13 +1879,23 @@
       <!-- The selected routine: its details (folded) and its tasks, in one card -->
       <div id="routine-card">
         <div id="routine-card-title"></div>
+        <!-- "📅 Mudar só um dia": a version of this routine for one date (the other weeks stay) -->
+        <div id="routine-oneday-row">
+          <button type="button" id="routine-oneday-btn" class="util-btn" data-i18n="oneday_btn"></button>
+          <div id="routine-oneday-dates" hidden></div>
+        </div>
+        <div id="routine-oneday-note" hidden>
+          <p id="routine-oneday-text"></p>
+          <label><input type="checkbox" id="routine-oneday-off"> <span data-i18n="oneday_off"></span></label>
+          <button type="button" id="routine-oneday-back" class="util-btn" data-i18n="oneday_back"></button>
+        </div>
         <details id="routine-details">
           <summary data-i18n="routine_details"></summary>
           <div id="routine-edit-row">
             <input type="text" id="routine-name-input" class="settings-text-input" data-i18n-placeholder="routine_name_ph">
             <div id="routine-icon-picker"></div>
           </div>
-          <div class="routine-field">
+          <div class="routine-field" id="routine-days-field">
             <span class="settings-label" data-i18n="days_label"></span>
             <div id="routine-days"></div>
           </div>
@@ -1888,6 +1912,7 @@
         </details>
         <div id="conflict-warning"></div>
 
+        <div id="routine-tasks-area">
         <div id="routine-tasks-heading"></div>
         <p class="settings-hint" data-i18n="can_shorten_hint"></p>
         <div id="settings-tasks-list"></div>
@@ -1897,6 +1922,7 @@
         </div>
         <!-- "📋 Copiar tarefa existente": the tasks of the other routines, to add a copy of one here -->
         <div id="copy-task-list" hidden></div>
+        </div>
       </div>
     </div>
 
@@ -2241,6 +2267,13 @@ const I18N = {
     copy_task: "📋 Copiar tarefa existente",
     copy_task_head: "Toque numa tarefa para copiar para esta rotina:",
     copy_task_none: "Ainda não há tarefas em outras rotinas para copiar.",
+    oneday_btn: "📅 Mudar só um dia",
+    oneday_pick: "Escolha o dia. Nas outras semanas a rotina continua igual:",
+    oneday_none: "Marque primeiro os dias da semana desta rotina, em \"⚙️ Detalhes da rotina\".",
+    oneday_note: "📅 Só em {date}. Nas outras semanas continua a rotina normal.",
+    oneday_off: "🚫 Sem esta rotina neste dia",
+    oneday_off_note: "🚫 Em {date} esta rotina não acontece. Nas outras semanas continua normal.",
+    oneday_back: "↩️ Voltar ao normal neste dia",
     add_task: "+ Adicionar tarefa",
     cancel: "Cancelar",
     save: "💾 Salvar",
@@ -2623,6 +2656,13 @@ const I18N = {
     copy_task: "📋 Copy an existing task",
     copy_task_head: "Tap a task to copy it into this routine:",
     copy_task_none: "There are no tasks in other routines to copy yet.",
+    oneday_btn: "📅 Change just one day",
+    oneday_pick: "Pick the day. On the other weeks the routine stays the same:",
+    oneday_none: "First tick this routine's weekdays, under \"⚙️ Routine details\".",
+    oneday_note: "📅 Only on {date}. On the other weeks the usual routine goes on.",
+    oneday_off: "🚫 No routine on this day",
+    oneday_off_note: "🚫 On {date} this routine doesn't happen. On the other weeks it goes on as usual.",
+    oneday_back: "↩️ Back to normal on this day",
     add_task: "+ Add task",
     cancel: "Cancel",
     save: "💾 Save",
@@ -3005,6 +3045,13 @@ const I18N = {
     copy_task: "📋 Vorhandene Aufgabe kopieren",
     copy_task_head: "Tippe auf eine Aufgabe, um sie in diese Routine zu kopieren:",
     copy_task_none: "In anderen Routinen gibt es noch keine Aufgaben zum Kopieren.",
+    oneday_btn: "📅 Nur einen Tag ändern",
+    oneday_pick: "Wähle den Tag. In den anderen Wochen bleibt die Routine gleich:",
+    oneday_none: "Hake zuerst die Wochentage dieser Routine an, unter „⚙️ Details der Routine“.",
+    oneday_note: "📅 Nur am {date}. In den anderen Wochen gilt die normale Routine.",
+    oneday_off: "🚫 An diesem Tag ohne diese Routine",
+    oneday_off_note: "🚫 Am {date} findet diese Routine nicht statt. In den anderen Wochen wie gewohnt.",
+    oneday_back: "↩️ An diesem Tag wieder normal",
     add_task: "+ Aufgabe hinzufügen",
     cancel: "Abbrechen",
     save: "💾 Speichern",
@@ -3484,6 +3531,17 @@ function normalizeConfig(cfg){
   const ids = cfg.children.map(c => c.id);
   if(cfg.onTimeIcon) cfg.onTimeIcon = cleanEmoji(cfg.onTimeIcon) || '🐆';
   if(cfg.lateIcon) cfg.lateIcon = cleanEmoji(cfg.lateIcon) || '🐢';
+  // One-day versions ("📅 Mudar só um dia"): onDate (YYYY-MM-DD) and the routine they
+  // replace (baseId); off = no routine that day. Past ones are dropped.
+  const todayStr = dateKey(new Date());
+  cfg.routines = cfg.routines.filter(r => !r.onDate || (/^\d{4}-\d{2}-\d{2}$/.test(r.onDate) && r.onDate >= todayStr));
+  cfg.routines.forEach(r => {
+    if(r.onDate){ r.baseId = String(r.baseId || '').slice(0, 64); if(r.off === true) r.tasks = []; else delete r.off; }
+    else { delete r.baseId; delete r.off; }
+  });
+  if(cfg.weekSchedule) Object.keys(cfg.weekSchedule).forEach(d => {
+    cfg.weekSchedule[d] = (cfg.weekSchedule[d] || []).filter(id => !cfg.routines.some(r => r.id === id && r.onDate));
+  });
   cfg.routines.forEach(r => {
     if(!ids.includes(r.childId)) r.childId = ids[0];
     if(r.icon !== undefined) r.icon = cleanEmoji(r.icon) || '📋';
@@ -3591,8 +3649,24 @@ function toMinutes([h,m]){ return h*60+m; }
 // Merge the tasks of all routines active today (there may be more than
 // one if "allow several per day" is on), in chronological order.
 function childRoutines(){ return ROUTINES.filter(r => r.childId === ACTIVE_CHILD_ID); }
-function buildTasksForDayIndex(dayIdx){
-  const activeIds = (WEEK_SCHEDULE[dayIdx] || []).filter(id => ROUTINES.some(r => r.id === id));
+// Dates as YYYY-MM-DD, and the date `offset` days from today (at noon, so DST never shifts the day).
+function dateKey(d){ return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`; }
+function dateInDays(offset){ const d = new Date(); d.setHours(12, 0, 0, 0); d.setDate(d.getDate() + offset); return d; }
+// The routines of a date: the week's routines for its weekday, with a one-day version
+// for that date (onDate) in place of the routine it replaces (baseId); an "off" one removes it.
+function activeRoutineIdsForDate(d, routines, schedule){
+  routines = routines || ROUTINES;
+  schedule = schedule || WEEK_SCHEDULE;
+  const key = dateKey(d);
+  let ids = (schedule[d.getDay()] || []).filter(id => routines.some(r => r.id === id && !r.onDate));
+  routines.filter(r => r.onDate === key).forEach(r => {
+    ids = ids.filter(id => id !== r.baseId);
+    if(!r.off) ids.push(r.id);
+  });
+  return ids;
+}
+function buildTasksForDate(d){
+  const activeIds = activeRoutineIdsForDate(d);
   let combined = [];
   childRoutines().forEach(r => {
     if(activeIds.includes(r.id)) combined = combined.concat(r.tasks.map(t => ({ ...t, routineId: r.id })));
@@ -3603,21 +3677,20 @@ function buildTasksForDayIndex(dayIdx){
 function nextRoutineDayTasks(fallback){
   const today = new Date().getDay();
   for(let k = 1; k <= 6; k++){
-    const list = buildTasksForDayIndex((today + k) % 7);
+    const list = buildTasksForDate(dateInDays(k));
     if(list.length) return list;
   }
   return fallback;
 }
 function buildTodaysTasks(){
-  return buildTasksForDayIndex(new Date().getDay()); // 0=Sunday ... 6=Saturday
+  return buildTasksForDate(dateInDays(0));
 }
 
 // Read-only preview of a future day's tasks, for arrow navigation
 // — times come ready in minutes, same as the real `tasks` array,
 // but without pointer/outcome (those days haven't "happened" yet).
 function buildPreviewTasksForOffset(dayOffset){
-  const dayIdx = (new Date().getDay() + dayOffset) % 7;
-  return buildTasksForDayIndex(dayIdx).map(t => ({
+  return buildTasksForDate(dateInDays(dayOffset)).map(t => ({
     name: t.name, emoji: t.emoji, routineId: t.routineId,
     startMin: toMinutes(t.start), endMin: toMinutes(t.end),
     outcome: null
@@ -3628,8 +3701,7 @@ const WEEKDAY_FULL = tr('days_full');
 // Only used to show a preview on the "routine complete" screen — it doesn't
 // load or change anything, it just looks at what's scheduled for the next day.
 function previewTomorrow(){
-  const tomorrowIdx = (new Date().getDay() + 1) % 7;
-  const activeIds = (WEEK_SCHEDULE[tomorrowIdx] || []).filter(id => ROUTINES.some(r => r.id === id));
+  const activeIds = activeRoutineIdsForDate(dateInDays(1));
   const activeRoutines = childRoutines().filter(r => activeIds.includes(r.id));
   if(activeRoutines.length === 0) return null;
   let firstStart = null;
@@ -5816,6 +5888,7 @@ function configRoutineToDraft(r){
     icon: r.icon,
     limitMin: r.limitMin,
     startMode: r.startMode === 'button' ? 'button' : 'fixed',
+    onDate: r.onDate, baseId: r.baseId, off: !!r.off,
     tasks: r.tasks.map(t => ({
       name: t.name,
       emoji: t.emoji,
@@ -6170,6 +6243,7 @@ let selectedRoutineIndex = 0;
 
 function selectRoutine(idx){
   openPickerIdx = null;
+  document.getElementById('routine-oneday-dates').hidden = true;
   document.getElementById('copy-task-list').hidden = true;
   document.getElementById('routine-details').open = false;
   selectedRoutineIndex = idx;
@@ -6182,7 +6256,7 @@ function selectRoutine(idx){
 function renderRoutineTabs(){
   const wrap = document.getElementById('routine-tabs');
   wrap.innerHTML = childRoutineIndexes().map(i => { const r = draftRoutines[i];
-    return `<button type="button" class="routine-tab${i===selectedRoutineIndex?' selected':''}" data-index="${i}">${r.icon} ${r.name}</button>`;
+    return `<button type="button" class="routine-tab${i===selectedRoutineIndex?' selected':''}${r.onDate ? ' oneday' : ''}" data-index="${i}">${escHtml(routineLabel(r))}</button>`;
   }).join('') + `<button type="button" id="routine-add-btn">${tr('add_routine_btn')}</button>`;
   wrap.querySelectorAll('.routine-tab').forEach(btn => {
     btn.addEventListener('click', () => selectRoutine(parseInt(btn.dataset.index,10)));
@@ -6203,7 +6277,84 @@ function computeDraftRoutineNaturalLimit(routine){
 
 // The selected routine's card: its name on top, its details folded (open for a
 // new routine), its tasks below. Hidden when the child has no routine yet.
-function routineLabel(r){ return `${r.icon} ${r.name || tr('routine_fallback')}`; }
+function routineLabel(r){ return `${r.icon} ${r.name || tr('routine_fallback')}` + (r.onDate ? ` · ${shortDate(r.onDate)}${r.off ? ' 🚫' : ''}` : ''); }
+// "sáb 17/10" (pt), "Sat 10/17" (en), "Sa 17.10." (de)
+function shortDate(key){
+  const [y, m, d] = key.split('-').map(Number);
+  const wd = DAY_NAMES[new Date(y, m - 1, d, 12).getDay()];
+  return LANG === 'en' ? `${wd} ${m}/${d}` : LANG === 'de' ? `${wd} ${d}.${m}.` : `${wd} ${d}/${m}`;
+}
+// The next dates (up to 6, within 8 weeks) on which a weekly routine runs.
+function nextDatesOf(r){
+  const out = [];
+  for(let k = 0; k < 56 && out.length < 6; k++){
+    const d = dateInDays(k);
+    if((draftWeekSchedule[d.getDay()] || []).includes(r.id)) out.push(dateKey(d));
+  }
+  return out;
+}
+function renderOneDay(){
+  const r = draftRoutines[selectedRoutineIndex];
+  const row = document.getElementById('routine-oneday-row'), note = document.getElementById('routine-oneday-note');
+  const dates = document.getElementById('routine-oneday-dates');
+  row.hidden = !r || !!r.onDate;
+  note.hidden = !r || !r.onDate;
+  document.getElementById('routine-days-field').hidden = !!(r && r.onDate);
+  document.getElementById('routine-delete-btn').hidden = !!(r && r.onDate);
+  document.getElementById('routine-tasks-area').hidden = !!(r && r.onDate && r.off);
+  if(!r) return;
+  if(r.onDate){
+    document.getElementById('routine-oneday-text').textContent = tr(r.off ? 'oneday_off_note' : 'oneday_note', { date: shortDate(r.onDate) });
+    document.getElementById('routine-oneday-off').checked = !!r.off;
+    return;
+  }
+  if(!dates.hidden){
+    const list = nextDatesOf(r);
+    dates.innerHTML = `<p class="settings-hint">${tr(list.length ? 'oneday_pick' : 'oneday_none')}</p>` + list.map(key => {
+      const has = draftRoutines.some(x => x.onDate === key && x.baseId === r.id);
+      return `<button type="button" class="oneday-date${has ? ' has' : ''}" data-date="${key}">${shortDate(key)}${has ? ' ✏️' : ''}</button>`;
+    }).join('');
+  }
+}
+document.getElementById('routine-oneday-btn').addEventListener('click', () => {
+  const dates = document.getElementById('routine-oneday-dates');
+  dates.hidden = !dates.hidden;
+  renderOneDay();
+});
+document.getElementById('routine-oneday-dates').addEventListener('click', (e) => {
+  const b = e.target.closest('.oneday-date');
+  const base = draftRoutines[selectedRoutineIndex];
+  if(!b || !base) return;
+  const key = b.dataset.date;
+  let idx = draftRoutines.findIndex(x => x.onDate === key && x.baseId === base.id);
+  if(idx < 0){
+    const copy = JSON.parse(JSON.stringify(base));
+    Object.assign(copy, { id: 'r_' + Date.now().toString(36) + Math.random().toString(36).slice(2, 6), onDate: key, baseId: base.id, off: false });
+    let at = selectedRoutineIndex + 1;
+    while(at < draftRoutines.length && draftRoutines[at].baseId === base.id) at++;
+    draftRoutines.splice(at, 0, copy);
+    idx = at;
+    settingsDirty = true;
+  }
+  document.getElementById('routine-oneday-dates').hidden = true;
+  selectRoutine(idx);
+});
+document.getElementById('routine-oneday-off').addEventListener('change', (e) => {
+  const r = draftRoutines[selectedRoutineIndex];
+  if(!r || !r.onDate) return;
+  r.off = e.target.checked;
+  renderRoutineTabs();
+  renderRoutineTitles();
+  renderOneDay();
+});
+document.getElementById('routine-oneday-back').addEventListener('click', () => {
+  const r = draftRoutines[selectedRoutineIndex];
+  if(!r || !r.onDate) return;
+  draftRoutines.splice(selectedRoutineIndex, 1);
+  settingsDirty = true;
+  const back = draftRoutines.findIndex(x => x.id === r.baseId);
+  if(back >= 0) selectRoutine(back); else selectChild(selectedChildId);
+});
 function renderRoutineTitles(){
   const r = draftRoutines[selectedRoutineIndex];
   if(!r) return;
@@ -6215,6 +6366,7 @@ function renderRoutineTitles(){
 function renderRoutineEditRow(){
   const r = draftRoutines[selectedRoutineIndex];
   document.getElementById('routine-card').style.display = r ? '' : 'none';
+  renderOneDay();
   if(!r) return;
   renderRoutineTitles();
   document.getElementById('routine-name-input').value = r.name;
@@ -6240,7 +6392,7 @@ document.getElementById('routine-name-input').addEventListener('input', (e) => {
   r.name = e.target.value;
   // Update only the matching tab's text, without redrawing everything (avoids losing field focus)
   const tabBtn = document.querySelector(`.routine-tab[data-index="${selectedRoutineIndex}"]`);
-  if(tabBtn) tabBtn.textContent = `${r.icon} ${r.name}`;
+  if(tabBtn) tabBtn.textContent = routineLabel(r);
   renderRoutineTitles();
 });
 document.getElementById('routine-icon-picker').addEventListener('click', (e) => {
@@ -6252,12 +6404,13 @@ document.getElementById('routine-icon-picker').addEventListener('click', (e) => 
   renderWeekMatrix();
 });
 document.getElementById('routine-delete-btn').addEventListener('click', () => {
-  if(childRoutineIndexes().length <= 1){
+  if(childRoutineIndexes().filter(i => !draftRoutines[i].onDate).length <= 1){
     appAlert(tr('need_one_routine'));
     return;
   }
   const removedId = draftRoutines[selectedRoutineIndex].id;
   draftRoutines.splice(selectedRoutineIndex, 1);
+  draftRoutines = draftRoutines.filter(x => x.baseId !== removedId); // its one-day versions go too
   Object.keys(draftWeekSchedule).forEach(d => {
     draftWeekSchedule[d] = draftWeekSchedule[d].filter(id => id !== removedId);
   });
@@ -6599,7 +6752,8 @@ function saveSettings(){
     icon: r.icon,
     limitMin: r.limitMin,
     startMode: r.startMode === 'button' ? 'button' : undefined,
-    tasks: r.tasks.map(t => {
+    onDate: r.onDate || undefined, baseId: r.onDate ? r.baseId : undefined, off: (r.onDate && r.off) || undefined,
+    tasks: (r.onDate && r.off ? [] : r.tasks).map(t => {
       let sound;
       if(t.soundType === 'melody') sound = { type: 'melody' };
       else if(t.soundType === 'family' && AUDIOS.some(a => a.id === t.soundAudioId)) sound = { type: 'family', id: t.soundAudioId };
@@ -7208,7 +7362,7 @@ let settingsDirty = false;
   const card = settingsOverlay.querySelector('.settings-card');
   const markDirty = (e) => {
     if(!card.contains(e.target)) return; // redrawn by its own handler (e.g. a renamed audio)
-    if(e.target.closest('.emoji-preview, #stats-row, #sync-section, #backup-section, #backup-file-input, #audio-section, #audio-file-input, #cloud-banner, #settings-cancel, #settings-save, #settings-guide-btn, #routine-tabs button[data-index], #settings-tabs, #routine-child-switch, .child-tab, #routine-add-btn, #template-cancel-btn, #settings-copy-task')) return;
+    if(e.target.closest('.emoji-preview, #stats-row, #sync-section, #backup-section, #backup-file-input, #audio-section, #audio-file-input, #cloud-banner, #settings-cancel, #settings-save, #settings-guide-btn, #routine-tabs button[data-index], #settings-tabs, #routine-child-switch, .child-tab, #routine-add-btn, #template-cancel-btn, #settings-copy-task, #routine-oneday-btn')) return;
     settingsDirty = true;
   };
   ['input', 'change'].forEach(ev => card.addEventListener(ev, markDirty));
