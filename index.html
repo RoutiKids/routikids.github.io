@@ -45,7 +45,7 @@
 <meta name="color-scheme" content="light dark">
 <title>Routikids</title>
 <!-- The code version lives here (read by the app and by the update check); bump it on every change. -->
-<meta name="app-version" content="Versão do código: 2026-10-09 22:40">
+<meta name="app-version" content="Versão do código: 2026-10-10 17:00">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <!-- Icon and manifest: "Add to home screen" on Android (and iOS) gets the Routikids icon. -->
 <link rel="manifest" href="manifest.webmanifest">
@@ -408,6 +408,17 @@
   .seg.overtime .fill{ background:var(--coral); }
   .seg.overtime.complete{ background:var(--coral); color:white; }
   #hero.done .seg{ background:rgba(255,255,255,0.3); color:white; }
+  /* A task longer than 30 minutes: one row per hour, 60 thin 1-minute ticks in groups of 10 */
+  #segments.long, .kid-segments.long{ align-self:stretch; width:100%; box-sizing:border-box; }
+  .tick-rows{ display:flex; flex-direction:column; gap:max(6px, calc(var(--th) * 0.3)); width:100%;
+    --th:max(12px, min(2.4vw, calc(11vw / var(--rows, 1)))); --tg:max(2px, 0.15vw); --tG:max(6px, 0.45vw); }
+  .tick-row{ display:flex; align-items:center; gap:max(8px, 0.8vw); }
+  .tick-row b{ min-width:2.2em; text-align:right; font-family:'Baloo 2', sans-serif; font-weight:800; font-size:max(14px, calc(var(--th) * 0.55)); color:var(--navy); }
+  .ticks{ flex:1; display:flex; gap:var(--tg); }
+  #segments .seg.tick, .kid-segments .seg.tick{ flex:0 0 calc((100% - 59 * var(--tg) - 5 * var(--tG)) / 60); width:auto; height:var(--th); min-width:0; min-height:0; border-radius:max(2px, calc(var(--th) * 0.12)); }
+  .seg.tick.ten{ margin-right:var(--tG); }
+  #hero.done .tick-row b, .kid-hero.done .tick-row b{ color:white; }
+  .kid-segments .tick-rows{ --th:max(10px, min(calc(var(--w) * 0.05), calc(var(--w) * 0.24 / var(--rows, 1)))); --tg:max(1px, calc(var(--w) * 0.003)); --tG:max(4px, calc(var(--w) * 0.01)); }
 
   /* "I'm done" is a box to tick next to the minutes, as in the children's columns
      (.kid-finish styles); --w sizes it like a column. */
@@ -1715,6 +1726,7 @@
     #minutes-left .unit{ font-size:18px; margin-left:4px; }
     #segments{ gap:6px; }
     .seg{ width:34px; height:34px; font-size:13px; border-radius:8px; }
+    .tick-rows{ --th:max(12px, min(22px, calc(90px / var(--rows, 1)))); --tg:2px; --tG:5px; }
     #start-next-btn{ font-size:18px; padding:12px 22px; }
     #hero{ --w:440px; }
     #minutes-row{ gap:28px; }
@@ -5079,21 +5091,40 @@ function playForTask(task){
 // ---------- Per-minute segments ----------
 let lastSegTaskIndex = -1;
 
+// Up to 30 minutes: one numbered block per minute. A longer task: one row per hour of 60
+// thin 1-minute ticks (in groups of 10), so a tick is always a minute and the bar fits.
+const TICKS_FROM_MIN = 31;
 function buildSegments(totalMin, redMin=0){
   segmentsEl.innerHTML = '';
   const n = Math.max(1, Math.round(totalMin));
   segmentsEl.style.setProperty('--segs', n);
+  segmentsEl.classList.toggle('long', n >= TICKS_FROM_MIN);
   const redCount = Math.round(redMin);
-  for(let i=0;i<n;i++){
+  const makeSeg = (i, cls) => {
     const seg = document.createElement('div');
-    const isRed = i >= (n - redCount);
-    seg.className = 'seg' + (isRed ? ' overtime' : '');
-    seg.innerHTML = `<div class="fill"></div><span>${i+1}</span>`;
-    segmentsEl.appendChild(seg);
+    seg.className = 'seg' + cls + (i >= (n - redCount) ? ' overtime' : '');
+    seg.innerHTML = cls ? '<div class="fill"></div>' : `<div class="fill"></div><span>${i+1}</span>`;
+    return seg;
+  };
+  if(n < TICKS_FROM_MIN){
+    for(let i=0;i<n;i++) segmentsEl.appendChild(makeSeg(i, ''));
+    return;
   }
+  const rows = document.createElement('div');
+  rows.className = 'tick-rows';
+  rows.style.setProperty('--rows', Math.ceil(n / 60));
+  for(let h = 0; h * 60 < n; h++){
+    const row = document.createElement('div');
+    row.className = 'tick-row';
+    row.innerHTML = `<b>${h + 1}h</b><div class="ticks"></div>`;
+    const ticks = row.lastChild;
+    for(let m = 0; m < 60 && h * 60 + m < n; m++) ticks.appendChild(makeSeg(h * 60 + m, ' tick' + (m % 10 === 9 && m < 59 ? ' ten' : '')));
+    rows.appendChild(row);
+  }
+  segmentsEl.appendChild(rows);
 }
 function updateSegments(elapsedMin){
-  const segs = segmentsEl.children;
+  const segs = segmentsEl.querySelectorAll('.seg');
   for(let i=0;i<segs.length;i++){
     const seg = segs[i];
     const fill = seg.querySelector('.fill');
