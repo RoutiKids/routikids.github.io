@@ -45,7 +45,7 @@
 <meta name="color-scheme" content="light dark">
 <title>Routikids</title>
 <!-- The code version lives here (read by the app and by the update check); bump it on every change. -->
-<meta name="app-version" content="Versão do código: 2026-10-10 17:00">
+<meta name="app-version" content="Versão do código: 2026-10-10 23:09">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <!-- Icon and manifest: "Add to home screen" on Android (and iOS) gets the Routikids icon. -->
 <link rel="manifest" href="manifest.webmanifest">
@@ -471,6 +471,7 @@
 
   /* ---- Timeline ---- */
   #timeline{
+    position:relative;
     display:flex;
     flex-direction:column;
     gap:1vh;
@@ -5565,12 +5566,15 @@ function renderMain(){
     if(canPostpone()) postponeBtn.style.display = 'inline-block';
     if(canPostponeOne()) postponeNextBtn.style.display = 'inline-block';
   };
-  // A column's list may not fit: keep the current task in view (scrolled once per task).
-  if(panelEl && timelineEl.dataset.scrolledTo !== String(pointer)){
+  // A long list may not fit (side list or a column): keep the current task in view, with the
+  // one before it on top (scrolled once per task, so a hand scroll stays until the next task).
+  if(timelineEl.dataset.scrolledTo !== String(pointer)){
     const el = stepEl(Math.min(pointer, tasks.length - 1));
     if(el && timelineEl.scrollHeight > timelineEl.clientHeight){
       const prev = stepEl(pointer - 1); // keep the last task done in view, above the current one
-      timelineEl.scrollTop = Math.max(0, (prev && prev.style.display !== 'none' ? prev : el).offsetTop);
+      const top = prev && prev.style.display !== 'none' ? prev : el;
+      const firstShown = [...timelineEl.querySelectorAll('.step')].find(s => s.offsetParent);
+      timelineEl.scrollTop = top === firstShown ? 0 : Math.max(0, top.offsetTop); // the first task keeps the title
       timelineEl.dataset.scrolledTo = String(pointer);
     }
   }
