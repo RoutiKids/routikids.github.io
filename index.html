@@ -45,7 +45,7 @@
 <meta name="color-scheme" content="light dark">
 <title>Routikids</title>
 <!-- The code version lives here (read by the app and by the update check); bump it on every change, with the number of the PR that brings it. -->
-<meta name="app-version" content="Versão do código: 2026-10-11 05:12 · PR #41">
+<meta name="app-version" content="Versão do código: 2026-10-11 14:08 · PR #42">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <!-- Icon and manifest: "Add to home screen" on Android (and iOS) gets the Routikids icon. -->
 <link rel="manifest" href="manifest.webmanifest">
@@ -236,7 +236,7 @@
     flex-shrink:0;
   }
   .kid-timeline .skip-btn{ font-size:calc(var(--w) * 0.03); }
-  .pictures-only .step .skip-btn:not(.restore){ display:none; } /* a child can't skip, but a parent can undo */
+  .pictures-only .step .skip-btn:not(.restore):not(.mark){ display:none; } /* a child can't skip, but a parent can undo or say how a passed task went */
   .task-extra-btns{ display:flex; flex-wrap:wrap; justify-content:center; gap:0.4vw; position:relative; }
   /* ⏸️ Pausar (amber; "▶ Continuar" in green while paused) and the "⋯ Opções" menu */
   .pause-btn{ background:var(--sun) !important; }
@@ -519,6 +519,7 @@
     color:var(--mint);
     flex-shrink:0;
   }
+  .check.unmarked{ opacity:0.55; } /* went by without a tick: ✏️ next to it says how it went */
   .outcome-badge{
     font-size:1.8vw;
     flex-shrink:0;
@@ -1097,6 +1098,8 @@
     margin-bottom:3vh;
   }
   #app-dialog-overlay .confirm-btn{ font-size:clamp(17px, 1.5vw, 32px); }
+  #app-dialog-choices{ display:flex; flex-direction:column; align-items:stretch; gap:1.2vh; margin:2vh auto 1vh; max-width:min(80vw, 520px); }
+  #app-dialog-choices[hidden]{ display:none; }
 
   /* ---- Task confirmation dialog ---- */
   #confirm-overlay{
@@ -2171,6 +2174,7 @@
 <div id="app-dialog-overlay">
   <div class="confirm-card">
     <div id="app-dialog-message"></div>
+    <div id="app-dialog-choices" hidden></div>
     <div class="confirm-buttons">
       <button type="button" id="app-dialog-yes" class="confirm-btn yes">OK</button>
       <button type="button" id="app-dialog-no" class="confirm-btn no" data-i18n="cancel"></button>
@@ -2356,6 +2360,11 @@ const I18N = {
     undo_done_title: "Desfazer: a tarefa volta para a lista",
     undo_done_q: "Desfazer \"{task}\"? A tarefa volta para a lista e a figurinha dela sai.",
     undo_done_yes: "Desfazer",
+    mark_title: "Passou sem marcar: dizer como foi",
+    mark_q: "\"{task}\" passou sem ninguém marcar. Como foi?",
+    mark_ontime: "{icon} Feita no prazo",
+    mark_late: "{icon} Feita com atraso",
+    mark_not: "⏭️ Não foi feita",
     reset_routine: "🔄 Reiniciar rotina",
     reset_routine_q: "Recomeçar a rotina \"{routine}\" de hoje? Todas as tarefas dela voltam a ficar pendentes.",
     reset_routine_yes: "Reiniciar",
@@ -2745,6 +2754,11 @@ const I18N = {
     undo_done_title: "Undo: the task goes back to the list",
     undo_done_q: "Undo \"{task}\"? The task goes back to the list and loses its sticker.",
     undo_done_yes: "Undo",
+    mark_title: "Went by without a tick: say how it went",
+    mark_q: "\"{task}\" went by without anyone ticking it. How did it go?",
+    mark_ontime: "{icon} Done on time",
+    mark_late: "{icon} Done late",
+    mark_not: "⏭️ Not done",
     reset_routine: "🔄 Restart routine",
     reset_routine_q: "Start today's \"{routine}\" routine over? All its tasks will be pending again.",
     reset_routine_yes: "Restart",
@@ -3134,6 +3148,11 @@ const I18N = {
     undo_done_title: "Rückgängig: die Aufgabe kommt zurück in die Liste",
     undo_done_q: "„{task}“ rückgängig machen? Die Aufgabe kommt zurück in die Liste und verliert ihr Bild.",
     undo_done_yes: "Rückgängig",
+    mark_title: "Ohne Haken vorbei: sagen, wie es war",
+    mark_q: "„{task}“ ging vorbei, ohne dass jemand sie abgehakt hat. Wie war es?",
+    mark_ontime: "{icon} Pünktlich erledigt",
+    mark_late: "{icon} Zu spät erledigt",
+    mark_not: "⏭️ Nicht erledigt",
     reset_routine: "🔄 Routine neu starten",
     reset_routine_q: "Die Routine „{routine}“ von heute neu beginnen? Alle Aufgaben sind dann wieder offen.",
     reset_routine_yes: "Neu starten",
@@ -4462,11 +4481,34 @@ function askSkip(idx){
 function onStepSkip(idx){
   const t = tasks[idx];
   if(!t) return;
-  if(idx < pointer){ if(t.userSkipped) restoreSkipped(idx); else if(isDone(t)) askUndoDone(idx); return; }
+  if(idx < pointer){ if(t.userSkipped) restoreSkipped(idx); else if(isDone(t)) askUndoDone(idx); else if(isPassed(t)) askMarkPassed(idx); return; }
   if(t.userSkipped) unskipTask(idx);
   else askSkip(idx);
 }
 function isDone(t){ return t.outcome === 'onTime' || t.outcome === 'late'; }
+// A task whose time went by while no device was open (or nobody ticked it): passed over
+// silently (catchUpToNow). It shows ❔ and ✏️, so a parent can say later how it went.
+function isPassed(t){ return t.outcome === 'skipped' && !t.userSkipped; }
+function askMarkPassed(idx){
+  const slot = currentSlot;
+  const t = tasks[idx];
+  if(!t || !isPassed(t)) return;
+  appChoose(tr('mark_q', { task: t.name }), [
+    ['onTime', tr('mark_ontime', { icon: ONTIME_ICON })],
+    ['late', tr('mark_late', { icon: LATE_ICON })],
+    ['not', tr('mark_not')]
+  ]).then(choice => {
+    if(!choice || !SLOTS.includes(slot)) return;
+    withChild(slot, () => {
+      if(!isPassed(t) || tasks.indexOf(t) >= pointer) return;
+      if(choice === 'not') t.userSkipped = true; // shows ⏭️, and ↩️ can still bring it back
+      else t.outcome = choice; // shows its sticker, and ↩️ can undo it
+      rebuildTimelineDOM();
+      progressAction();
+      render();
+    });
+  });
+}
 function currentIsRunning(){
   return pointer < tasks.length && !awaitingStart && nowInMinutes() >= tasks[pointer].startMin;
 }
@@ -4621,7 +4663,9 @@ function rebuildTimelineDOM(){
         <div class="time" data-h="${timeHtml.replace(/"/g, '&quot;')}">${timeHtml}</div>
       </div>
       ${isDone
-        ? `<div class="check">${t.userSkipped ? '⏭️' : '✔'}</div>${t.outcome === 'skipped' ? '' : `<div class="outcome-badge${t.outcome === 'late' ? '' : ' star'}">${t.outcome === 'late' ? LATE_ICON : ONTIME_ICON}</div>`}${canRestore(i) ? `<button type="button" class="skip-btn restore" data-index="${i}" title="${tr(t.userSkipped ? 'unskip_title' : 'undo_done_title')}">↩️</button>` : ''}`
+        ? (isPassed(t)
+          ? `<div class="check unmarked" title="${tr('mark_title')}">❔</div><button type="button" class="skip-btn mark" data-index="${i}" title="${tr('mark_title')}">✏️</button>`
+          : `<div class="check">${t.userSkipped ? '⏭️' : '✔'}</div>${t.outcome === 'skipped' ? '' : `<div class="outcome-badge${t.outcome === 'late' ? '' : ' star'}">${t.outcome === 'late' ? LATE_ICON : ONTIME_ICON}</div>`}${canRestore(i) ? `<button type="button" class="skip-btn restore" data-index="${i}" title="${tr(t.userSkipped ? 'unskip_title' : 'undo_done_title')}">↩️</button>` : ''}`)
         : `<button type="button" class="skip-btn${t.userSkipped ? ' restore' : ''}" data-index="${i}" title="${tr(t.userSkipped ? 'unskip_title' : 'skip_title')}">${t.userSkipped ? '↩️' : '⏭️'}</button>
            <div class="reorder-controls">
              <button class="reorder-btn up" data-index="${i}" ${canMoveUp ? '' : 'disabled'} title="${tr('move_earlier')}">▲</button>
@@ -6004,12 +6048,24 @@ function closeSettings(){
 // TV browsers (e.g. on Google TV) may block native alert()/confirm() popups,
 // and a blocked confirm() silently returns false — so use our own dialog.
 let appDialogResolve = null;
-function openAppDialog(message, yesLabel, noLabel){
+function openAppDialog(message, yesLabel, noLabel, choices){
   if(appDialogResolve) appDialogResolve(false); // a newer dialog replaces an unanswered one
   document.getElementById('app-dialog-message').textContent = message;
+  const choicesEl = document.getElementById('app-dialog-choices');
+  choicesEl.innerHTML = '';
+  (choices || []).forEach(([value, label]) => {
+    const b = document.createElement('button');
+    b.type = 'button';
+    b.className = 'confirm-btn yes app-dialog-choice';
+    b.textContent = label;
+    b.addEventListener('click', () => closeAppDialog(value));
+    choicesEl.appendChild(b);
+  });
+  choicesEl.hidden = !choices;
   const yesBtn = document.getElementById('app-dialog-yes');
   const noBtn = document.getElementById('app-dialog-no');
-  yesBtn.textContent = yesLabel;
+  yesBtn.textContent = yesLabel || '';
+  yesBtn.style.display = yesLabel ? '' : 'none';
   noBtn.textContent = noLabel || '';
   noBtn.style.display = noLabel ? '' : 'none';
   document.getElementById('app-dialog-overlay').style.display = 'flex';
@@ -6025,6 +6081,8 @@ function closeAppDialog(answer){
 }
 function appAlert(message){ return openAppDialog(message, tr('ok'), null); }
 function appConfirm(message, yesLabel){ return openAppDialog(message, yesLabel || tr('yes'), tr('cancel')); }
+// Several answers, one button each (plus Cancel): resolves with the chosen value, or false.
+function appChoose(message, choices){ return openAppDialog(message, null, tr('cancel'), choices); }
 document.getElementById('app-dialog-yes').addEventListener('click', () => closeAppDialog(true));
 document.getElementById('app-dialog-no').addEventListener('click', () => closeAppDialog(false));
 document.addEventListener('keydown', (e) => {
