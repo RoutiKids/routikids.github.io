@@ -17,7 +17,7 @@ The app used to live at `fabiofialho1.github.io/rotina-infantil-na-tv/` (reposit
 
 ## Versioning
 
-- On every change to `index.html`, update the `<meta name="app-version" content="Versão do código: YYYY-MM-DD HH:MM">` tag in `<head>` (keep that exact text: older app versions search for it to detect updates; the settings footer shows it translated) to the current date/time in Europe/Berlin (the owner lives in Germany). The owner uses it to confirm on the TV that the latest version is live, and the app compares it with the published `index.html` to detect updates (banner + automatic reload at a safe moment), so it must always move forward.
+- On every change to `index.html`, update the `<meta name="app-version" content="Versão do código: YYYY-MM-DD HH:MM">` tag in `<head>` (keep that exact text: older app versions search for it to detect updates; the settings footer shows it translated) to the current date/time in Europe/Berlin (the owner lives in Germany), followed by ` · PR #N`, the number the pull request carrying the change will get (the next issue/PR number of the repository; check it after opening the PR and fix it if it differs). The date/time part must stay right after "Versão do código: " (the update check and older versions read only that part); the settings footer shows both, e.g. "Versão do código: 2026-10-11 10:30 · PR #41". The owner uses it to confirm on the TV that the latest version is live, and the app compares it with the published `index.html` to detect updates (banner + automatic reload at a safe moment), so it must always move forward.
 
 ## Cloud sync (pairing)
 

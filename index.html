@@ -44,8 +44,8 @@
      colours: every background is set explicitly. -->
 <meta name="color-scheme" content="light dark">
 <title>Routikids</title>
-<!-- The code version lives here (read by the app and by the update check); bump it on every change. -->
-<meta name="app-version" content="Versão do código: 2026-10-10 23:09">
+<!-- The code version lives here (read by the app and by the update check); bump it on every change, with the number of the PR that brings it. -->
+<meta name="app-version" content="Versão do código: 2026-10-11 05:12 · PR #41">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <!-- Icon and manifest: "Add to home screen" on Android (and iOS) gets the Routikids icon. -->
 <link rel="manifest" href="manifest.webmanifest">
@@ -3401,8 +3401,10 @@ function applyStaticTranslations(){
   document.querySelectorAll('[data-i18n-placeholder]').forEach(el => { el.placeholder = tr(el.dataset.i18nPlaceholder); });
   document.querySelectorAll('[data-i18n-title]').forEach(el => { el.title = tr(el.dataset.i18nTitle); });
   document.querySelectorAll('a[href^="privacy.html"]').forEach(a => { a.href = 'privacy.html?lang=' + LANG; }); // same language as the app
-  const stamp = (document.querySelector('meta[name="app-version"]').content.match(/\d{4}-\d{2}-\d{2} \d{2}:\d{2}/) || [''])[0];
-  document.getElementById('app-version').textContent = `${tr('code_version')}: ${stamp}`;
+  const versionMeta = document.querySelector('meta[name="app-version"]').content;
+  const stamp = (versionMeta.match(/\d{4}-\d{2}-\d{2} \d{2}:\d{2}/) || [''])[0];
+  const pr = (versionMeta.match(/PR #\d+/) || [''])[0]; // the pull request that brought this version
+  document.getElementById('app-version').textContent = `${tr('code_version')}: ${stamp}${pr ? ' · ' + pr : ''}`;
 }
 applyStaticTranslations();
 
