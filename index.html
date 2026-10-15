@@ -45,7 +45,7 @@
 <meta name="color-scheme" content="light dark">
 <title>Routikids</title>
 <!-- The code version lives here (read by the app and by the update check); bump it on every change, with the number of the PR that brings it. -->
-<meta name="app-version" content="Versão do código: 2026-10-15 12:32 · PR #44">
+<meta name="app-version" content="Versão do código: 2026-10-15 15:28 · PR #45">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <!-- Icon and manifest: "Add to home screen" on Android (and iOS) gets the Routikids icon. -->
 <link rel="manifest" href="manifest.webmanifest">
@@ -1247,7 +1247,12 @@
     margin-top:2vh; padding:1.2vh 0 3vh; border-top:1px solid rgba(29,53,87,0.1);
   }
   #routine-child-switch{ display:flex; flex-wrap:wrap; align-items:center; gap:0.6vw; margin-bottom:1.2vh; }
-  #routine-child-switch[hidden]{ display:none; }
+  #routine-child-switch[hidden], #sound-child-switch[hidden], .sound-row[hidden]{ display:none; }
+  #sound-child-switch{ display:flex; flex-wrap:wrap; align-items:center; gap:0.6vw; margin-bottom:1.2vh; }
+  #sound-child-switch .settings-label{ margin:0; }
+  .sound-row{ flex-wrap:wrap; }
+  .sound-try{ font-size:clamp(16px, 1.2vw, 24px); background:white; border:2px solid rgba(29,53,87,0.15); border-radius:12px; padding:4px 10px; cursor:pointer; }
+  .audio-pool .pool-summary{ font-weight:800; color:var(--navy); }
   #routine-child-switch .settings-label{ margin:0; }
   #routine-child-tabs{ display:flex; flex-wrap:wrap; gap:0.5vw; align-items:center; }
   .routine-child-tab{
@@ -1903,6 +1908,7 @@
     <div id="settings-tabs" role="tablist">
       <button type="button" class="settings-tab" data-tab="routines" role="tab" data-i18n="tab_routines"></button>
       <button type="button" class="settings-tab" data-tab="children" role="tab" data-i18n="tab_children"></button>
+      <button type="button" class="settings-tab" data-tab="sounds" role="tab" data-i18n="tab_sounds"></button>
       <button type="button" class="settings-tab" data-tab="devices" role="tab" data-i18n="tab_devices"></button>
       <button type="button" class="settings-tab" data-tab="general" role="tab" data-i18n="tab_general"></button>
     </div>
@@ -1993,20 +1999,6 @@
       <div class="emoji-picker" id="child-runner-picker"></div>
       <span class="settings-label" style="margin-top:1vh; display:block;" data-i18n="done_icon_label"></span>
       <div class="emoji-picker" id="child-done-picker"></div>
-      <div class="sync-buttons" style="margin-top:0.8vh;">
-        <span class="settings-label" style="margin:0;" data-i18n="done_audio_label"></span>
-        <select id="child-done-audio" class="settings-select"></select>
-      </div>
-      <div class="audio-pool" id="child-done-pool" hidden></div>
-      <div class="sync-buttons" style="margin-top:0.8vh;">
-        <span class="settings-label" style="margin:0;" data-i18n="hurry_audio_label"></span>
-        <select id="child-hurry-audio" class="settings-select"></select>
-      </div>
-      <div class="sync-buttons">
-        <span class="settings-label" style="margin:0;" data-i18n="cheer_audio_label"></span>
-        <select id="child-cheer-audio" class="settings-select"></select>
-      </div>
-      <div class="audio-pool" id="child-cheer-pool" hidden></div>
       <div id="child-stars-section">
         <span class="settings-label" style="margin-top:1.5vh; display:block;" data-i18n="stars_title"></span>
         <label class="settings-check"><input type="checkbox" id="child-stars"> <span data-i18n="stars_on"></span></label>
@@ -2023,11 +2015,6 @@
           <p class="settings-hint"><span data-i18n="goal_hint"></span> <span id="child-stars-avg"></span></p>
           <label class="settings-check"><input type="checkbox" id="child-bonus"> <span data-i18n="bonus_label"></span></label>
           <p class="settings-hint" data-i18n="bonus_hint"></p>
-          <div class="sync-buttons" style="margin-top:0.8vh;">
-            <span class="settings-label" style="margin:0;" data-i18n="goal_audio_label"></span>
-            <select id="child-goal-audio" class="settings-select"></select>
-          </div>
-          <div class="audio-pool" id="child-goal-pool" hidden></div>
         </div>
       </div>
       <span class="settings-label" style="margin-top:1vh; display:block;" data-i18n="confirm_default_label"></span>
@@ -2047,6 +2034,52 @@
       </div>
     </div>
 
+    </div>
+    <div class="settings-pane" data-pane="sounds" role="tabpanel">
+    <div id="audio-section">
+      <h3 data-i18n="audio_title"></h3>
+      <p class="settings-hint" data-i18n="audio_hint"></p>
+      <input type="text" id="audio-name-input" class="settings-text-input" maxlength="30" data-i18n-placeholder="audio_name_ph">
+      <div class="sync-buttons">
+        <button type="button" id="audio-record-btn" class="util-btn" style="background:var(--coral);"></button>
+        <button type="button" id="audio-upload-btn" class="util-btn" style="background:var(--sky);" data-i18n="audio_upload"></button>
+      </div>
+      <p class="settings-hint" id="audio-status"></p>
+      <ul id="audio-list"></ul>
+    </div>
+    <input type="file" id="audio-file-input" accept="audio/*" style="display:none;">
+    <div id="child-sounds-section">
+      <h3 data-i18n="child_sounds_title"></h3>
+      <!-- More than one child: whose sounds are shown -->
+      <div id="sound-child-switch">
+        <span class="settings-label" data-i18n="sounds_of"></span>
+        <div id="sound-child-tabs"></div>
+      </div>
+      <div class="sync-buttons sound-row" id="child-cheer-row">
+        <span class="settings-label" style="margin:0;" data-i18n="cheer_audio_label"></span>
+        <select id="child-cheer-audio" class="settings-select"></select>
+        <button type="button" class="sound-try" data-kind="cheer" data-i18n-title="sound_try" aria-label="▶">▶️</button>
+      </div>
+      <div class="audio-pool" id="child-cheer-pool" hidden></div>
+      <div class="sync-buttons sound-row" id="child-done-row">
+        <span class="settings-label" style="margin:0;" data-i18n="done_audio_label"></span>
+        <select id="child-done-audio" class="settings-select"></select>
+        <button type="button" class="sound-try" data-kind="done" data-i18n-title="sound_try" aria-label="▶">▶️</button>
+      </div>
+      <div class="audio-pool" id="child-done-pool" hidden></div>
+      <div class="sync-buttons sound-row" id="child-goal-row">
+        <span class="settings-label" style="margin:0;" data-i18n="goal_audio_label"></span>
+        <select id="child-goal-audio" class="settings-select"></select>
+        <button type="button" class="sound-try" data-kind="goal" data-i18n-title="sound_try" aria-label="▶">▶️</button>
+      </div>
+      <div class="audio-pool" id="child-goal-pool" hidden></div>
+      <div class="sync-buttons sound-row" id="child-hurry-row">
+        <span class="settings-label" style="margin:0;" data-i18n="hurry_audio_label"></span>
+        <select id="child-hurry-audio" class="settings-select"></select>
+        <button type="button" class="sound-try" data-kind="hurry" data-i18n-title="sound_try" aria-label="▶">▶️</button>
+      </div>
+      <p class="settings-hint" id="sound-now"></p>
+    </div>
     </div>
     <div class="settings-pane" data-pane="devices" role="tabpanel">
     <div class="sync-buttons">
@@ -2106,18 +2139,6 @@
     <div class="sync-buttons">
       <button type="button" id="settings-guide-btn" class="util-btn" style="background:var(--sky);" data-i18n="open_guide"></button>
     </div>
-    <div id="audio-section">
-      <h3 data-i18n="audio_title"></h3>
-      <p class="settings-hint" data-i18n="audio_hint"></p>
-      <input type="text" id="audio-name-input" class="settings-text-input" maxlength="30" data-i18n-placeholder="audio_name_ph">
-      <div class="sync-buttons">
-        <button type="button" id="audio-record-btn" class="util-btn" style="background:var(--coral);"></button>
-        <button type="button" id="audio-upload-btn" class="util-btn" style="background:var(--sky);" data-i18n="audio_upload"></button>
-      </div>
-      <p class="settings-hint" id="audio-status"></p>
-      <ul id="audio-list"></ul>
-    </div>
-    <input type="file" id="audio-file-input" accept="audio/*" style="display:none;">
 
     <label class="settings-label" data-i18n="ontime_icon"></label>
     <div class="emoji-picker" id="ontime-icon-picker"></div>
@@ -2329,6 +2350,7 @@ const I18N = {
     n_min: "{n} min",
     tab_routines: "📋\nRotinas",
     tab_children: "👧\nCrianças",
+    tab_sounds: "🔊\nSons",
     tab_devices: "📱\nAparelhos",
     tab_general: "⚙️\nGeral",
     routines_of: "Rotinas de:",
@@ -2434,7 +2456,7 @@ const I18N = {
     forecast_label: "🏁 Término previsto",
     forecast_done: "🏁 Terminou às",
     audio_title: "🎙️ Áudios da família",
-    audio_hint: "Grave uma frase curta (até 15 segundos) ou envie um arquivo de áudio, como o trecho de uma música (até uns 30 segundos). Os áudios ficam guardados na hora e aparecem nas opções de som das tarefas e de cada criança. Com os aparelhos conectados, ficam no banco de dados da família e só os seus aparelhos têm acesso.",
+    audio_hint: "Grave uma frase curta (até 15 segundos) ou envie um arquivo de áudio, como o trecho de uma música (até uns 15 a 20 segundos). Os áudios ficam guardados na hora e aparecem nas opções de som das tarefas e de cada criança. Com os aparelhos conectados, ficam no banco de dados da família e só os seus aparelhos têm acesso.",
     audio_name_ph: "Nome do áudio, ex.: Parabéns da mamãe",
     audio_record: "🎙️ Gravar",
     audio_stop: "⏹️ Parar ({n})",
@@ -2447,7 +2469,15 @@ const I18N = {
     audio_saved_retry: "✅ Áudio guardado neste aparelho. Ele vai para os outros aparelhos assim que a internet voltar.",
     audio_space_full: "⚠️ Não há mais espaço para áudios neste aparelho. Apague um áudio ou envie um mais curto.",
     audio_surprise: "🎲 Surpresa (sorteia entre vários)",
-    audio_surprise_hint: "A cada vez toca um dos marcados, sem repetir o anterior.",
+    audio_surprise_hint: "Toque nos áudios que entram no sorteio. A cada vez toca um deles, sem repetir o anterior.",
+    pool_draws: "🎲 Sorteia entre: {list}",
+    pool_empty: "Nenhum marcado ainda: toca o som padrão.",
+    child_sounds_title: "🔊 Sons de cada criança",
+    sounds_of: "Sons de:",
+    sound_try: "Ouvir",
+    sound_playing: "▶️ Tocando: {name}",
+    sound_default_playing: "▶️ Tocando o som padrão",
+    sound_failed: "⚠️ O áudio \"{name}\" não tocou neste aparelho.",
     stars_title: "⭐ Estrelas e metas",
     stars_on: "Ganhar estrelas nas tarefas",
     stars_hint: "Cada tarefa no prazo vale ⭐. No início de cada rotina e no fim do dia a TV mostra um mapa com as estrelas do dia e as metas.",
@@ -2754,6 +2784,7 @@ const I18N = {
     n_min: "{n} min",
     tab_routines: "📋\nRoutines",
     tab_children: "👧\nChildren",
+    tab_sounds: "🔊\nSounds",
     tab_devices: "📱\nDevices",
     tab_general: "⚙️\nGeneral",
     routines_of: "Routines of:",
@@ -2859,7 +2890,7 @@ const I18N = {
     forecast_label: "🏁 Expected end",
     forecast_done: "🏁 Ended at",
     audio_title: "🎙️ Family audios",
-    audio_hint: "Record a short phrase (up to 15 seconds) or send an audio file, like a bit of a song (up to about 30 seconds). Audios are saved right away and show up in the sound options of the tasks and of each child. With paired devices, they're kept in the family's database and only your devices can reach them.",
+    audio_hint: "Record a short phrase (up to 15 seconds) or send an audio file, like a bit of a song (up to about 15 to 20 seconds). Audios are saved right away and show up in the sound options of the tasks and of each child. With paired devices, they're kept in the family's database and only your devices can reach them.",
     audio_name_ph: "Audio name, e.g. Well done from Mom",
     audio_record: "🎙️ Record",
     audio_stop: "⏹️ Stop ({n})",
@@ -2872,7 +2903,15 @@ const I18N = {
     audio_saved_retry: "✅ Audio saved on this device. It goes to the other devices as soon as the internet is back.",
     audio_space_full: "⚠️ No more room for audios on this device. Delete one or send a shorter one.",
     audio_surprise: "🎲 Surprise (drawn from several)",
-    audio_surprise_hint: "Each time one of the marked ones plays, never the same twice in a row.",
+    audio_surprise_hint: "Tap the audios that go into the draw. Each time one of them plays, never the same twice in a row.",
+    pool_draws: "🎲 Drawn from: {list}",
+    pool_empty: "None marked yet: the default sound plays.",
+    child_sounds_title: "🔊 Each child's sounds",
+    sounds_of: "Sounds of:",
+    sound_try: "Listen",
+    sound_playing: "▶️ Playing: {name}",
+    sound_default_playing: "▶️ Playing the default sound",
+    sound_failed: "⚠️ The audio \"{name}\" didn't play on this device.",
     stars_title: "⭐ Stars and goals",
     stars_on: "Earn stars for tasks",
     stars_hint: "Each task on time is worth ⭐. At the start of each routine and at the end of the day the TV shows a map with the day's stars and the goals.",
@@ -3179,6 +3218,7 @@ const I18N = {
     n_min: "{n} Min.",
     tab_routines: "📋\nRoutinen",
     tab_children: "👧\nKinder",
+    tab_sounds: "🔊\nTöne",
     tab_devices: "📱\nGeräte",
     tab_general: "⚙️\nAllgemein",
     routines_of: "Routinen von:",
@@ -3284,7 +3324,7 @@ const I18N = {
     forecast_label: "🏁 Voraussichtliches Ende",
     forecast_done: "🏁 Fertig um",
     audio_title: "🎙️ Audios der Familie",
-    audio_hint: "Nimm einen kurzen Satz auf (bis zu 15 Sekunden) oder schicke eine Audiodatei, etwa ein Stück aus einem Lied (bis etwa 30 Sekunden). Audios werden sofort gespeichert und erscheinen in den Tonoptionen der Aufgaben und jedes Kindes. Mit verbundenen Geräten liegen sie in der Datenbank der Familie, und nur eure Geräte haben Zugriff.",
+    audio_hint: "Nimm einen kurzen Satz auf (bis zu 15 Sekunden) oder schicke eine Audiodatei, etwa ein Stück aus einem Lied (bis etwa 15 bis 20 Sekunden). Audios werden sofort gespeichert und erscheinen in den Tonoptionen der Aufgaben und jedes Kindes. Mit verbundenen Geräten liegen sie in der Datenbank der Familie, und nur eure Geräte haben Zugriff.",
     audio_name_ph: "Name des Audios, z. B. Super von Mama",
     audio_record: "🎙️ Aufnehmen",
     audio_stop: "⏹️ Stopp ({n})",
@@ -3297,7 +3337,15 @@ const I18N = {
     audio_saved_retry: "✅ Audio auf diesem Gerät gespeichert. Es geht an die anderen Geräte, sobald das Internet wieder da ist.",
     audio_space_full: "⚠️ Kein Platz mehr für Audios auf diesem Gerät. Lösche eins oder schicke ein kürzeres.",
     audio_surprise: "🎲 Überraschung (aus mehreren gelost)",
-    audio_surprise_hint: "Jedes Mal spielt eins der markierten, nie zweimal hintereinander dasselbe.",
+    audio_surprise_hint: "Tippe die Audios an, die in die Auslosung kommen. Jedes Mal spielt eins davon, nie zweimal hintereinander dasselbe.",
+    pool_draws: "🎲 Ausgelost aus: {list}",
+    pool_empty: "Noch keins markiert: es spielt der Standardton.",
+    child_sounds_title: "🔊 Töne jedes Kindes",
+    sounds_of: "Töne von:",
+    sound_try: "Anhören",
+    sound_playing: "▶️ Spielt: {name}",
+    sound_default_playing: "▶️ Spielt den Standardton",
+    sound_failed: "⚠️ Das Audio „{name}“ wurde auf diesem Gerät nicht abgespielt.",
     stars_title: "⭐ Sterne und Ziele",
     stars_on: "Sterne für Aufgaben sammeln",
     stars_hint: "Jede pünktliche Aufgabe bringt ⭐. Am Anfang jeder Routine und am Ende des Tages zeigt der Fernseher eine Karte mit den Sternen des Tages und den Zielen.",
@@ -5283,7 +5331,7 @@ function playFamilyAudio(id, fallback){
     familyAudio.pause();
     familyAudio.src = src;
     familyAudio.currentTime = 0;
-    familyAudio.play().catch(runFallback);
+    familyAudio.play().catch(err => { try{ logCloudEvent(tr('sound_failed', { name: (AUDIOS.find(a => a.id === id) || {}).name || id }) + ' ' + (err && err.name || '')); }catch(e){} runFallback(); });
   }catch(e){ runFallback(); }
 }
 
@@ -6647,6 +6695,9 @@ function renderChildEditor(){
     document.getElementById(`child-${kind}-audio`).innerHTML = surpriseOpts(tr(kind === 'goal' ? 'goal_audio_default' : `${kind}_audio_default`), c[kind + 'Audio']);
     renderAudioPool(kind);
   });
+  document.getElementById('child-goal-row').hidden = !c.stars;
+  document.getElementById('child-goal-pool').hidden = document.getElementById('child-goal-pool').hidden || !c.stars;
+  renderSoundChildSwitch();
   document.getElementById('child-stars').checked = !!c.stars;
   document.getElementById('child-stars-box').hidden = !c.stars;
   const pcts = [[0, tr('goal_none')]].concat([50, 60, 70, 80, 90, 100].map(n => [n, tr('goal_pct', { n })]));
@@ -6670,9 +6721,40 @@ function renderAudioPool(kind){
   box.hidden = !on;
   if(!on) return;
   const pool = c[kind + 'Pool'] || [];
-  box.innerHTML = AUDIOS.map(a => `<button type="button" data-kind="${kind}" data-id="${a.id}" class="${pool.includes(a.id) ? 'selected' : ''}">🎙️ ${escHtml(a.name)}</button>`).join('')
-    + `<p class="settings-hint">${tr('audio_surprise_hint')}</p>`;
+  const chosen = AUDIOS.filter(a => pool.includes(a.id));
+  box.innerHTML = `<p class="settings-hint">${tr('audio_surprise_hint')}</p>`
+    + AUDIOS.map(a => `<button type="button" data-kind="${kind}" data-id="${a.id}" class="${pool.includes(a.id) ? 'selected' : ''}">${pool.includes(a.id) ? '✅' : '🎙️'} ${escHtml(a.name)}</button>`).join('')
+    + `<p class="settings-hint pool-summary">${chosen.length ? tr('pool_draws', { list: chosen.map(a => escHtml(a.name)).join(', ') }) : tr('pool_empty')}</p>`;
 }
+// Sons tab: with more than one child, whose sounds are shown (same choice as the other tabs).
+function renderSoundChildSwitch(){
+  const box = document.getElementById('sound-child-switch');
+  box.hidden = draftChildren.length < 2;
+  document.getElementById('sound-child-tabs').innerHTML = draftChildren.map((c, i) =>
+    `<button type="button" class="routine-child-tab${c.id === selectedChildId ? ' selected' : ''}" data-child="${c.id}" style="--c:var(--${c.color})">${escHtml(childLabel(c, i))}</button>`).join('');
+  document.getElementById('sound-now').textContent = '';
+}
+document.getElementById('sound-child-tabs').addEventListener('click', (e) => {
+  const b = e.target.closest('.routine-child-tab');
+  if(b) selectChild(b.dataset.child);
+});
+// "▶" next to a sound: plays what the child would hear now (a surprise draws one), even with the sound off.
+const SOUND_FALLBACKS = { cheer: () => playClapSound(), done: () => fanfare(), goal: () => fanfare(), hurry: () => vroom() };
+document.getElementById('child-sounds-section').addEventListener('click', (e) => {
+  const b = e.target.closest('.sound-try');
+  if(!b) return;
+  const kind = b.dataset.kind;
+  const c = draftChild();
+  const id = childAudio(c, kind);
+  const a = AUDIOS.find(x => x.id === id);
+  const src = audioSrc(id);
+  const now = document.getElementById('sound-now');
+  const fallback = () => { now.textContent = tr('sound_default_playing'); const was = soundEnabled; soundEnabled = true; try{ ensureAudioCtx(); SOUND_FALLBACKS[kind](); }catch(err){} soundEnabled = was; };
+  if(!src) return fallback();
+  now.textContent = tr('sound_playing', { name: a ? a.name : '' });
+  try{ familyAudio.pause(); familyAudio.src = src; familyAudio.currentTime = 0; familyAudio.play().catch(err => { now.textContent = tr('sound_failed', { name: a ? a.name : '' }); logCloudEvent(tr('sound_failed', { name: a ? a.name : '' }) + ' ' + (err && err.name || '')); }); }
+  catch(err){ fallback(); }
+});
 function selectChild(id){
   selectedChildId = id;
   const first = childRoutineIndexes()[0];
@@ -6738,7 +6820,6 @@ document.getElementById('child-hurry-audio').addEventListener('change', (e) => {
   document.getElementById(`child-${kind}-audio`).addEventListener('change', (e) => {
     const c = draftChild();
     c[kind + 'Audio'] = e.target.value;
-    if(e.target.value === '*' && !(c[kind + 'Pool'] || []).length) c[kind + 'Pool'] = AUDIOS.map(a => a.id); // starts with all of them
     renderAudioPool(kind);
   });
   document.getElementById(`child-${kind}-pool`).addEventListener('click', (e) => {
@@ -6756,6 +6837,7 @@ document.getElementById('child-hurry-audio').addEventListener('change', (e) => {
 document.getElementById('child-stars').addEventListener('change', (e) => {
   draftChild().stars = e.target.checked;
   document.getElementById('child-stars-box').hidden = !e.target.checked;
+  renderChildEditor(); // the goal sound (Sons tab)
   renderSettingsRows(); // the bonus switch on each task
 });
 document.getElementById('child-goal-day').addEventListener('change', (e) => { draftChild().goalDayPct = parseInt(e.target.value, 10) || 0; });
@@ -7919,7 +8001,7 @@ let settingsDirty = false;
   const card = settingsOverlay.querySelector('.settings-card');
   const markDirty = (e) => {
     if(!card.contains(e.target)) return; // redrawn by its own handler (e.g. a renamed audio)
-    if(e.target.closest('.emoji-preview, #stats-row, #sync-section, #backup-section, #backup-file-input, #audio-section, #audio-file-input, #cloud-banner, #settings-cancel, #settings-save, #settings-guide-btn, #routine-tabs button[data-index], #settings-tabs, #routine-child-switch, .child-tab, #routine-add-btn, #template-cancel-btn, #settings-copy-task, #routine-oneday-btn')) return;
+    if(e.target.closest('.emoji-preview, #stats-row, #sync-section, #backup-section, #backup-file-input, #audio-section, #audio-file-input, #cloud-banner, #settings-cancel, #settings-save, #settings-guide-btn, #routine-tabs button[data-index], #settings-tabs, #routine-child-switch, #sound-child-switch, .sound-try, .child-tab, #routine-add-btn, #template-cancel-btn, #settings-copy-task, #routine-oneday-btn')) return;
     settingsDirty = true;
   };
   ['input', 'change'].forEach(ev => card.addEventListener(ev, markDirty));
