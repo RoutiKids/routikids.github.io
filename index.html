@@ -45,7 +45,7 @@
 <meta name="color-scheme" content="light dark">
 <title>Routikids</title>
 <!-- The code version lives here (read by the app and by the update check); bump it on every change, with the number of the PR that brings it. -->
-<meta name="app-version" content="Versão do código: 2026-10-15 12:15 · PR #44">
+<meta name="app-version" content="Versão do código: 2026-10-15 12:32 · PR #44">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <!-- Icon and manifest: "Add to home screen" on Android (and iOS) gets the Routikids icon. -->
 <link rel="manifest" href="manifest.webmanifest">
@@ -2020,7 +2020,7 @@
             <span class="settings-label" style="margin:0;" data-i18n="goal_week_label_set"></span>
             <select id="child-goal-week" class="settings-select"></select>
           </div>
-          <p class="settings-hint" id="child-stars-avg"></p>
+          <p class="settings-hint"><span data-i18n="goal_hint"></span> <span id="child-stars-avg"></span></p>
           <label class="settings-check"><input type="checkbox" id="child-bonus"> <span data-i18n="bonus_label"></span></label>
           <p class="settings-hint" data-i18n="bonus_hint"></p>
           <div class="sync-buttons" style="margin-top:0.8vh;">
@@ -2454,7 +2454,9 @@ const I18N = {
     goal_day_label: "Meta do dia",
     goal_week_label_set: "Meta da semana",
     goal_none: "Sem meta",
-    stars_avg: "Média recente: {n} ⭐ por dia (cerca de {w} por semana).",
+    stars_avg: "Nas últimas duas semanas: {n}% das tarefas no prazo.",
+    goal_pct: "{n}% das tarefas no prazo",
+    goal_hint: "A meta vira um número de estrelas a cada dia, conforme as tarefas do dia (e da semana). ⭐⭐ ao terminar antes ajuda a chegar mais rápido. Tarefas ignoradas no dia não contam.",
     bonus_label: "⭐⭐ Bônus por terminar antes",
     bonus_hint: "Vale quando sobra pelo menos 20% do tempo da tarefa. Quem termina em menos da metade do tempo ganha só ⭐. Dá para desligar em cada tarefa.",
     goal_audio_label: "Som da meta batida",
@@ -2877,7 +2879,9 @@ const I18N = {
     goal_day_label: "Daily goal",
     goal_week_label_set: "Weekly goal",
     goal_none: "No goal",
-    stars_avg: "Recent average: {n} ⭐ a day (about {w} a week).",
+    stars_avg: "Over the last two weeks: {n}% of tasks on time.",
+    goal_pct: "{n}% of tasks on time",
+    goal_hint: "Each day the goal becomes a number of stars, from that day's tasks (and the week's). ⭐⭐ for finishing early helps get there sooner. Tasks skipped for the day don't count.",
     bonus_label: "⭐⭐ Bonus for finishing early",
     bonus_hint: "Counts when at least 20% of the task's time is left. Finishing in less than half the time gets just ⭐. It can be turned off for each task.",
     goal_audio_label: "Goal reached sound",
@@ -3300,7 +3304,9 @@ const I18N = {
     goal_day_label: "Tagesziel",
     goal_week_label_set: "Wochenziel",
     goal_none: "Kein Ziel",
-    stars_avg: "Durchschnitt zuletzt: {n} ⭐ pro Tag (etwa {w} pro Woche).",
+    stars_avg: "In den letzten zwei Wochen: {n} % der Aufgaben pünktlich.",
+    goal_pct: "{n} % der Aufgaben pünktlich",
+    goal_hint: "Das Ziel wird jeden Tag zu einer Zahl von Sternen, je nach den Aufgaben des Tages (und der Woche). ⭐⭐ fürs frühere Fertigwerden hilft, schneller hinzukommen. Für den Tag übersprungene Aufgaben zählen nicht.",
     bonus_label: "⭐⭐ Bonus fürs frühere Fertigwerden",
     bonus_hint: "Gilt, wenn noch mindestens 20 % der Zeit übrig sind. Wer in weniger als der halben Zeit fertig ist, bekommt nur ⭐. Kann für jede Aufgabe ausgeschaltet werden.",
     goal_audio_label: "Ton bei erreichtem Ziel",
@@ -3683,6 +3689,20 @@ function chainConfigTasks(list){
   });
 }
 function cleanPool(list){ return Array.isArray(list) ? list.filter(id => typeof id === 'string' && id).map(id => id.slice(0, 32)).slice(0, MAX_AUDIOS) : []; }
+// A goal in % (50 to 100 in steps of 10, 0 = none). A goal saved as a number of stars by an
+// earlier version becomes the share of the child's usual tasks per day (or week) it stood for.
+function goalPct(pct, oldStars, cfg, childId, firstId, days){
+  if(pct !== undefined) return [50, 60, 70, 80, 90, 100].includes(Number(pct)) ? Number(pct) : 0;
+  if(!(oldStars > 0)) return 0;
+  const sched = cfg.weekSchedule || {};
+  let n = 0;
+  for(let d = 0; d < 7; d++) (sched[d] || []).forEach(id => {
+    const r = cfg.routines.find(r => r.id === id && !r.onDate && (r.childId || firstId) === childId);
+    if(r && Array.isArray(r.tasks)) n += r.tasks.length;
+  });
+  const per = n * days / 7;
+  return per ? Math.min(100, Math.max(50, Math.round(oldStars / per * 10) * 10)) : 80;
+}
 function clampInt(v, min, max){ const n = Math.round(Number(v)); return isFinite(n) ? Math.min(max, Math.max(min, n)) : min; }
 function normalizeConfig(cfg){
   if(!cfg || !Array.isArray(cfg.routines)) return cfg;
@@ -3711,8 +3731,9 @@ function normalizeConfig(cfg){
     // Stars and goals: ⭐ per task on time, ⭐⭐ when well before its end (bonus); goals 0 = none
     stars: !!c.stars,
     bonus: c.bonus !== false,
-    goalDay: clampInt(c.goalDay, 0, 99),
-    goalWeek: clampInt(c.goalWeek, 0, 500)
+    // Goals as a share of the day's / week's tasks done on time (0 = none); older configs had star counts
+    goalDayPct: goalPct(c.goalDayPct, c.goalDay, cfg, c.id, children[0].id, 1),
+    goalWeekPct: goalPct(c.goalWeekPct, c.goalWeek, cfg, c.id, children[0].id, 7)
   }));
   cfg.audios = (Array.isArray(cfg.audios) ? cfg.audios : []).filter(a => a && a.id).slice(0, MAX_AUDIOS)
     .map(a => ({ id: String(a.id).slice(0, 32), name: String(a.name || '').slice(0, 30) }));
@@ -4913,7 +4934,7 @@ function applyTimelineFocus(){
   const dayPrefix = day === 0 ? '' : (day === 1 ? `${tr('tomorrow')} · ` : `${weekday[0].toUpperCase()}${weekday.slice(1)} · `);
   if(titleEl){
     const label = `${dayPrefix}${r ? `${r.icon} ${r.name}` : `📋 ${tr('routine_fallback')}`}`;
-    const goal = activeChild().goalDay;
+    const goal = dayTarget();
     const pill = day === 0 && starsOn() ? `⭐ ${goal ? tr('stars_of', { n: dayStars(), goal }) : dayStars()}` : '';
     const html = escHtml(label) + (pill ? ` <span class="goal-pill">${pill}</span>` : '');
     if(titleEl.dataset.html !== html){ titleEl.innerHTML = html; titleEl.dataset.html = html; }
@@ -5425,6 +5446,21 @@ function finishedEarly(t, endMin){
   const left = t.endMin - endMin, used = endMin - t.startMin;
   return span >= 2 && left >= Math.max(1, span * 0.2) && used >= span / 2;
 }
+// The goals in stars: the share of the tasks that count (all but the ones the parents
+// skipped for the day), rounded up. Today from the day on screen; the week adds the other
+// days' tasks from the routines (Monday to Sunday).
+function countedTasks(list){ return list.filter(t => !t.userSkipped).length; }
+function dayTarget(){
+  const pct = activeChild().goalDayPct;
+  return pct ? Math.max(1, Math.ceil(countedTasks(tasks) * pct / 100)) : 0;
+}
+function weekTarget(){
+  const pct = activeChild().goalWeekPct;
+  if(!pct) return 0;
+  let n = countedTasks(tasks);
+  for(let k = -mondayOffset(); k <= 6 - mondayOffset(); k++) if(k) n += buildTasksForDate(dateInDays(k)).length;
+  return Math.max(1, Math.ceil(n * pct / 100));
+}
 function starsOf(t){ return t.outcome === 'onTime' ? (t.early ? 2 : 1) : 0; }
 function starBadge(t){ return t.early ? '⭐⭐' : '⭐'; }
 function dayStars(){ return tasks.reduce((n, t) => n + starsOf(t), 0); }
@@ -5513,20 +5549,21 @@ function weekStarsBefore(){
   return n;
 }
 function weekStars(){ return weekStarsBefore() + (testMode ? 0 : dayStars()); }
-// Average stars per day over the last two weeks (days with any record), for the settings.
-function recentStarAverage(childId){
+// Share of tasks done on time over the last two weeks (days with a record), for the settings.
+function recentOnTimeShare(childId){
   const mine = readHistory()[childId] || {};
-  const days = [];
-  for(let k = 1; k <= 14; k++){ const r = mine[dateKey(dateInDays(-k))]; if(r) days.push(r.s || 0); }
-  return days.length ? Math.round(days.reduce((a, b) => a + b, 0) / days.length) : null;
+  let on = 0, all = 0;
+  for(let k = 1; k <= 14; k++){ const r = mine[dateKey(dateInDays(-k))]; if(r){ on += r.o || 0; all += (r.o || 0) + (r.l || 0) + (r.k || 0); } }
+  return all ? Math.round(on * 100 / all) : null;
 }
 function checkGoalReached(dayBefore){
   const c = activeChild();
   if(!c.stars) return;
   const after = dayStars();
   const weekBase = testMode ? 0 : weekStarsBefore();
-  const day = c.goalDay && dayBefore < c.goalDay && after >= c.goalDay;
-  const week = c.goalWeek && !testMode && weekBase + dayBefore < c.goalWeek && weekBase + after >= c.goalWeek;
+  const goalDay = dayTarget(), goalWeek = testMode ? 0 : weekTarget();
+  const day = goalDay && dayBefore < goalDay && after >= goalDay;
+  const week = goalWeek && weekBase + dayBefore < goalWeek && weekBase + after >= goalWeek;
   if(!day && !week) return;
   const slot = currentSlot;
   setTimeout(() => { if(SLOTS.includes(slot)) withChild(slot, () => showGoalCard(week ? 'week' : 'day')); }, 2600);
@@ -5542,8 +5579,9 @@ function goalCardHtml(kind){
     : kind === 'end' ? tr('goal_end_title', { n: stars })
     : `${tr(hour < 12 ? 'hello_morning' : hour < 18 ? 'hello_afternoon' : 'hello_evening')}${name}!`;
   let html = `<div class="goal-title">${title}</div>`;
-  if(c.goalDay){
-    const goal = c.goalDay, n = Math.min(goal, 10);
+  const goalDay = dayTarget(), goalWeek = weekTarget();
+  if(goalDay){
+    const goal = goalDay, n = Math.min(goal, 10);
     const reached = Math.min(n, Math.floor(stars * n / goal));
     const left = Math.max(0, goal - stars);
     html += `<div class="goal-sub">${left ? tr('goal_left', { n: left }) : tr('goal_reached')}</div>`;
@@ -5557,9 +5595,9 @@ function goalCardHtml(kind){
   } else {
     html += `<div class="goal-big">⭐ ${stars}</div><div class="goal-sub">${tr('goal_today_count')}</div>`;
   }
-  if(c.goalWeek){
+  if(goalWeek){
     const w = weekStars();
-    html += `<div class="goal-week"><span>${tr('goal_week_label')}</span><div class="goal-bar"><i style="width:${Math.min(100, Math.round(w * 100 / c.goalWeek))}%"></i></div><b>${w} / ${c.goalWeek} ⭐</b></div>`;
+    html += `<div class="goal-week"><span>${tr('goal_week_label')}</span><div class="goal-bar"><i style="width:${Math.min(100, Math.round(w * 100 / goalWeek))}%"></i></div><b>${w} / ${goalWeek} ⭐</b></div>`;
   }
   if(kind === 'start') html += `<div class="goal-rule">${tr(c.bonus === false ? 'goal_rule_nobonus' : 'goal_rule')}</div>`;
   return html;
@@ -6611,11 +6649,12 @@ function renderChildEditor(){
   });
   document.getElementById('child-stars').checked = !!c.stars;
   document.getElementById('child-stars-box').hidden = !c.stars;
-  document.getElementById('child-goal-day').innerHTML = opts([[0, tr('goal_none')]].concat([3, 4, 5, 6, 8, 10, 12, 15, 20, 25, 30].map(n => [n, `${n} ⭐`])), c.goalDay || 0);
-  document.getElementById('child-goal-week').innerHTML = opts([[0, tr('goal_none')]].concat([10, 15, 20, 25, 30, 35, 40, 50, 60, 70, 80, 100, 120, 150].map(n => [n, `${n} ⭐`])), c.goalWeek || 0);
+  const pcts = [[0, tr('goal_none')]].concat([50, 60, 70, 80, 90, 100].map(n => [n, tr('goal_pct', { n })]));
+  document.getElementById('child-goal-day').innerHTML = opts(pcts, c.goalDayPct || 0);
+  document.getElementById('child-goal-week').innerHTML = opts(pcts, c.goalWeekPct || 0);
   document.getElementById('child-bonus').checked = c.bonus !== false;
-  const avg = recentStarAverage(c.id);
-  document.getElementById('child-stars-avg').textContent = avg === null ? '' : tr('stars_avg', { n: avg, w: avg * 7 });
+  const avg = recentOnTimeShare(c.id);
+  document.getElementById('child-stars-avg').textContent = avg === null ? '' : tr('stars_avg', { n: avg });
   document.getElementById('child-done-picker').innerHTML = CHILD_DONE_ICONS.map(e =>
     `<button type="button" data-done="${e}" class="${(c.doneIcon || CHILD_DONE_ICONS[0]) === e ? 'selected' : ''}">${e}</button>`).join('') + customEmojiField(c.doneIcon, CHILD_DONE_ICONS);
   const visible = document.getElementById('child-visible');
@@ -6719,8 +6758,8 @@ document.getElementById('child-stars').addEventListener('change', (e) => {
   document.getElementById('child-stars-box').hidden = !e.target.checked;
   renderSettingsRows(); // the bonus switch on each task
 });
-document.getElementById('child-goal-day').addEventListener('change', (e) => { draftChild().goalDay = parseInt(e.target.value, 10) || 0; });
-document.getElementById('child-goal-week').addEventListener('change', (e) => { draftChild().goalWeek = parseInt(e.target.value, 10) || 0; });
+document.getElementById('child-goal-day').addEventListener('change', (e) => { draftChild().goalDayPct = parseInt(e.target.value, 10) || 0; });
+document.getElementById('child-goal-week').addEventListener('change', (e) => { draftChild().goalWeekPct = parseInt(e.target.value, 10) || 0; });
 document.getElementById('child-bonus').addEventListener('change', (e) => { draftChild().bonus = e.target.checked; renderSettingsRows(); });
 document.getElementById('child-done-picker').addEventListener('click', (e) => {
   const btn = e.target.closest('button');
