@@ -52,6 +52,24 @@
         }
       }
     },
+    "history": {
+      "$houseId": {
+        ".read": "auth != null && root.child('houses').child($houseId).child('members').child(auth.uid).exists()",
+        ".write": "auth != null && root.child('houses').child($houseId).child('members').child(auth.uid).exists()",
+        "$childId": {
+          "$date": {
+            ".validate": "$childId.length <= 32 && $date.length == 10 && newData.hasChildren(['s', 'o', 'e', 'l', 'k', 'u'])",
+            "s": { ".validate": "newData.isNumber() && newData.val() >= 0 && newData.val() <= 500" },
+            "o": { ".validate": "newData.isNumber() && newData.val() >= 0 && newData.val() <= 250" },
+            "e": { ".validate": "newData.isNumber() && newData.val() >= 0 && newData.val() <= 250" },
+            "l": { ".validate": "newData.isNumber() && newData.val() >= 0 && newData.val() <= 250" },
+            "k": { ".validate": "newData.isNumber() && newData.val() >= 0 && newData.val() <= 250" },
+            "u": { ".validate": "newData.isNumber()" },
+            "$other": { ".validate": false }
+          }
+        }
+      }
+    },
     "stats": {
       ".read": true,
       "days": {
