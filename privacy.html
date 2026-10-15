@@ -54,6 +54,7 @@
       <li>O andamento do dia: quais tarefas foram feitas, quando, e se foram no tempo.</li>
       <li>O nome e o tipo de cada aparelho conectado (por exemplo "📺 TV da sala") e quando foi usado pela última vez, e se o som dele está ligado (para poder ligar ou desligar o som de um aparelho pelo outro).</li>
       <li>Os áudios que vocês gravarem ou enviarem em "Áudios da família".</li>
+      <li>Com as estrelas ligadas: um resumo de cada dia por criança (quantas estrelas e quantas tarefas no prazo, antes do prazo, atrasadas e puladas), para somar a semana e mostrar as metas. Fica guardado por até 120 dias.</li>
       <li>Um histórico da conexão, só no próprio aparelho, para ajudar a entender problemas de sincronização.</li>
     </ul>
     <p>O microfone só é usado quando você toca em "Gravar", e a gravação para em no máximo 15 segundos.</p>
@@ -61,7 +62,7 @@
     <h2>Onde ficam os dados</h2>
     <ul>
       <li><strong>No aparelho:</strong> tudo fica no armazenamento do navegador de cada aparelho.</li>
-      <li><strong>Com aparelhos conectados:</strong> as rotinas, o andamento do dia, os nomes dos aparelhos e os áudios ficam também no <strong>Firebase Realtime Database</strong>, um serviço do Google, com servidores nos <strong>Estados Unidos</strong>. Cada aparelho recebe uma identidade anônima (sem nome nem e-mail), e as regras do banco de dados só deixam ler e gravar os aparelhos que entraram no grupo da família com o código de conexão.</li>
+      <li><strong>Com aparelhos conectados:</strong> as rotinas, o andamento do dia, o resumo das estrelas, os nomes dos aparelhos e os áudios ficam também no <strong>Firebase Realtime Database</strong>, um serviço do Google, com servidores nos <strong>Estados Unidos</strong>. Cada aparelho recebe uma identidade anônima (sem nome nem e-mail), e as regras do banco de dados só deixam ler e gravar os aparelhos que entraram no grupo da família com o código de conexão.</li>
     </ul>
 
     <h2>Estatísticas anônimas de uso</h2>
@@ -82,7 +83,7 @@
 
     <h2>Como apagar</h2>
     <ul>
-      <li><strong>Da nuvem:</strong> em ⚙️ Configurar, na parte de conexão, toque em "🗑️ Apagar dados da família na nuvem". Isso apaga as rotinas, o andamento, os áudios e a lista de aparelhos do banco de dados e desconecta todos os aparelhos. A rotina continua no aparelho em que você tocou.</li>
+      <li><strong>Da nuvem:</strong> em ⚙️ Configurar, na parte de conexão, toque em "🗑️ Apagar dados da família na nuvem". Isso apaga as rotinas, o andamento, o resumo das estrelas, os áudios e a lista de aparelhos do banco de dados e desconecta todos os aparelhos. A rotina continua no aparelho em que você tocou.</li>
       <li><strong>De um aparelho:</strong> apague os dados do site nas configurações do navegador. Antes, se quiser, use "💾 Salvar cópia".</li>
       <li><strong>Remover um aparelho do grupo:</strong> em ⚙️ Configurar, na lista de aparelhos conectados.</li>
       <li>Se precisar de ajuda para apagar algo, escreva para o e-mail abaixo.</li>
@@ -99,6 +100,7 @@
 
     <h2>Histórico de mudanças</h2>
     <ul>
+      <li><strong>15/10/2026:</strong> com as estrelas ligadas, um resumo de cada dia por criança, para as metas do dia e da semana.</li>
       <li><strong>09/10/2026:</strong> as estatísticas contam também rotinas com tarefas, uso com TV e quanto do vídeo de demonstração foi assistido.</li>
       <li><strong>08/10/2026:</strong> cada aparelho conectado guarda também se o som está ligado.</li>
       <li><strong>01/10/2026:</strong> estatísticas anônimas de uso (o que é enviado e como desligar) e o que o desenvolvedor vê.</li>
@@ -121,6 +123,7 @@
       <li>The day's progress: which tasks were done, when, and whether on time.</li>
       <li>The name and kind of each connected device (for example "📺 Living room TV") and when it was last used, and whether its sound is on (so one device can turn another's sound on or off).</li>
       <li>The audios you record or send in "Family audios".</li>
+      <li>With stars turned on: a summary of each day per child (how many stars, and how many tasks on time, early, late and skipped), to add up the week and show the goals. Kept for up to 120 days.</li>
       <li>A connection history, on the device only, to help understand sync problems.</li>
     </ul>
     <p>The microphone is only used when you tap "Record", and a recording stops after 15 seconds at most.</p>
@@ -128,7 +131,7 @@
     <h2>Where the data is kept</h2>
     <ul>
       <li><strong>On the device:</strong> everything is kept in each device's browser storage.</li>
-      <li><strong>With connected devices:</strong> the routines, the day's progress, the device names and the audios are also kept in the <strong>Firebase Realtime Database</strong>, a Google service with servers in the <strong>United States</strong>. Each device gets an anonymous identity (no name or e-mail), and the database rules only let devices that joined the family's group with the pairing code read and write.</li>
+      <li><strong>With connected devices:</strong> the routines, the day's progress, the star summaries, the device names and the audios are also kept in the <strong>Firebase Realtime Database</strong>, a Google service with servers in the <strong>United States</strong>. Each device gets an anonymous identity (no name or e-mail), and the database rules only let devices that joined the family's group with the pairing code read and write.</li>
     </ul>
 
     <h2>Anonymous usage statistics</h2>
@@ -149,7 +152,7 @@
 
     <h2>How to delete</h2>
     <ul>
-      <li><strong>From the cloud:</strong> in ⚙️ Settings, in the connection part, tap "🗑️ Delete the family's data from the cloud". It deletes the routines, the progress, the audios and the device list from the database and disconnects every device. The routine stays on the device you tapped on.</li>
+      <li><strong>From the cloud:</strong> in ⚙️ Settings, in the connection part, tap "🗑️ Delete the family's data from the cloud". It deletes the routines, the progress, the star summaries, the audios and the device list from the database and disconnects every device. The routine stays on the device you tapped on.</li>
       <li><strong>From a device:</strong> clear the site's data in the browser settings. If you like, use "💾 Save a copy" first.</li>
       <li><strong>Remove a device from the group:</strong> in ⚙️ Settings, in the list of connected devices.</li>
       <li>If you need help deleting something, write to the e-mail below.</li>
@@ -166,6 +169,7 @@
 
     <h2>Change history</h2>
     <ul>
+      <li><strong>2026-10-15:</strong> with stars turned on, a summary of each day per child, for the daily and weekly goals.</li>
       <li><strong>2026-10-09:</strong> the statistics also count routines with tasks, use with a TV and how much of the demo video was watched.</li>
       <li><strong>2026-10-08:</strong> each connected device also stores whether its sound is on.</li>
       <li><strong>2026-10-01:</strong> anonymous usage statistics (what is sent and how to turn it off) and what the developer sees.</li>
@@ -188,6 +192,7 @@
       <li>Den Fortschritt des Tages: welche Aufgaben erledigt wurden, wann und ob pünktlich.</li>
       <li>Name und Art jedes verbundenen Geräts (zum Beispiel „📺 Fernseher im Wohnzimmer“) und wann es zuletzt benutzt wurde, und ob sein Ton an ist (damit ein Gerät den Ton eines anderen ein- oder ausschalten kann).</li>
       <li>Die Audios, die ihr unter „Audios der Familie“ aufnehmt oder schickt.</li>
+      <li>Mit eingeschalteten Sternen: eine Zusammenfassung jedes Tages pro Kind (wie viele Sterne und wie viele Aufgaben pünktlich, früher, zu spät und übersprungen), um die Woche zusammenzuzählen und die Ziele zu zeigen. Sie wird bis zu 120 Tage aufbewahrt.</li>
       <li>Einen Verbindungsverlauf, nur auf dem Gerät selbst, um Probleme beim Synchronisieren zu verstehen.</li>
     </ul>
     <p>Das Mikrofon wird nur benutzt, wenn du auf „Aufnehmen“ tippst, und eine Aufnahme endet nach höchstens 15 Sekunden.</p>
@@ -195,7 +200,7 @@
     <h2>Wo die Daten liegen</h2>
     <ul>
       <li><strong>Auf dem Gerät:</strong> alles liegt im Browserspeicher des jeweiligen Geräts.</li>
-      <li><strong>Mit verbundenen Geräten:</strong> Routinen, Tagesfortschritt, Gerätenamen und Audios liegen außerdem in der <strong>Firebase Realtime Database</strong>, einem Dienst von Google mit Servern in den <strong>USA</strong>. Jedes Gerät erhält eine anonyme Kennung (ohne Namen oder E-Mail), und die Regeln der Datenbank erlauben Lesen und Schreiben nur den Geräten, die der Gruppe der Familie mit dem Verbindungscode beigetreten sind.</li>
+      <li><strong>Mit verbundenen Geräten:</strong> Routinen, Tagesfortschritt, Sterne-Zusammenfassungen, Gerätenamen und Audios liegen außerdem in der <strong>Firebase Realtime Database</strong>, einem Dienst von Google mit Servern in den <strong>USA</strong>. Jedes Gerät erhält eine anonyme Kennung (ohne Namen oder E-Mail), und die Regeln der Datenbank erlauben Lesen und Schreiben nur den Geräten, die der Gruppe der Familie mit dem Verbindungscode beigetreten sind.</li>
     </ul>
 
     <h2>Anonyme Nutzungsstatistik</h2>
@@ -216,7 +221,7 @@
 
     <h2>Löschen</h2>
     <ul>
-      <li><strong>Aus der Cloud:</strong> unter ⚙️ Einstellungen, im Bereich Verbindung, auf „🗑️ Daten der Familie aus der Cloud löschen“ tippen. Damit werden Routinen, Fortschritt, Audios und die Geräteliste aus der Datenbank gelöscht und alle Geräte getrennt. Die Routine bleibt auf dem Gerät, auf dem du getippt hast.</li>
+      <li><strong>Aus der Cloud:</strong> unter ⚙️ Einstellungen, im Bereich Verbindung, auf „🗑️ Daten der Familie aus der Cloud löschen“ tippen. Damit werden Routinen, Fortschritt, Sterne-Zusammenfassungen, Audios und die Geräteliste aus der Datenbank gelöscht und alle Geräte getrennt. Die Routine bleibt auf dem Gerät, auf dem du getippt hast.</li>
       <li><strong>Von einem Gerät:</strong> die Websitedaten in den Browsereinstellungen löschen. Wenn du möchtest, vorher „💾 Kopie speichern“ nutzen.</li>
       <li><strong>Ein Gerät aus der Gruppe entfernen:</strong> unter ⚙️ Einstellungen, in der Liste der verbundenen Geräte.</li>
       <li>Wenn du Hilfe beim Löschen brauchst, schreib an die E-Mail unten.</li>
@@ -233,6 +238,7 @@
 
     <h2>Änderungsverlauf</h2>
     <ul>
+      <li><strong>15.10.2026:</strong> mit eingeschalteten Sternen eine Zusammenfassung jedes Tages pro Kind, für die Tages- und Wochenziele.</li>
       <li><strong>09.10.2026:</strong> die Statistik zählt auch Routinen mit Aufgaben, die Nutzung mit einem Fernseher und wie viel vom Demo-Video angesehen wurde.</li>
       <li><strong>08.10.2026:</strong> jedes verbundene Gerät speichert auch, ob sein Ton an ist.</li>
       <li><strong>01.10.2026:</strong> anonyme Nutzungsstatistik (was gesendet wird und wie man sie abschaltet) und was der Entwickler sieht.</li>

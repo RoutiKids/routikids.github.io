@@ -45,7 +45,7 @@
 <meta name="color-scheme" content="light dark">
 <title>Routikids</title>
 <!-- The code version lives here (read by the app and by the update check); bump it on every change, with the number of the PR that brings it. -->
-<meta name="app-version" content="Versão do código: 2026-10-11 14:08 · PR #42">
+<meta name="app-version" content="Versão do código: 2026-10-15 10:11 · PR #43">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <!-- Icon and manifest: "Add to home screen" on Android (and iOS) gets the Routikids icon. -->
 <link rel="manifest" href="manifest.webmanifest">
@@ -529,6 +529,33 @@
     filter: drop-shadow(0 0 6px rgba(255,193,69,0.7));
     animation: star-pop 0.5s ease;
   }
+  .outcome-badge.stars{ font-size:1.9vw; letter-spacing:-0.3vw; white-space:nowrap; filter:drop-shadow(0 0 6px rgba(255,193,69,0.7)); animation:star-pop 0.5s ease; }
+  .kid-timeline .outcome-badge.stars{ font-size:calc(var(--w) * 0.035); }
+  /* Stars and goals: the day's stars next to the routine title, and the map card over the hero
+     (sizes in em: the card's font size follows the hero's width, so it fits a column too) */
+  .goal-pill{ display:inline-block; margin-left:0.6em; padding:0.1em 0.6em; border-radius:99px; background:white; color:var(--navy); font-size:0.9em; box-shadow:0 2px 6px rgba(29,53,87,0.12); white-space:nowrap; }
+  .kid-hero{ position:relative; }
+  .goal-card{ position:absolute; inset:0; z-index:20; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:0.8em; padding:1em 1.4em;
+    background:#fbf8ff; border-radius:inherit; color:var(--navy); text-align:center; font-family:'Nunito', sans-serif; cursor:pointer; overflow:hidden; animation:goal-in 0.4s ease; }
+  .goal-card.won{ background:linear-gradient(#fff8e1, #ffeab0); }
+  @keyframes goal-in{ from{ opacity:0; transform:scale(0.96); } to{ opacity:1; transform:none; } }
+  .goal-title{ font-family:'Baloo 2', sans-serif; font-weight:800; font-size:2.6em; line-height:1.1; }
+  .goal-sub{ font-family:'Baloo 2', sans-serif; font-weight:800; font-size:1.4em; color:#b07800; }
+  .goal-big{ font-family:'Baloo 2', sans-serif; font-weight:800; font-size:4em; }
+  .goal-map{ position:relative; width:100%; height:12em; flex-shrink:0; }
+  .goal-map svg{ position:absolute; inset:0; width:100%; height:100%; overflow:visible; }
+  .goal-map path{ fill:none; stroke:#d9cdfa; stroke-linecap:round; stroke-linejoin:round; vector-effect:non-scaling-stroke; stroke-width:0.55em; stroke-dasharray:0.1em 1.1em; }
+  .goal-node{ position:absolute; width:2.4em; height:2.4em; margin:-1.2em 0 0 -1.2em; border-radius:50%; display:flex; align-items:center; justify-content:center; font-size:1.3em;
+    background:white; box-shadow:0 0.25em 0 #c9bdf0; color:#b9aee0; font-family:'Baloo 2', sans-serif; font-weight:800; }
+  .goal-node.on{ background:linear-gradient(#fff3c4, #ffd76b); box-shadow:0 0.25em 0 #e0a800; }
+  .goal-me{ position:absolute; font-size:2.6em; margin:-1.75em 0 0 -0.5em; filter:drop-shadow(0 0.1em 0.15em rgba(0,0,0,0.25)); animation:goal-hop 1s ease-in-out infinite alternate; }
+  .goal-end{ position:absolute; font-size:3em; margin:-0.6em 0 0 -0.5em; filter:drop-shadow(0 0 0.2em rgba(255,193,69,0.9)); }
+  .goal-end.won{ animation:goal-hop 0.6s ease-in-out infinite alternate; }
+  @keyframes goal-hop{ to{ transform:translateY(-0.2em); } }
+  .goal-week{ display:flex; align-items:center; gap:0.7em; background:white; border-radius:99px; padding:0.4em 1em; font-family:'Baloo 2', sans-serif; font-weight:800; font-size:1.25em; box-shadow:0 0.2em 0.6em rgba(29,53,87,0.12); }
+  .goal-bar{ width:8em; height:0.8em; border-radius:99px; background:#ece6fb; overflow:hidden; }
+  .goal-bar i{ display:block; height:100%; background:linear-gradient(90deg, #ffd76b, #ffb81f); }
+  .goal-rule{ font-weight:700; font-size:1em; color:#5b6b80; }
   @keyframes star-pop{
     0%{ transform:scale(0); }
     60%{ transform:scale(1.3); }
@@ -1319,9 +1346,15 @@
   #child-color-picker button{ width:2.4vw; height:2.4vw; min-width:32px; min-height:32px; border-radius:50%; border:3px solid white; box-shadow:0 0 0 2px rgba(29,53,87,0.15); cursor:pointer; }
   #child-color-picker button.selected{ box-shadow:0 0 0 3px var(--navy); }
   .child-tab.hidden-child{ opacity:0.5; border-style:dashed; }
+  .settings-check,
   #child-visible-row,
   #child-pictures-row{ display:flex; align-items:center; gap:0.6vw; font-family:'Nunito', sans-serif; font-weight:700; font-size:clamp(14px, 1vw, 22px); color:var(--navy); margin:1vh 0; cursor:pointer; }
-  #child-pictures-row input, #child-visible-row input{ width:1.4em; height:1.4em; }
+  #child-pictures-row input, #child-visible-row input, .settings-check input{ width:1.4em; height:1.4em; }
+  .audio-pool{ display:flex; flex-wrap:wrap; gap:6px; margin:0.6vh 0 1vh; }
+  .audio-pool[hidden], #child-stars-box[hidden]{ display:none; }
+  .audio-pool button{ font-family:'Nunito', sans-serif; font-weight:700; font-size:clamp(13px, 0.9vw, 18px); padding:6px 10px; border-radius:99px; border:2px solid #d9d2f5; background:white; color:var(--navy); cursor:pointer; }
+  .audio-pool button.selected{ border-color:var(--purple); background:#efe6ff; }
+  .audio-pool .settings-hint{ width:100%; margin:0; }
   #stats-row{ display:flex; align-items:center; gap:0.6vw; font-family:'Nunito', sans-serif; font-weight:700; font-size:clamp(14px, 1vw, 22px); color:var(--navy); margin:1vh 0 0.4vh; cursor:pointer; }
   #stats-row input{ width:1.4em; height:1.4em; }
   #children-section h3, #audio-section h3,
@@ -1964,6 +1997,7 @@
         <span class="settings-label" style="margin:0;" data-i18n="done_audio_label"></span>
         <select id="child-done-audio" class="settings-select"></select>
       </div>
+      <div class="audio-pool" id="child-done-pool" hidden></div>
       <div class="sync-buttons" style="margin-top:0.8vh;">
         <span class="settings-label" style="margin:0;" data-i18n="hurry_audio_label"></span>
         <select id="child-hurry-audio" class="settings-select"></select>
@@ -1971,6 +2005,30 @@
       <div class="sync-buttons">
         <span class="settings-label" style="margin:0;" data-i18n="cheer_audio_label"></span>
         <select id="child-cheer-audio" class="settings-select"></select>
+      </div>
+      <div class="audio-pool" id="child-cheer-pool" hidden></div>
+      <div id="child-stars-section">
+        <span class="settings-label" style="margin-top:1.5vh; display:block;" data-i18n="stars_title"></span>
+        <label class="settings-check"><input type="checkbox" id="child-stars"> <span data-i18n="stars_on"></span></label>
+        <p class="settings-hint" data-i18n="stars_hint"></p>
+        <div id="child-stars-box">
+          <div class="sync-buttons" style="margin-top:0.8vh;">
+            <span class="settings-label" style="margin:0;" data-i18n="goal_day_label"></span>
+            <select id="child-goal-day" class="settings-select"></select>
+          </div>
+          <div class="sync-buttons">
+            <span class="settings-label" style="margin:0;" data-i18n="goal_week_label_set"></span>
+            <select id="child-goal-week" class="settings-select"></select>
+          </div>
+          <p class="settings-hint" id="child-stars-avg"></p>
+          <label class="settings-check"><input type="checkbox" id="child-bonus"> <span data-i18n="bonus_label"></span></label>
+          <p class="settings-hint" data-i18n="bonus_hint"></p>
+          <div class="sync-buttons" style="margin-top:0.8vh;">
+            <span class="settings-label" style="margin:0;" data-i18n="goal_audio_label"></span>
+            <select id="child-goal-audio" class="settings-select"></select>
+          </div>
+          <div class="audio-pool" id="child-goal-pool" hidden></div>
+        </div>
       </div>
       <span class="settings-label" style="margin-top:1vh; display:block;" data-i18n="confirm_default_label"></span>
       <select id="child-confirm-default" class="settings-select"></select>
@@ -2376,7 +2434,7 @@ const I18N = {
     forecast_label: "🏁 Término previsto",
     forecast_done: "🏁 Terminou às",
     audio_title: "🎙️ Áudios da família",
-    audio_hint: "Grave uma frase curta (até 15 segundos) ou envie um arquivo de áudio. Os áudios ficam guardados na hora e aparecem nas opções de som das tarefas e de cada criança. Com os aparelhos conectados, ficam no banco de dados da família e só os seus aparelhos têm acesso.",
+    audio_hint: "Grave uma frase curta (até 15 segundos) ou envie um arquivo de áudio, como o trecho de uma música (até uns 30 segundos). Os áudios ficam guardados na hora e aparecem nas opções de som das tarefas e de cada criança. Com os aparelhos conectados, ficam no banco de dados da família e só os seus aparelhos têm acesso.",
     audio_name_ph: "Nome do áudio, ex.: Parabéns da mamãe",
     audio_record: "🎙️ Gravar",
     audio_stop: "⏹️ Parar ({n})",
@@ -2387,6 +2445,35 @@ const I18N = {
     audio_saved: "✅ Áudio guardado. Já pode escolher nas opções de som.",
     audio_saved_local: "✅ Áudio guardado neste aparelho. Conecte os aparelhos para ele chegar na TV.",
     audio_saved_retry: "✅ Áudio guardado neste aparelho. Ele vai para os outros aparelhos assim que a internet voltar.",
+    audio_space_full: "⚠️ Não há mais espaço para áudios neste aparelho. Apague um áudio ou envie um mais curto.",
+    audio_surprise: "🎲 Surpresa (sorteia entre vários)",
+    audio_surprise_hint: "A cada vez toca um dos marcados, sem repetir o anterior.",
+    stars_title: "⭐ Estrelas e metas",
+    stars_on: "Ganhar estrelas nas tarefas",
+    stars_hint: "Cada tarefa no prazo vale ⭐. No início de cada rotina e no fim do dia a TV mostra um mapa com as estrelas do dia e as metas.",
+    goal_day_label: "Meta do dia",
+    goal_week_label_set: "Meta da semana",
+    goal_none: "Sem meta",
+    stars_avg: "Média recente: {n} ⭐ por dia (cerca de {w} por semana).",
+    bonus_label: "⭐⭐ Bônus por terminar antes",
+    bonus_hint: "Vale quando sobra pelo menos 20% do tempo da tarefa. Quem termina em menos da metade do tempo ganha só ⭐. Dá para desligar em cada tarefa.",
+    goal_audio_label: "Som da meta batida",
+    goal_audio_default: "🎺 Fanfarra (padrão)",
+    task_bonus: "⚡ Bônus por terminar antes",
+    task_bonus_hint: "Desligue nas tarefas em que a pressa atrapalha, como comer, escovar os dentes ou tomar banho.",
+    stars_of: "{n} de {goal}",
+    hello_morning: "Bom dia",
+    hello_afternoon: "Boa tarde",
+    hello_evening: "Boa noite",
+    goal_left: "Faltam {n} ⭐ para a meta de hoje!",
+    goal_reached: "Meta de hoje batida! 🎉",
+    goal_today_count: "estrelas hoje",
+    goal_week_label: "Semana",
+    goal_rule: "⭐ no prazo · ⭐⭐ se terminar antes",
+    goal_rule_nobonus: "⭐ para cada tarefa no prazo",
+    goal_day_done: "Você conseguiu! 🎉",
+    goal_week_done: "Meta da semana! 🏆",
+    goal_end_title: "Hoje: {n} ⭐",
     audio_full: "Limite de {n} áudios. Apague um para gravar outro.",
     audio_too_big: "⚠️ Arquivo grande demais (máximo {kb} KB). Escolha um áudio mais curto.",
     audio_bad_file: "⚠️ Não deu para usar este arquivo. Escolha um arquivo de áudio.",
@@ -2770,7 +2857,7 @@ const I18N = {
     forecast_label: "🏁 Expected end",
     forecast_done: "🏁 Ended at",
     audio_title: "🎙️ Family audios",
-    audio_hint: "Record a short phrase (up to 15 seconds) or send an audio file. Audios are saved right away and show up in the sound options of the tasks and of each child. With paired devices, they're kept in the family's database and only your devices can reach them.",
+    audio_hint: "Record a short phrase (up to 15 seconds) or send an audio file, like a bit of a song (up to about 30 seconds). Audios are saved right away and show up in the sound options of the tasks and of each child. With paired devices, they're kept in the family's database and only your devices can reach them.",
     audio_name_ph: "Audio name, e.g. Well done from Mom",
     audio_record: "🎙️ Record",
     audio_stop: "⏹️ Stop ({n})",
@@ -2781,6 +2868,35 @@ const I18N = {
     audio_saved: "✅ Audio saved. You can pick it in the sound options now.",
     audio_saved_local: "✅ Audio saved on this device. Pair the devices so it reaches the TV.",
     audio_saved_retry: "✅ Audio saved on this device. It goes to the other devices as soon as the internet is back.",
+    audio_space_full: "⚠️ No more room for audios on this device. Delete one or send a shorter one.",
+    audio_surprise: "🎲 Surprise (drawn from several)",
+    audio_surprise_hint: "Each time one of the marked ones plays, never the same twice in a row.",
+    stars_title: "⭐ Stars and goals",
+    stars_on: "Earn stars for tasks",
+    stars_hint: "Each task on time is worth ⭐. At the start of each routine and at the end of the day the TV shows a map with the day's stars and the goals.",
+    goal_day_label: "Daily goal",
+    goal_week_label_set: "Weekly goal",
+    goal_none: "No goal",
+    stars_avg: "Recent average: {n} ⭐ a day (about {w} a week).",
+    bonus_label: "⭐⭐ Bonus for finishing early",
+    bonus_hint: "Counts when at least 20% of the task's time is left. Finishing in less than half the time gets just ⭐. It can be turned off for each task.",
+    goal_audio_label: "Goal reached sound",
+    goal_audio_default: "🎺 Fanfare (default)",
+    task_bonus: "⚡ Bonus for finishing early",
+    task_bonus_hint: "Turn it off for tasks where hurrying is bad, like eating, brushing teeth or bathing.",
+    stars_of: "{n} of {goal}",
+    hello_morning: "Good morning",
+    hello_afternoon: "Good afternoon",
+    hello_evening: "Good evening",
+    goal_left: "{n} ⭐ to go for today's goal!",
+    goal_reached: "Today's goal reached! 🎉",
+    goal_today_count: "stars today",
+    goal_week_label: "Week",
+    goal_rule: "⭐ on time · ⭐⭐ if you finish early",
+    goal_rule_nobonus: "⭐ for each task on time",
+    goal_day_done: "You did it! 🎉",
+    goal_week_done: "Weekly goal! 🏆",
+    goal_end_title: "Today: {n} ⭐",
     audio_full: "Limit of {n} audios. Delete one to record another.",
     audio_too_big: "⚠️ File too big (at most {kb} KB). Pick a shorter audio.",
     audio_bad_file: "⚠️ This file can't be used. Pick an audio file.",
@@ -3164,7 +3280,7 @@ const I18N = {
     forecast_label: "🏁 Voraussichtliches Ende",
     forecast_done: "🏁 Fertig um",
     audio_title: "🎙️ Audios der Familie",
-    audio_hint: "Nimm einen kurzen Satz auf (bis zu 15 Sekunden) oder schicke eine Audiodatei. Audios werden sofort gespeichert und erscheinen in den Tonoptionen der Aufgaben und jedes Kindes. Mit verbundenen Geräten liegen sie in der Datenbank der Familie, und nur eure Geräte haben Zugriff.",
+    audio_hint: "Nimm einen kurzen Satz auf (bis zu 15 Sekunden) oder schicke eine Audiodatei, etwa ein Stück aus einem Lied (bis etwa 30 Sekunden). Audios werden sofort gespeichert und erscheinen in den Tonoptionen der Aufgaben und jedes Kindes. Mit verbundenen Geräten liegen sie in der Datenbank der Familie, und nur eure Geräte haben Zugriff.",
     audio_name_ph: "Name des Audios, z. B. Super von Mama",
     audio_record: "🎙️ Aufnehmen",
     audio_stop: "⏹️ Stopp ({n})",
@@ -3175,6 +3291,35 @@ const I18N = {
     audio_saved: "✅ Audio gespeichert. Du kannst es jetzt in den Tonoptionen wählen.",
     audio_saved_local: "✅ Audio auf diesem Gerät gespeichert. Verbinde die Geräte, damit es auf den Fernseher kommt.",
     audio_saved_retry: "✅ Audio auf diesem Gerät gespeichert. Es geht an die anderen Geräte, sobald das Internet wieder da ist.",
+    audio_space_full: "⚠️ Kein Platz mehr für Audios auf diesem Gerät. Lösche eins oder schicke ein kürzeres.",
+    audio_surprise: "🎲 Überraschung (aus mehreren gelost)",
+    audio_surprise_hint: "Jedes Mal spielt eins der markierten, nie zweimal hintereinander dasselbe.",
+    stars_title: "⭐ Sterne und Ziele",
+    stars_on: "Sterne für Aufgaben sammeln",
+    stars_hint: "Jede pünktliche Aufgabe bringt ⭐. Am Anfang jeder Routine und am Ende des Tages zeigt der Fernseher eine Karte mit den Sternen des Tages und den Zielen.",
+    goal_day_label: "Tagesziel",
+    goal_week_label_set: "Wochenziel",
+    goal_none: "Kein Ziel",
+    stars_avg: "Durchschnitt zuletzt: {n} ⭐ pro Tag (etwa {w} pro Woche).",
+    bonus_label: "⭐⭐ Bonus fürs frühere Fertigwerden",
+    bonus_hint: "Gilt, wenn noch mindestens 20 % der Zeit übrig sind. Wer in weniger als der halben Zeit fertig ist, bekommt nur ⭐. Kann für jede Aufgabe ausgeschaltet werden.",
+    goal_audio_label: "Ton bei erreichtem Ziel",
+    goal_audio_default: "🎺 Fanfare (Standard)",
+    task_bonus: "⚡ Bonus fürs frühere Fertigwerden",
+    task_bonus_hint: "Ausschalten, wo Eile schadet, etwa beim Essen, Zähneputzen oder Baden.",
+    stars_of: "{n} von {goal}",
+    hello_morning: "Guten Morgen",
+    hello_afternoon: "Guten Tag",
+    hello_evening: "Guten Abend",
+    goal_left: "Noch {n} ⭐ bis zum Tagesziel!",
+    goal_reached: "Tagesziel geschafft! 🎉",
+    goal_today_count: "Sterne heute",
+    goal_week_label: "Woche",
+    goal_rule: "⭐ pünktlich · ⭐⭐ wenn du früher fertig bist",
+    goal_rule_nobonus: "⭐ für jede pünktliche Aufgabe",
+    goal_day_done: "Geschafft! 🎉",
+    goal_week_done: "Wochenziel! 🏆",
+    goal_end_title: "Heute: {n} ⭐",
     audio_full: "Höchstens {n} Audios. Lösche eins, um ein neues aufzunehmen.",
     audio_too_big: "⚠️ Datei zu groß (höchstens {kb} KB). Wähle ein kürzeres Audio.",
     audio_bad_file: "⚠️ Diese Datei lässt sich nicht verwenden. Wähle eine Audiodatei.",
@@ -3515,7 +3660,7 @@ const CHILD_RUNNERS = ['🏎️', '🚀', '🐕', '🐇'];
 // Shown big when a routine is complete (and between routines).
 const CHILD_DONE_ICONS = ['🎉', '🏆', '🥇', '🎈', '👏', '⭐', '🦸', '🐶', '🐾', '🦄', '🚀', '🌈', '👑', '💪'];
 const CHILD_ICONS = ['🦄', '🦖', '🐱', '🐶', '🦊', '🐼', '🐸', '🐙', '🚀', '⚽', '🎧', '🌸'];
-const MAX_AUDIOS = 10;
+const MAX_AUDIOS = 20;
 // A task's length from its times: across midnight when the end is many hours
 // "before" the start; a broken one (end a little before the start, left by older
 // editors) gets 5 minutes. Always at least 1 minute.
@@ -3537,6 +3682,8 @@ function chainConfigTasks(list){
     t.end = [Math.floor(cursor / 60) % 24, cursor % 60];
   });
 }
+function cleanPool(list){ return Array.isArray(list) ? list.filter(id => typeof id === 'string' && id).map(id => id.slice(0, 32)).slice(0, MAX_AUDIOS) : []; }
+function clampInt(v, min, max){ const n = Math.round(Number(v)); return isFinite(n) ? Math.min(max, Math.max(min, n)) : min; }
 function normalizeConfig(cfg){
   if(!cfg || !Array.isArray(cfg.routines)) return cfg;
   let children = Array.isArray(cfg.children) ? cfg.children.filter(c => c && c.id) : [];
@@ -3557,7 +3704,15 @@ function normalizeConfig(cfg){
     cheerAudio: typeof c.cheerAudio === 'string' ? c.cheerAudio.slice(0, 32) : '',
     hurryAudio: typeof c.hurryAudio === 'string' ? c.hurryAudio.slice(0, 32) : '',
     doneIcon: cleanEmoji(c.doneIcon) || CHILD_DONE_ICONS[0],
-    doneAudio: typeof c.doneAudio === 'string' ? c.doneAudio.slice(0, 32) : ''
+    doneAudio: typeof c.doneAudio === 'string' ? c.doneAudio.slice(0, 32) : '',
+    // '*' in cheerAudio / doneAudio / goalAudio = a surprise: one of its pool, drawn each time
+    cheerPool: cleanPool(c.cheerPool), donePool: cleanPool(c.donePool),
+    goalAudio: typeof c.goalAudio === 'string' ? c.goalAudio.slice(0, 32) : '', goalPool: cleanPool(c.goalPool),
+    // Stars and goals: ⭐ per task on time, ⭐⭐ when well before its end (bonus); goals 0 = none
+    stars: !!c.stars,
+    bonus: c.bonus !== false,
+    goalDay: clampInt(c.goalDay, 0, 99),
+    goalWeek: clampInt(c.goalWeek, 0, 500)
   }));
   cfg.audios = (Array.isArray(cfg.audios) ? cfg.audios : []).filter(a => a && a.id).slice(0, MAX_AUDIOS)
     .map(a => ({ id: String(a.id).slice(0, 32), name: String(a.name || '').slice(0, 30) }));
@@ -3772,6 +3927,7 @@ function buildTasksFromConfig(cfg){
     baseDurationMin: toMinutes(t.end) - toMinutes(t.start),
     plannedDurationMin: toMinutes(t.end) - toMinutes(t.start), // immutable, not affected by extensions
     flex: !!t.flex, // "can be shortened" to make up for a delay
+    noBonus: !!t.noBonus, // no ⭐⭐ for finishing early (where hurrying is bad: meals, teeth, bath)
     routineId: t.routineId || null,
     plannedStartMin: toMinutes(t.start),
     redMin: 0,
@@ -3986,7 +4142,7 @@ function snapshotDay(){
     tasks: tasks.map(t => ({
       name: t.name, routineId: t.routineId, plannedStartMin: t.plannedStartMin, plannedDurationMin: t.plannedDurationMin,
       baseDurationMin: t.baseDurationMin, redMin: t.redMin, outcome: t.outcome, startMin: t.startMin, endMin: t.endMin,
-      userSkipped: t.userSkipped || undefined, startShift: t.startShift || undefined, started: t.started || undefined,
+      userSkipped: t.userSkipped || undefined, startShift: t.startShift || undefined, started: t.started || undefined, early: t.early || undefined,
       pausedAt: t.pausedAt != null ? t.pausedAt : undefined
     }))
   };
@@ -4045,6 +4201,7 @@ function applyRemoteProgress(progress){
   if(!state || state.date !== todayKey() || !Array.isArray(state.tasks)) return;
   if((state.test === undefined ? null : state.test) !== runningTestStart) return; // the other device is in another test/real day
   const doneBefore = tasks.filter(t => t.outcome === 'onTime' || t.outcome === 'late').length;
+  const starsBefore = dayStars();
   const pointerBefore = pointer;
   initSchedule(TASKS, { progress: state });
   progressSeq = progress.seq;
@@ -4053,7 +4210,8 @@ function applyRemoteProgress(progress){
   const done = tasks.filter(t => t.outcome === 'onTime' || t.outcome === 'late');
   if(done.length > doneBefore){
     const last = done[done.length - 1];
-    try{ if(last.outcome === 'onTime') celebrate(); else encourage(); }catch(e){}
+    try{ if(last.outcome === 'onTime') celebrate(last.early); else encourage(); }catch(e){}
+    try{ checkGoalReached(starsBefore); }catch(e){}
   }
   if(pointer !== pointerBefore && !awaitingStart && pointer < tasks.length){
     try{ playForTask(tasks[pointer]); }catch(e){}
@@ -4068,6 +4226,7 @@ function saveDayState(){
   const json = JSON.stringify(snap);
   if(json === lastDayStateJson) return;
   lastDayStateJson = json;
+  try{ recordDaySummary(); }catch(e){}
   const all = readDayStates();
   all[ACTIVE_CHILD_ID] = snap;
   Object.keys(all).forEach(id => { if(!CHILDREN.some(c => c.id === id)) delete all[id]; });
@@ -4106,7 +4265,7 @@ function mergeDayProgress(prev, force){
     const i = findFresh(o, oldKeys[k]);
     if(i < 0) return;
     const t = tasks[i];
-    Object.assign(t, { startMin: o.startMin, endMin: o.endMin, outcome: o.outcome, redMin: o.redMin, baseDurationMin: o.baseDurationMin, userSkipped: !!o.userSkipped });
+    Object.assign(t, { startMin: o.startMin, endMin: o.endMin, outcome: o.outcome, redMin: o.redMin, baseDurationMin: o.baseDurationMin, userSkipped: !!o.userSkipped, early: !!o.early });
     done.push(t);
   });
   const rest = [];
@@ -4526,7 +4685,7 @@ function restoreSkipped(idx){
   const mark = blockMark(idx);
   const [t] = tasks.splice(idx, 1);
   pointer--;
-  Object.assign(t, { userSkipped: false, outcome: null, redMin: 0, baseDurationMin: t.plannedDurationMin, autoExtended: false, closedLate: false, pausedAt: undefined });
+  Object.assign(t, { userSkipped: false, outcome: null, early: false, redMin: 0, baseDurationMin: t.plannedDurationMin, autoExtended: false, closedLate: false, pausedAt: undefined });
   const running = currentIsRunning();
   if(pointer < tasks.length && tasks[pointer].routineId === t.routineId && running){
     tasks.splice(pointer + 1, 0, t);
@@ -4665,7 +4824,7 @@ function rebuildTimelineDOM(){
       ${isDone
         ? (isPassed(t)
           ? `<div class="check unmarked" title="${tr('mark_title')}">❔</div><button type="button" class="skip-btn mark" data-index="${i}" title="${tr('mark_title')}">✏️</button>`
-          : `<div class="check">${t.userSkipped ? '⏭️' : '✔'}</div>${t.outcome === 'skipped' ? '' : `<div class="outcome-badge${t.outcome === 'late' ? '' : ' star'}">${t.outcome === 'late' ? LATE_ICON : ONTIME_ICON}</div>`}${canRestore(i) ? `<button type="button" class="skip-btn restore" data-index="${i}" title="${tr(t.userSkipped ? 'unskip_title' : 'undo_done_title')}">↩️</button>` : ''}`)
+          : `<div class="check">${t.userSkipped ? '⏭️' : '✔'}</div>${t.outcome === 'skipped' ? '' : `<div class="outcome-badge${t.outcome === 'late' ? '' : (starsOn() ? ' stars' : ' star')}">${t.outcome === 'late' ? LATE_ICON : (starsOn() ? starBadge(t) : ONTIME_ICON)}</div>`}${canRestore(i) ? `<button type="button" class="skip-btn restore" data-index="${i}" title="${tr(t.userSkipped ? 'unskip_title' : 'undo_done_title')}">↩️</button>` : ''}`)
         : `<button type="button" class="skip-btn${t.userSkipped ? ' restore' : ''}" data-index="${i}" title="${tr(t.userSkipped ? 'unskip_title' : 'skip_title')}">${t.userSkipped ? '↩️' : '⏭️'}</button>
            <div class="reorder-controls">
              <button class="reorder-btn up" data-index="${i}" ${canMoveUp ? '' : 'disabled'} title="${tr('move_earlier')}">▲</button>
@@ -4753,7 +4912,11 @@ function applyTimelineFocus(){
   const weekday = WEEKDAY_FULL[(new Date().getDay() + day) % 7];
   const dayPrefix = day === 0 ? '' : (day === 1 ? `${tr('tomorrow')} · ` : `${weekday[0].toUpperCase()}${weekday.slice(1)} · `);
   if(titleEl){
-    titleEl.textContent = `${dayPrefix}${r ? `${r.icon} ${r.name}` : `📋 ${tr('routine_fallback')}`}`;
+    const label = `${dayPrefix}${r ? `${r.icon} ${r.name}` : `📋 ${tr('routine_fallback')}`}`;
+    const goal = activeChild().goalDay;
+    const pill = day === 0 && starsOn() ? `⭐ ${goal ? tr('stars_of', { n: dayStars(), goal }) : dayStars()}` : '';
+    const html = escHtml(label) + (pill ? ` <span class="goal-pill">${pill}</span>` : '');
+    if(titleEl.dataset.html !== html){ titleEl.innerHTML = html; titleEl.dataset.html = html; }
     titleEl.style.display = '';
   }
   tasks.forEach((t, i) => {
@@ -4772,7 +4935,7 @@ function applyTimelineFocus(){
       if(el) el.classList.toggle('collapsed', hide);
       if(hide) collapsed.push(t);
     });
-    const html = collapsed.map(t => `<span class="trail-item">${t.emoji}<small>${t.userSkipped ? '⏭️' : t.outcome === 'skipped' ? '✔' : (t.outcome === 'late' ? LATE_ICON : ONTIME_ICON)}</small></span>`).join('');
+    const html = collapsed.map(t => `<span class="trail-item">${t.emoji}<small>${t.userSkipped ? '⏭️' : t.outcome === 'skipped' ? '✔' : (t.outcome === 'late' ? LATE_ICON : (starsOn() ? starBadge(t) : ONTIME_ICON))}</small></span>`).join('');
     if(trail.innerHTML !== html) trail.innerHTML = html;
   }
   if(day === 0){ clearTimelinePreview(); return; }
@@ -4971,11 +5134,11 @@ function celebrationLeft(box, marginPct){
   if(!box) return (marginPct + Math.random() * (100 - 2 * marginPct)) + '%';
   return (box.left + box.width * (marginPct + Math.random() * (100 - 2 * marginPct)) / 100) + 'px';
 }
-function celebrate(){
+function celebrate(early){
   const box = panelEl ? panelEl.getBoundingClientRect() : null;
-  playFamilyAudio(activeChild().cheerAudio, playClapSound);
+  playFamilyAudio(childAudio(activeChild(), 'cheer'), playClapSound);
   spawnBalloons(box);
-  const pieces = ['🎉','👏',ONTIME_ICON,'✨'];
+  const pieces = starsOn() ? (early ? ['⭐','⭐','🌟','✨'] : ['⭐','🎉','👏','✨']) : ['🎉','👏',ONTIME_ICON,'✨'];
   const waves = 3;
   for(let w=0; w<waves; w++){
     setTimeout(() => {
@@ -5017,7 +5180,12 @@ function celebrateRoutine(){
     celebrationLayer.appendChild(piece);
     setTimeout(() => piece.remove(), 3000);
   }
-  playFamilyAudio(activeChild().doneAudio, fanfare);
+  playFamilyAudio(childAudio(activeChild(), 'done'), fanfare);
+  // The day's last routine: the day's stars and goals, after the celebration.
+  if(starsOn() && pointer >= tasks.length){
+    const slot = currentSlot;
+    setTimeout(() => { if(SLOTS.includes(slot)) withChild(slot, () => showGoalCard('end')); }, 3500);
+  }
 }
 function fanfare(){
   [[523, 0.15, 0], [659, 0.15, 0.16], [784, 0.15, 0.32], [1046, 0.5, 0.5]].forEach(([f, d, t]) => beep(f, d, t));
@@ -5241,15 +5409,214 @@ function fitFlexibleTasks(startingNow){
   place();
 }
 
+// ---------- Stars and goals ----------
+// With stars on (per child), a task done on time is worth ⭐, and one finished well before
+// its end ⭐⭐: at least 20% of its time left (and 1 minute), but not done in less than half
+// its time (no prize for rushing). The bonus can be turned off for the child or per task
+// (noBonus: meals, teeth, bath). Late tasks get the turtle and no star. Goals per day and per
+// week (Monday to Sunday) are shown as a map at the start of each routine and at the end of
+// the day; reaching one is celebrated. A small summary per child and day (history) is kept
+// on the device and, when paired, at history/<house>/<child>/<date>, to add up the week.
+function starsOn(){ return !!activeChild().stars; }
+function finishedEarly(t, endMin){
+  const c = activeChild();
+  if(!c.stars || c.bonus === false || t.noBonus) return false;
+  const span = t.endMin - t.startMin;
+  const left = t.endMin - endMin, used = endMin - t.startMin;
+  return span >= 2 && left >= Math.max(1, span * 0.2) && used >= span / 2;
+}
+function starsOf(t){ return t.outcome === 'onTime' ? (t.early ? 2 : 1) : 0; }
+function starBadge(t){ return t.early ? '⭐⭐' : '⭐'; }
+function dayStars(){ return tasks.reduce((n, t) => n + starsOf(t), 0); }
+const HISTORY_KEY = 'rotinaHistory_v1'; // { childId: { 'YYYY-MM-DD': { s, o, e, l, k, u, up } } }
+const HISTORY_DAYS = 120;
+function readHistory(){ try{ return JSON.parse(lsGet(HISTORY_KEY)) || {}; }catch(e){ return {}; } }
+function writeHistory(all){ lsSet(HISTORY_KEY, JSON.stringify(all)); }
+function scheduleDateKey(){
+  const m = /^(\d+)-(\d+)-(\d+)$/.exec(scheduleDate || '');
+  return m ? `${m[1]}-${m[2].padStart(2, '0')}-${m[3].padStart(2, '0')}` : dateKey(new Date());
+}
+function daySummary(){
+  const sum = { s: 0, o: 0, e: 0, l: 0, k: 0 };
+  tasks.forEach(t => {
+    if(t.outcome === 'onTime'){ sum.o++; if(t.early) sum.e++; }
+    else if(t.outcome === 'late') sum.l++;
+    else if(t.outcome === 'skipped') sum.k++;
+  });
+  sum.s = sum.o + sum.e;
+  return sum;
+}
+// Today's summary of the active child, after each change of the day (from saveDayState).
+function recordDaySummary(){
+  if(testMode || !scheduleDate || !tasks.length) return;
+  const date = scheduleDateKey();
+  const sum = daySummary();
+  const all = readHistory();
+  const mine = all[ACTIVE_CHILD_ID] = all[ACTIVE_CHILD_ID] || {};
+  const old = mine[date];
+  if(old ? ['s', 'o', 'e', 'l', 'k'].every(k => old[k] === sum[k]) : !(sum.o || sum.l)) return;
+  mine[date] = Object.assign(sum, { u: Date.now() });
+  const oldest = dateKey(dateInDays(-HISTORY_DAYS));
+  Object.keys(mine).forEach(d => { if(d < oldest) delete mine[d]; });
+  writeHistory(all);
+  scheduleHistoryUpload(ACTIVE_CHILD_ID, date);
+}
+const historyTimers = {};
+function scheduleHistoryUpload(childId, date){
+  const key = childId + '|' + date;
+  clearTimeout(historyTimers[key]);
+  historyTimers[key] = setTimeout(() => { delete historyTimers[key]; uploadHistory(childId, date); }, 2000);
+}
+function uploadHistory(childId, date){
+  const houseId = getHouseId();
+  const rec = (readHistory()[childId] || {})[date];
+  if(!cloudEnabled() || !houseId || !rec) return Promise.resolve(false);
+  const body = { s: rec.s, o: rec.o, e: rec.e, l: rec.l, k: rec.k, u: rec.u };
+  return cloudFetch(`history/${houseId}/${encodeURIComponent(childId)}/${date}`, { method: 'PUT', body: JSON.stringify(body) }).then(() => {
+    const all = readHistory();
+    const r = all[childId] && all[childId][date];
+    if(r && r.u === rec.u){ r.up = 1; writeHistory(all); }
+    return true;
+  }, () => false);
+}
+// Paired devices share the days: the newest record of each day wins, and the
+// ones this device couldn't send yet go up. At most every 30 minutes (and on a new day).
+let historySyncedAt = 0, historySyncedDay = '';
+function syncHistory(force){
+  const houseId = getHouseId();
+  if(!cloudEnabled() || !houseId) return;
+  const today = dateKey(new Date());
+  if(!force && historySyncedDay === today && Date.now() - historySyncedAt < 30 * 60000) return;
+  historySyncedAt = Date.now(); historySyncedDay = today;
+  CHILDREN.forEach(c => {
+    cloudFetch(`history/${houseId}/${encodeURIComponent(c.id)}`).then(remote => {
+      const all = readHistory();
+      const mine = all[c.id] = all[c.id] || {};
+      const oldest = dateKey(dateInDays(-HISTORY_DAYS));
+      let changed = false;
+      Object.keys(remote || {}).forEach(d => {
+        const r = remote[d];
+        if(!/^\d{4}-\d{2}-\d{2}$/.test(d) || d < oldest || !r || typeof r.s !== 'number') return;
+        if(!mine[d] || (r.u || 0) > (mine[d].u || 0)){ mine[d] = Object.assign({}, r, { up: 1 }); changed = true; }
+      });
+      if(changed) writeHistory(all);
+      Object.keys(mine).forEach(d => { if(!mine[d].up && d >= oldest) uploadHistory(c.id, d); });
+    }).catch(() => {});
+  });
+}
+function mondayOffset(){ return (new Date().getDay() + 6) % 7; } // days since Monday
+// The week's stars: the days before today from the history, plus today live.
+function weekStarsBefore(){
+  const mine = readHistory()[ACTIVE_CHILD_ID] || {};
+  let n = 0;
+  for(let k = 1; k <= mondayOffset(); k++){ const r = mine[dateKey(dateInDays(-k))]; if(r) n += r.s || 0; }
+  return n;
+}
+function weekStars(){ return weekStarsBefore() + (testMode ? 0 : dayStars()); }
+// Average stars per day over the last two weeks (days with any record), for the settings.
+function recentStarAverage(childId){
+  const mine = readHistory()[childId] || {};
+  const days = [];
+  for(let k = 1; k <= 14; k++){ const r = mine[dateKey(dateInDays(-k))]; if(r) days.push(r.s || 0); }
+  return days.length ? Math.round(days.reduce((a, b) => a + b, 0) / days.length) : null;
+}
+function checkGoalReached(dayBefore){
+  const c = activeChild();
+  if(!c.stars) return;
+  const after = dayStars();
+  const weekBase = testMode ? 0 : weekStarsBefore();
+  const day = c.goalDay && dayBefore < c.goalDay && after >= c.goalDay;
+  const week = c.goalWeek && !testMode && weekBase + dayBefore < c.goalWeek && weekBase + after >= c.goalWeek;
+  if(!day && !week) return;
+  const slot = currentSlot;
+  setTimeout(() => { if(SLOTS.includes(slot)) withChild(slot, () => showGoalCard(week ? 'week' : 'day')); }, 2600);
+}
+// The map (a path of stops, one per star of the day's goal, at most 10, the child's
+// picture on the last one reached and 🏆 at the end) and the week's bar, over the hero.
+function goalCardHtml(kind){
+  const c = activeChild();
+  const stars = dayStars();
+  const hour = new Date().getHours();
+  const name = c.name ? `, ${escHtml(c.name)}` : '';
+  const title = kind === 'day' ? tr('goal_day_done') : kind === 'week' ? tr('goal_week_done')
+    : kind === 'end' ? tr('goal_end_title', { n: stars })
+    : `${tr(hour < 12 ? 'hello_morning' : hour < 18 ? 'hello_afternoon' : 'hello_evening')}${name}!`;
+  let html = `<div class="goal-title">${title}</div>`;
+  if(c.goalDay){
+    const goal = c.goalDay, n = Math.min(goal, 10);
+    const reached = Math.min(n, Math.floor(stars * n / goal));
+    const left = Math.max(0, goal - stars);
+    html += `<div class="goal-sub">${left ? tr('goal_left', { n: left }) : tr('goal_reached')}</div>`;
+    const pts = [];
+    for(let i = 0; i < n; i++) pts.push([6 + i * (80 / Math.max(1, n - 1)), i % 2 ? 38 : 70]);
+    const path = 'M ' + pts.map(([x, y]) => `${x} ${y}`).join(' L ') + ' L 94 24';
+    const at = reached ? pts[reached - 1] : [1, 82];
+    html += `<div class="goal-map"><svg viewBox="0 0 100 100" preserveAspectRatio="none"><path d="${path}" /></svg>`
+      + pts.map(([x, y], i) => `<div class="goal-node${i < reached ? ' on' : ''}" style="left:${x}%; top:${y}%">${i < reached ? '⭐' : i + 1}</div>`).join('')
+      + `<div class="goal-me" style="left:${at[0]}%; top:${at[1]}%">${c.icon || '🙂'}</div><div class="goal-end${left ? '' : ' won'}" style="left:94%; top:24%">🏆</div></div>`;
+  } else {
+    html += `<div class="goal-big">⭐ ${stars}</div><div class="goal-sub">${tr('goal_today_count')}</div>`;
+  }
+  if(c.goalWeek){
+    const w = weekStars();
+    html += `<div class="goal-week"><span>${tr('goal_week_label')}</span><div class="goal-bar"><i style="width:${Math.min(100, Math.round(w * 100 / c.goalWeek))}%"></i></div><b>${w} / ${c.goalWeek} ⭐</b></div>`;
+  }
+  if(kind === 'start') html += `<div class="goal-rule">${tr(c.bonus === false ? 'goal_rule_nobonus' : 'goal_rule')}</div>`;
+  return html;
+}
+function showGoalCard(kind, seconds){
+  if(!starsOn()) return;
+  const hero = heroEl;
+  const old = hero.querySelector('.goal-card');
+  if(old) old.remove();
+  const card = document.createElement('div');
+  card.className = 'goal-card' + (kind === 'day' || kind === 'week' ? ' won' : '');
+  card.style.fontSize = Math.max(8, Math.min(hero.clientWidth / 42, hero.clientHeight / 27)) + 'px'; // fits a short column too
+  card.innerHTML = goalCardHtml(kind);
+  card.addEventListener('click', () => card.remove());
+  hero.appendChild(card);
+  setTimeout(() => card.remove(), (seconds || (kind === 'start' ? 10 : 12)) * 1000);
+  if(kind === 'day' || kind === 'week'){
+    playFamilyAudio(childAudio(activeChild(), 'goal'), fanfare);
+    spawnBalloons(panelEl ? panelEl.getBoundingClientRect() : null);
+  }
+}
+// At the start of each routine (its first task running for less than 2 minutes), once.
+const goalIntroShown = {};
+function maybeShowRoutineIntro(){
+  if(!starsOn() || pointer >= tasks.length || !isBlockFirst(pointer) || !currentIsRunning()) return;
+  const t = tasks[pointer];
+  const key = `${ACTIVE_CHILD_ID}|${scheduleDate}|${runningTestStart}|${t.routineId}`;
+  if(goalIntroShown[key]) return;
+  goalIntroShown[key] = true;
+  if(nowInMinutes() - t.startMin < 2) showGoalCard('start');
+}
+// A family audio, or a surprise one drawn from the pool (never the same twice in a row).
+const lastSurprise = {};
+function childAudio(c, kind){
+  const v = c[kind + 'Audio'] || '';
+  if(v !== '*') return v;
+  const pool = (c[kind + 'Pool'] || []).filter(id => AUDIOS.some(a => a.id === id));
+  if(!pool.length) return '';
+  const key = c.id + kind;
+  const choices = pool.length > 1 ? pool.filter(id => id !== lastSurprise[key]) : pool;
+  return lastSurprise[key] = choices[Math.floor(Math.random() * choices.length)];
+}
+
 // ---------- Mark task as done (shared by both ways of advancing) ----------
 let awaitingStart = false; // true = next task waiting for a tap on "Start"
 
 function markTaskDone(actualEndMin){
+  const starsBefore = dayStars();
+  const t = tasks[pointer];
+  t.early = finishedEarly(t, actualEndMin);
   tasks[pointer].endMin = actualEndMin;
   tasks[pointer].pausedAt = undefined;
   tasks[pointer].outcome = (tasks[pointer].redMin > 0 || tasks[pointer].closedLate) ? 'late' : 'onTime';
-  if(tasks[pointer].outcome === 'onTime') celebrate();
+  if(t.outcome !== 'onTime') t.early = false;
+  if(tasks[pointer].outcome === 'onTime') celebrate(t.early);
   else encourage();
+  checkGoalReached(starsBefore);
   const finishedRoutine = tasks[pointer].routineId;
   setTimeout(() => sendStats(), 1000); // throttled; counts the day's tasks
   pointer++;
@@ -5507,6 +5874,7 @@ function render(){
   renderMain();
   updateTaskMenu();
   applyTimelineFocus();
+  try{ maybeShowRoutineIntro(); }catch(e){}
 }
 // "⋯ Opções": shown when its menu has a choice; each section's title only with
 // choices under it (this task: next, end, restart, skip; the routine: restart).
@@ -5978,7 +6346,8 @@ function configRoutineToDraft(r){
       soundType: (t.sound && ['melody', 'family'].includes(t.sound.type)) ? t.sound.type : ((t.sound && t.sound.src) ? 'url' : 'chime'),
       soundUrl: (t.sound && t.sound.src) ? t.sound.src : '',
       soundAudioId: (t.sound && t.sound.type === 'family') ? t.sound.id : '',
-      flex: !!t.flex
+      flex: !!t.flex,
+      noBonus: !!t.noBonus
     }))
   };
 }
@@ -6233,14 +6602,37 @@ function renderChildEditor(){
   const audioOpts = (defaultLabel, value) => opts([['', defaultLabel]].concat(AUDIOS.map(a => [a.id, '🎙️ ' + escHtml(a.name)])),
     AUDIOS.some(a => a.id === value) ? value : '');
   document.getElementById('child-hurry-audio').innerHTML = audioOpts(tr('hurry_audio_default'), c.hurryAudio);
-  document.getElementById('child-cheer-audio').innerHTML = audioOpts(tr('cheer_audio_default'), c.cheerAudio);
-  document.getElementById('child-done-audio').innerHTML = audioOpts(tr('done_audio_default'), c.doneAudio);
+  // "Well done", routine complete and goal reached can also be a surprise drawn from several audios
+  const surpriseOpts = (defaultLabel, value) => opts([['', defaultLabel]].concat(AUDIOS.length > 1 ? [['*', tr('audio_surprise')]] : [], AUDIOS.map(a => [a.id, '🎙️ ' + escHtml(a.name)])),
+    value === '*' && AUDIOS.length > 1 ? '*' : (AUDIOS.some(a => a.id === value) ? value : ''));
+  ['cheer', 'done', 'goal'].forEach(kind => {
+    document.getElementById(`child-${kind}-audio`).innerHTML = surpriseOpts(tr(kind === 'goal' ? 'goal_audio_default' : `${kind}_audio_default`), c[kind + 'Audio']);
+    renderAudioPool(kind);
+  });
+  document.getElementById('child-stars').checked = !!c.stars;
+  document.getElementById('child-stars-box').hidden = !c.stars;
+  document.getElementById('child-goal-day').innerHTML = opts([[0, tr('goal_none')]].concat([3, 4, 5, 6, 8, 10, 12, 15, 20, 25, 30].map(n => [n, `${n} ⭐`])), c.goalDay || 0);
+  document.getElementById('child-goal-week').innerHTML = opts([[0, tr('goal_none')]].concat([10, 15, 20, 25, 30, 35, 40, 50, 60, 70, 80, 100, 120, 150].map(n => [n, `${n} ⭐`])), c.goalWeek || 0);
+  document.getElementById('child-bonus').checked = c.bonus !== false;
+  const avg = recentStarAverage(c.id);
+  document.getElementById('child-stars-avg').textContent = avg === null ? '' : tr('stars_avg', { n: avg, w: avg * 7 });
   document.getElementById('child-done-picker').innerHTML = CHILD_DONE_ICONS.map(e =>
     `<button type="button" data-done="${e}" class="${(c.doneIcon || CHILD_DONE_ICONS[0]) === e ? 'selected' : ''}">${e}</button>`).join('') + customEmojiField(c.doneIcon, CHILD_DONE_ICONS);
   const visible = document.getElementById('child-visible');
   visible.checked = !c.hidden;
   visible.disabled = !c.hidden && draftChildren.filter(x => !x.hidden).length <= 1; // the last one shown stays
   document.getElementById('child-remove-btn').style.display = draftChildren.length > 1 ? '' : 'none';
+}
+// The audios a surprise is drawn from (chips), shown when "🎲 Surpresa" is chosen.
+function renderAudioPool(kind){
+  const c = draftChild();
+  const box = document.getElementById(`child-${kind}-pool`);
+  const on = c[kind + 'Audio'] === '*' && AUDIOS.length > 1;
+  box.hidden = !on;
+  if(!on) return;
+  const pool = c[kind + 'Pool'] || [];
+  box.innerHTML = AUDIOS.map(a => `<button type="button" data-kind="${kind}" data-id="${a.id}" class="${pool.includes(a.id) ? 'selected' : ''}">🎙️ ${escHtml(a.name)}</button>`).join('')
+    + `<p class="settings-hint">${tr('audio_surprise_hint')}</p>`;
 }
 function selectChild(id){
   selectedChildId = id;
@@ -6303,8 +6695,33 @@ document.getElementById('child-confirm-default').addEventListener('change', (e) 
 document.getElementById('child-confirm-seconds').addEventListener('change', (e) => { draftChild().confirmSeconds = parseInt(e.target.value, 10); });
 document.getElementById('child-extra-min').addEventListener('change', (e) => { draftChild().extraMin = parseInt(e.target.value, 10); });
 document.getElementById('child-hurry-audio').addEventListener('change', (e) => { draftChild().hurryAudio = e.target.value; });
-document.getElementById('child-cheer-audio').addEventListener('change', (e) => { draftChild().cheerAudio = e.target.value; });
-document.getElementById('child-done-audio').addEventListener('change', (e) => { draftChild().doneAudio = e.target.value; });
+['cheer', 'done', 'goal'].forEach(kind => {
+  document.getElementById(`child-${kind}-audio`).addEventListener('change', (e) => {
+    const c = draftChild();
+    c[kind + 'Audio'] = e.target.value;
+    if(e.target.value === '*' && !(c[kind + 'Pool'] || []).length) c[kind + 'Pool'] = AUDIOS.map(a => a.id); // starts with all of them
+    renderAudioPool(kind);
+  });
+  document.getElementById(`child-${kind}-pool`).addEventListener('click', (e) => {
+    const btn = e.target.closest('button[data-id]');
+    if(!btn) return;
+    const c = draftChild();
+    const pool = (c[kind + 'Pool'] || []).slice();
+    const i = pool.indexOf(btn.dataset.id);
+    if(i >= 0) pool.splice(i, 1); else pool.push(btn.dataset.id);
+    c[kind + 'Pool'] = pool;
+    renderAudioPool(kind);
+    settingsDirty = true;
+  });
+});
+document.getElementById('child-stars').addEventListener('change', (e) => {
+  draftChild().stars = e.target.checked;
+  document.getElementById('child-stars-box').hidden = !e.target.checked;
+  renderSettingsRows(); // the bonus switch on each task
+});
+document.getElementById('child-goal-day').addEventListener('change', (e) => { draftChild().goalDay = parseInt(e.target.value, 10) || 0; });
+document.getElementById('child-goal-week').addEventListener('change', (e) => { draftChild().goalWeek = parseInt(e.target.value, 10) || 0; });
+document.getElementById('child-bonus').addEventListener('change', (e) => { draftChild().bonus = e.target.checked; renderSettingsRows(); });
 document.getElementById('child-done-picker').addEventListener('click', (e) => {
   const btn = e.target.closest('button');
   if(!btn) return;
@@ -6609,6 +7026,7 @@ function renderSettingsRows(){
         ${AUDIOS.map(a => `<option value="fa:${a.id}" ${t.soundType==='family' && t.soundAudioId===a.id?'selected':''}>🎙️ ${escHtml(a.name)}</option>`).join('')}
       </select>
       <label class="flex-toggle" title="${tr('can_shorten_hint')}"><input type="checkbox" data-field="flex" data-index="${i}" ${t.flex ? 'checked' : ''}> ${tr('can_shorten')}</label>
+      ${draftChild().stars && draftChild().bonus !== false ? `<label class="flex-toggle bonus-toggle" title="${tr('task_bonus_hint')}"><input type="checkbox" data-field="bonus" data-index="${i}" ${t.noBonus ? '' : 'checked'}> ${tr('task_bonus')}</label>` : ''}
       <div class="row-actions">
         <button type="button" class="row-up" data-index="${i}"${i === 0 ? ' hidden' : ''}>${tr('move_up')}</button>
         <button type="button" class="row-down" data-index="${i}"${i === draftTasks.length - 1 ? ' hidden' : ''}>${tr('move_down')}</button>
@@ -6672,6 +7090,7 @@ function adjustDraftDuration(index, dir){
 settingsTasksList.addEventListener('input', (e) => {
   const field = e.target.dataset.field;
   if(!field) return;
+  if(field === 'bonus'){ draftTasks[parseInt(e.target.dataset.index, 10)].noBonus = !e.target.checked; return; }
   if(e.target.type === 'checkbox'){ draftTasks[parseInt(e.target.dataset.index, 10)][field] = e.target.checked; return; }
   if(field === 'emoji'){ // a typed emoji: shown at once, without redrawing the row (keeps the keyboard open)
     const emoji = cleanEmoji(e.target.value);
@@ -6853,7 +7272,7 @@ function saveSettings(){
       if(t.soundType === 'melody') sound = { type: 'melody' };
       else if(t.soundType === 'family' && AUDIOS.some(a => a.id === t.soundAudioId)) sound = { type: 'family', id: t.soundAudioId };
       else if(t.soundType === 'url' && t.soundUrl && t.soundUrl.trim()) sound = { type: 'url', src: t.soundUrl.trim(), loop: false };
-      return { name: t.name.trim(), emoji: t.emoji, start: hhmmToArr(t.start), end: hhmmToArr(t.end), sound, flex: t.flex || undefined };
+      return { name: t.name.trim(), emoji: t.emoji, start: hhmmToArr(t.start), end: hhmmToArr(t.end), sound, flex: t.flex || undefined, noBonus: t.noBonus || undefined };
     })
   }));
 
@@ -6997,7 +7416,8 @@ document.getElementById('welcome-restore-btn').addEventListener('click', () => p
 // device downloads an audio once and keeps a copy in localStorage.
 const AUDIO_KEY_PREFIX = 'rotinaAudio_v1_';
 const MAX_AUDIO_SECONDS = 15;
-const MAX_AUDIO_BYTES = 200 * 1024;
+const MAX_AUDIO_BYTES = 290 * 1024; // ~30 s of music; its base64 stays under the database's 400 000 characters
+const MAX_AUDIO_LOCAL_CHARS = 3500000; // the copies on this device (localStorage holds about 5 MB in all)
 const audioMem = {};      // id -> { data (base64), mime, up (already in the cloud) }
 const audioFetching = {};
 function escHtml(text){
@@ -7094,6 +7514,8 @@ function addAudioBlob(blob){
   if(!/^(audio|video)\/[\w.+-]+$/.test(mime) || mime.length > 40) return setAudioStatus(tr('audio_bad_file'));
   if(blob.size > MAX_AUDIO_BYTES) return setAudioStatus(tr('audio_too_big', { kb: Math.round(MAX_AUDIO_BYTES / 1024) }));
   if(!blob.size) return setAudioStatus(tr('audio_bad_file'));
+  const used = AUDIOS.reduce((n, a) => { const r = getAudioRecord(a.id); return n + (r ? r.data.length : 0); }, 0);
+  if(used + blob.size * 1.37 > MAX_AUDIO_LOCAL_CHARS) return setAudioStatus(tr('audio_space_full'));
   const reader = new FileReader();
   reader.onload = () => {
     const data = String(reader.result || '').split(',')[1] || '';
@@ -7402,6 +7824,7 @@ function handleRemoteHouse(house, readStartedAt){
   if(!house) return;
   handleRemoteConfig(house, readStartedAt);
   if(AUDIOS.some(a => !getAudioRecord(a.id) || !getAudioRecord(a.id).up)) syncAudioCache(); // a download or upload failed before
+  try{ syncHistory(); }catch(e){}
   // One progress entry per child (houses/<id>/progress/<childId>).
   forEachChild(() => {
     const remote = house.progress && house.progress[ACTIVE_CHILD_ID];
@@ -7897,6 +8320,7 @@ function deleteCloudData(){
     stopHouseSync();
     const del = path => cloudFetch(path, { method: 'DELETE' });
     Promise.all(AUDIOS.map(a => del(`audio/${houseId}/${a.id}`).catch(() => {})))
+      .then(() => del(`history/${houseId}`).catch(() => {}))
       .then(() => del(`houses/${houseId}/progress`))
       .then(() => del(`houses/${houseId}/data`))
       .then(() => cloudFetch(`houses/${houseId}/members`))
