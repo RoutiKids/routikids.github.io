@@ -45,7 +45,7 @@
 <meta name="color-scheme" content="light dark">
 <title>Routikids</title>
 <!-- The code version lives here (read by the app and by the update check); bump it on every change, with the number of the PR that brings it. -->
-<meta name="app-version" content="Versão do código: 2026-10-15 15:28 · PR #45">
+<meta name="app-version" content="Versão do código: 2026-10-15 18:50 · PR #46">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <!-- Icon and manifest: "Add to home screen" on Android (and iOS) gets the Routikids icon. -->
 <link rel="manifest" href="manifest.webmanifest">
@@ -529,8 +529,9 @@
     filter: drop-shadow(0 0 6px rgba(255,193,69,0.7));
     animation: star-pop 0.5s ease;
   }
-  .outcome-badge.stars{ font-size:1.9vw; letter-spacing:-0.3vw; white-space:nowrap; filter:drop-shadow(0 0 6px rgba(255,193,69,0.7)); animation:star-pop 0.5s ease; }
-  .kid-timeline .outcome-badge.stars{ font-size:calc(var(--w) * 0.035); }
+  .outcome-badge.stars{ font-size:3vw; white-space:nowrap; filter:drop-shadow(0 0 6px rgba(255,193,69,0.7)); animation:star-pop 0.5s ease; }
+  .badge-stars{ font-size:0.5em; letter-spacing:-0.15em; vertical-align:top; margin-left:0.05em; }
+  .kid-timeline .outcome-badge.stars{ font-size:calc(var(--w) * 0.05); }
   /* Stars and goals: the day's stars next to the routine title, and the map card over the hero
      (sizes in em: the card's font size follows the hero's width, so it fits a column too) */
   .goal-pill{ display:inline-block; margin-left:0.6em; padding:0.1em 0.6em; border-radius:99px; background:white; color:var(--navy); font-size:0.9em; box-shadow:0 2px 6px rgba(29,53,87,0.12); white-space:nowrap; }
@@ -1784,7 +1785,7 @@
     .step .time{ font-size:14px; }
     .check{ font-size:22px; }
     .outcome-badge{ font-size:22px; }
-    .outcome-badge.star{ font-size:28px; }
+    .outcome-badge.star, .outcome-badge.stars{ font-size:28px; }
     .reorder-controls{ gap:4px; }
     .reorder-btn{ width:34px; height:30px; font-size:14px; }
     #fullscreen-btn{ position:static; }
@@ -5207,7 +5208,7 @@ function celebrate(early){
   const box = panelEl ? panelEl.getBoundingClientRect() : null;
   playFamilyAudio(childAudio(activeChild(), 'cheer'), playClapSound);
   spawnBalloons(box);
-  const pieces = starsOn() ? (early ? ['⭐','⭐','🌟','✨'] : ['⭐','🎉','👏','✨']) : ['🎉','👏',ONTIME_ICON,'✨'];
+  const pieces = starsOn() ? (early ? ['⭐','⭐','🌟',ONTIME_ICON] : ['⭐','🎉',ONTIME_ICON,'✨']) : ['🎉','👏',ONTIME_ICON,'✨'];
   const waves = 3;
   for(let w=0; w<waves; w++){
     setTimeout(() => {
@@ -5510,7 +5511,8 @@ function weekTarget(){
   return Math.max(1, Math.ceil(n * pct / 100));
 }
 function starsOf(t){ return t.outcome === 'onTime' ? (t.early ? 2 : 1) : 0; }
-function starBadge(t){ return t.early ? '⭐⭐' : '⭐'; }
+// The child's on-time picture stays (children get attached to it), with the stars earned next to it.
+function starBadge(t){ return `${ONTIME_ICON}<span class="badge-stars">${t.early ? '⭐⭐' : '⭐'}</span>`; }
 function dayStars(){ return tasks.reduce((n, t) => n + starsOf(t), 0); }
 const HISTORY_KEY = 'rotinaHistory_v1'; // { childId: { 'YYYY-MM-DD': { s, o, e, l, k, u, up } } }
 const HISTORY_DAYS = 120;
