@@ -45,7 +45,7 @@
 <meta name="color-scheme" content="light dark">
 <title>Routikids</title>
 <!-- The code version lives here (read by the app and by the update check); bump it on every change, with the number of the PR that brings it. -->
-<meta name="app-version" content="Versão do código: 2026-10-16 19:48 · PR #52">
+<meta name="app-version" content="Versão do código: 2026-10-16 20:31 · PR #53">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <!-- Icon and manifest: "Add to home screen" on Android (and iOS) gets the Routikids icon. -->
 <link rel="manifest" href="manifest.webmanifest">
@@ -565,6 +565,10 @@
   .goal-me.hop{ animation:goal-leap 0.9s ease-in-out; }
   @keyframes goal-leap{ 50%{ transform:translateY(-1.4em) scale(1.15); } }
   .goal-node.new.on{ animation:star-pop 0.5s ease both; }
+  .goal-card.won .goal-node.on{ animation:goal-wave 1.8s ease-in-out infinite; animation-delay:calc(var(--i) * 0.07s); }
+  .goal-card.won .goal-end{ animation:goal-trophy 0.7s ease-in-out infinite alternate; }
+  @keyframes goal-wave{ 0%, 60%, 100%{ transform:none; filter:none; } 30%{ transform:scale(1.25); filter:brightness(1.3) drop-shadow(0 0 0.35em #ffc145); } }
+  @keyframes goal-trophy{ to{ transform:translateY(-0.15em) scale(1.12); } }
   .goal-map.rows-2{ height:17em; } .goal-map.rows-3{ height:21em; } .goal-map.rows-4{ height:24em; }
   .goal-map.rows-2 .goal-node, .goal-map.rows-3 .goal-node, .goal-map.rows-4 .goal-node{ width:2.1em; height:2.1em; margin:-1.05em 0 0 -1.05em; font-size:1.15em; }
   .goal-extra{ position:absolute; left:50%; top:100%; transform:translateX(-50%); white-space:nowrap; font-family:'Baloo 2', sans-serif; font-weight:800; font-size:0.4em; color:#b07800; background:white; border-radius:99px; padding:0 0.4em; }
@@ -4323,6 +4327,7 @@ function applyRemoteProgress(progress){
   const done = tasks.filter(t => t.outcome === 'onTime' || t.outcome === 'late');
   if(done.length > doneBefore){
     const last = done[done.length - 1];
+    stopTaskAudio();
     try{ if(last.outcome === 'onTime') celebrate(last.early); else encourage(); }catch(e){}
     try{ if(starsOn()) showGoalCard('jump', { before: starsBefore }); checkGoalReached(starsBefore); }catch(e){}
   }
@@ -5247,9 +5252,10 @@ function celebrationLeft(box, marginPct){
   if(!box) return (marginPct + Math.random() * (100 - 2 * marginPct)) + '%';
   return (box.left + box.width * (marginPct + Math.random() * (100 - 2 * marginPct)) / 100) + 'px';
 }
-function celebrate(early){
+// quiet: the routine ends with this task, so only the routine's sound plays (not both at once).
+function celebrate(early, quiet){
   const box = panelEl ? panelEl.getBoundingClientRect() : null;
-  playFamilyAudio(childAudio(activeChild(), 'cheer'), playClapSound);
+  if(!quiet) playFamilyAudio(childAudio(activeChild(), 'cheer'), playClapSound);
   spawnBalloons(box);
   const pieces = starsOn() && early ? [ONTIME_ICON, ONTIME_ICON, '🌟', '✨'] : ['🎉','👏',ONTIME_ICON,'✨'];
   const waves = 3;
@@ -5738,7 +5744,7 @@ function goalCardHtml(kind, opts){
     const hops = []; // one hop per stop won, in order
     for(let k = from; k < reached; k++) hops.push(pts[k].join(','));
     html += `<div class="goal-map rows-${Math.min(rows, 4)}"><svg viewBox="0 0 100 100" preserveAspectRatio="none"><path d="${path}" /></svg>`
-      + pts.map(([x, y], i) => `<div class="goal-node${i < from ? ' on' : ''}${i >= from && i < reached ? ' new' : ''}" style="left:${x}%; top:${y}%">${i < reached ? ONTIME_ICON : i + 1}</div>`).join('')
+      + pts.map(([x, y], i) => `<div class="goal-node${i < from ? ' on' : ''}${i >= from && i < reached ? ' new' : ''}" style="left:${x}%; top:${y}%; --i:${i}">${i < reached ? ONTIME_ICON : i + 1}</div>`).join('')
       + map.labels.map(l => `<div class="goal-seg" style="left:${l.at[0]}%; top:${l.at[1]}%">${l.icon}</div>`).join('')
       + `<div class="goal-me" style="left:${at[0]}%; top:${at[1]}%" data-hops="${hops.join(';')}">${c.icon || '🙂'}</div>`
       + `<div class="goal-end${left ? '' : ' won'}" style="left:${end[0]}%; top:${end[1]}%">🏆${extra ? `<span class="goal-extra">+${extra} ${ONTIME_ICON}</span>` : ''}</div></div>`;
@@ -5759,7 +5765,7 @@ function goalCardHtml(kind, opts){
   return html;
 }
 // A card over the hero for a few seconds (the 'rest' one is kept by updateRestMap instead).
-const GOAL_SECONDS = { start: 15, view: 20, jump: 4.5, day: 12, week: 12 };
+const GOAL_SECONDS = { start: 15, view: 20, jump: 4.5, day: 16, week: 16 };
 // Fits a short column too; a map of several rows is taller, so everything gets a bit smaller.
 function goalCardFontSize(hero){
   const rows = dayTarget() ? mapLayout().rows : 1;
@@ -5788,8 +5794,13 @@ function showGoalCard(kind, opts){
     }, 500 + k * 1000));
   }
   if(kind === 'day' || kind === 'week'){
-    playFamilyAudio(childAudio(activeChild(), 'goal'), fanfare);
-    spawnBalloons(panelEl ? panelEl.getBoundingClientRect() : null);
+    const goalSound = () => playFamilyAudio(childAudio(activeChild(), 'goal'), fanfare);
+    if(!familyAudio.paused && !familyAudio.ended){ // the routine's end is still playing: the goal's sound comes after it
+      familyAudio.addEventListener('pause', goalSound, { once: true }); // also fired when it ends
+    } else goalSound();
+    // a longer party: the stops light up in a wave (CSS) and balloons keep rising
+    const box = panelEl ? panelEl.getBoundingClientRect() : null;
+    for(let k = 0; k < 4; k++) setTimeout(() => { if(card.isConnected) spawnBalloons(box); }, k * 3500);
   }
 }
 // No task running (between routines, or the day is over): the map stays on the hero, kept up to date.
@@ -5857,10 +5868,21 @@ function markTaskDone(actualEndMin){
   tasks[pointer].pausedAt = undefined;
   tasks[pointer].outcome = (tasks[pointer].redMin > 0 || tasks[pointer].closedLate) ? 'late' : 'onTime';
   if(t.outcome !== 'onTime') t.early = false;
-  if(tasks[pointer].outcome === 'onTime') celebrate(t.early);
+  // The task's own music stops with it (on the routine's last task nothing else would stop it,
+  // and it played over the end of the routine).
+  stopTaskAudio();
+  let next = pointer + 1;
+  while(next < tasks.length && tasks[next].userSkipped) next++;
+  const routineEnds = next >= tasks.length || tasks[next].routineId !== t.routineId;
+  if(tasks[pointer].outcome === 'onTime') celebrate(t.early, routineEnds);
   else encourage();
   if(starsOn()) showGoalCard('jump', { before: starsBefore });
   checkGoalReached(starsBefore);
+  // A routine ends with the day's goal already reached earlier: the goal's party again, after the hop.
+  if(routineEnds && starsOn() && dayTarget() && starsBefore >= dayTarget()){
+    const slot = currentSlot;
+    setTimeout(() => { if(SLOTS.includes(slot)) withChild(slot, () => showGoalCard('day')); }, 4800);
+  }
   const finishedRoutine = tasks[pointer].routineId;
   setTimeout(() => sendStats(), 1000); // throttled; counts the day's tasks
   pointer++;
