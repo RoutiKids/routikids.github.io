@@ -45,7 +45,7 @@
 <meta name="color-scheme" content="light dark">
 <title>Routikids</title>
 <!-- The code version lives here (read by the app and by the update check); bump it on every change, with the number of the PR that brings it. -->
-<meta name="app-version" content="Versão do código: 2026-10-16 07:00 · PR #49">
+<meta name="app-version" content="Versão do código: 2026-10-16 08:57 · PR #50">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <!-- Icon and manifest: "Add to home screen" on Android (and iOS) gets the Routikids icon. -->
 <link rel="manifest" href="manifest.webmanifest">
@@ -545,7 +545,9 @@
   .goal-big{ font-family:'Baloo 2', sans-serif; font-weight:800; font-size:4em; }
   .goal-map{ position:relative; width:100%; height:12em; flex-shrink:0; }
   .goal-map svg{ position:absolute; inset:0; width:100%; height:100%; overflow:visible; }
-  .goal-map path{ fill:none; stroke:#d9cdfa; stroke-linecap:round; stroke-linejoin:round; vector-effect:non-scaling-stroke; stroke-width:0.55em; stroke-dasharray:0.1em 1.1em; }
+  .goal-map path{ fill:none; stroke:#e6ddfb; stroke-linecap:round; stroke-linejoin:round; vector-effect:non-scaling-stroke; stroke-width:0.45em; }
+  .goal-sub.big{ font-size:2.2em; color:var(--navy); }
+  .goal-num{ font-size:1.35em; color:#e08a00; }
   .goal-node{ position:absolute; width:2.4em; height:2.4em; margin:-1.2em 0 0 -1.2em; border-radius:50%; display:flex; align-items:center; justify-content:center; font-size:1.3em;
     background:white; box-shadow:0 0.25em 0 #c9bdf0; color:#b9aee0; font-family:'Baloo 2', sans-serif; font-weight:800; }
   .goal-node.on{ background:linear-gradient(#fff3c4, #ffd76b); box-shadow:0 0.25em 0 #e0a800; }
@@ -5693,14 +5695,16 @@ function goalCardHtml(kind, opts){
     : kind === 'jump' ? (gained >= 2 ? tr('jump_early', { icon: ONTIME_ICON }) : gained === 1 ? tr('jump_one', { icon: ONTIME_ICON }) : tr('jump_none', { icon: ONTIME_ICON }))
     : kind === 'rest' ? (pointer >= tasks.length ? tr('goal_end_title', { n: stars, icon: ONTIME_ICON }) : stars ? tr('rest_title', { name: c.name || '' }).replace(/, !/, '!') : greeting)
     : greeting;
-  let html = `<div class="goal-title">${title}</div>`;
+  // Between routines the screen stays on: only the count, big (no title, less text).
+  const quiet = kind === 'rest' && pointer < tasks.length;
+  let html = quiet ? '' : `<div class="goal-title">${title}</div>`;
   const goalDay = dayTarget(), goalWeek = weekTarget();
   if(goalDay){
     const goal = goalDay, n = Math.min(goal, MAP_MAX_STOPS), rows = mapRows(n);
     const reached = stopsReached(stars, goal, n);
     const from = kind === 'jump' ? stopsReached(Math.min(opts.before || 0, stars), goal, n) : reached;
     const left = Math.max(0, goal - stars), extra = Math.max(0, stars - goal);
-    html += `<div class="goal-sub">${left ? tr('goal_left', { n: left, icon: ONTIME_ICON }) : tr('goal_reached')}</div>`;
+    html += `<div class="goal-sub${quiet ? ' big' : ''}">${left ? tr('goal_left', { n: `<b class="goal-num">${left}</b>`, icon: ONTIME_ICON }) : tr('goal_reached')}</div>`;
     const pts = mapStops(n), end = mapEnd(n), start = [pts[0][0] - 5, pts[0][1] + 12];
     const path = 'M ' + pts.map(([x, y]) => `${x} ${y}`).join(' L ') + ` L ${end[0]} ${end[1]}`;
     const at = from ? pts[from - 1] : start;
