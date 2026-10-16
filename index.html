@@ -45,7 +45,7 @@
 <meta name="color-scheme" content="light dark">
 <title>Routikids</title>
 <!-- The code version lives here (read by the app and by the update check); bump it on every change, with the number of the PR that brings it. -->
-<meta name="app-version" content="Versão do código: 2026-10-15 19:25 · PR #47">
+<meta name="app-version" content="Versão do código: 2026-10-16 06:27 · PR #48">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <!-- Icon and manifest: "Add to home screen" on Android (and iOS) gets the Routikids icon. -->
 <link rel="manifest" href="manifest.webmanifest">
@@ -210,7 +210,7 @@
   .t-orig{ opacity:0.7; font-weight:600; }
   .kid-forecast .t-late, .kid-forecast .t-early{ background:white; border-radius:999px; padding:0 0.35em; }
   #skip-task-btn, .kid-skip, #postpone-task-btn, .kid-postpone, #start-now-btn, .kid-start-now, #delay-start-btn, .kid-delay, #undo-delay-btn, .kid-undo-delay, #reset-routine-btn, .kid-reset-routine,
-  .pause-btn, .menu-btn, .postpone-next-btn, .restart-task-btn{
+  .pause-btn, .menu-btn, .map-btn, .postpone-next-btn, .restart-task-btn{
     font-family:'Baloo 2', sans-serif;
     font-weight:800;
     font-size:clamp(14px, 1.1vw, 24px);
@@ -224,8 +224,8 @@
     display:none;
   }
   #skip-task-btn, #postpone-task-btn{ margin-left:0.4vw; margin-right:0.4vw; }
-  .kid-skip, .kid-postpone, .kid-start-now, .kid-delay, .kid-undo-delay, .kid-reset-routine, .kid-panel .pause-btn, .kid-panel .menu-btn, .kid-panel .postpone-next-btn, .kid-panel .restart-task-btn{ font-size:calc(var(--w) * 0.026); padding:0.4vh calc(var(--w) * 0.025); margin-top:0.6vh; }
-  #skip-task-btn:focus, .kid-skip:focus, #postpone-task-btn:focus, .kid-postpone:focus, #start-now-btn:focus, .kid-start-now:focus, #delay-start-btn:focus, .kid-delay:focus, #undo-delay-btn:focus, .kid-undo-delay:focus, #reset-routine-btn:focus, .kid-reset-routine:focus, .skip-btn:focus, .pause-btn:focus, .menu-btn:focus, .postpone-next-btn:focus, .restart-task-btn:focus{ outline:4px solid var(--sun); outline-offset:2px; }
+  .kid-skip, .kid-postpone, .kid-start-now, .kid-delay, .kid-undo-delay, .kid-reset-routine, .kid-panel .pause-btn, .kid-panel .menu-btn, .kid-panel .map-btn, .kid-panel .postpone-next-btn, .kid-panel .restart-task-btn{ font-size:calc(var(--w) * 0.026); padding:0.4vh calc(var(--w) * 0.025); margin-top:0.6vh; }
+  #skip-task-btn:focus, .kid-skip:focus, #postpone-task-btn:focus, .kid-postpone:focus, #start-now-btn:focus, .kid-start-now:focus, #delay-start-btn:focus, .kid-delay:focus, #undo-delay-btn:focus, .kid-undo-delay:focus, #reset-routine-btn:focus, .kid-reset-routine:focus, .skip-btn:focus, .pause-btn:focus, .menu-btn:focus, .map-btn:focus, .postpone-next-btn:focus, .restart-task-btn:focus{ outline:4px solid var(--sun); outline-offset:2px; }
   .skip-btn{
     font-size:clamp(14px, 1.2vw, 26px);
     background:rgba(29,53,87,0.08);
@@ -557,6 +557,16 @@
   .goal-bar{ width:8em; height:0.8em; border-radius:99px; background:#ece6fb; overflow:hidden; }
   .goal-bar i{ display:block; height:100%; background:linear-gradient(90deg, #ffd76b, #ffb81f); }
   .goal-rule{ font-weight:700; font-size:1em; color:#5b6b80; }
+  .goal-card.rest{ animation:none; z-index:15; }
+  .goal-me{ transition:left 0.9s ease-in-out, top 0.9s ease-in-out; }
+  .goal-me.hop{ animation:goal-leap 0.9s ease-in-out; }
+  @keyframes goal-leap{ 50%{ transform:translateY(-1.4em) scale(1.15); } }
+  .goal-node.new.on{ animation:star-pop 0.5s ease 0.6s both; }
+  .goal-next{ display:flex; align-items:center; gap:0.5em; background:white; border-radius:99px; padding:0.45em 1.2em; font-family:'Baloo 2', sans-serif; font-weight:800; font-size:1.3em; box-shadow:0 0.2em 0.6em rgba(29,53,87,0.12); }
+  .goal-next small{ font-family:'Nunito', sans-serif; font-weight:700; color:#5b6b80; font-size:0.8em; }
+  .goal-back{ font-family:'Baloo 2', sans-serif; font-weight:800; font-size:1.2em; background:#ffe7a8; color:var(--navy); border:none; border-radius:99px; padding:0.4em 1.2em; cursor:pointer; }
+  .goal-pill{ cursor:pointer; }
+  .map-btn{ background:#ffe7a8 !important; }
   @keyframes star-pop{
     0%{ transform:scale(0); }
     60%{ transform:scale(1.3); }
@@ -1889,7 +1899,7 @@
     </div>
     <div id="segments"></div>
     <button id="start-next-btn" data-i18n="start"></button>
-    <div class="task-extra-btns" id="task-extra-btns"><button id="start-now-btn"></button><button id="delay-start-btn"></button><button id="undo-delay-btn"></button><button type="button" class="pause-btn" id="pause-task-btn"></button><button type="button" class="menu-btn" id="task-menu-btn" aria-expanded="false"></button><div class="task-menu" hidden><div class="menu-head menu-task-head"></div><button type="button" class="postpone-next-btn"></button><button id="postpone-task-btn"></button><button type="button" class="restart-task-btn"></button><button id="skip-task-btn"></button><div class="menu-head menu-routine-head"></div><button id="reset-routine-btn"></button></div></div>
+    <div class="task-extra-btns" id="task-extra-btns"><button id="start-now-btn"></button><button id="delay-start-btn"></button><button id="undo-delay-btn"></button><button type="button" class="pause-btn" id="pause-task-btn"></button><button type="button" class="map-btn"></button><button type="button" class="menu-btn" id="task-menu-btn" aria-expanded="false"></button><div class="task-menu" hidden><div class="menu-head menu-task-head"></div><button type="button" class="postpone-next-btn"></button><button id="postpone-task-btn"></button><button type="button" class="restart-task-btn"></button><button id="skip-task-btn"></button><div class="menu-head menu-routine-head"></div><button id="reset-routine-btn"></button></div></div>
     <div id="browse-controls">
       <button id="browse-prev-btn" data-i18n-title="browse_prev_title">◀</button>
       <button id="browse-next-btn" data-i18n-title="browse_next_title">▶</button>
@@ -2507,6 +2517,15 @@ const I18N = {
     goal_day_done: "Você conseguiu! 🎉",
     goal_week_done: "Meta da semana! 🏆",
     goal_end_title: "Hoje: {n} {icon}",
+    map_title: "🗺️ O caminho de hoje",
+    map_btn: "🗺️ Mapa",
+    map_back: "↩ Voltar para a tarefa",
+    jump_one: "+1 {icon} Muito bem!",
+    jump_early: "+2 {icon} Terminou antes!",
+    jump_none: "Na próxima tarefa tem {icon}!",
+    rest_title: "Muito bem, {name}! 🎉",
+    rest_next: "começa às {time}",
+    rest_tomorrow: "Amanhã tem mais! 🌙",
     audio_full: "Limite de {n} áudios. Apague um para gravar outro.",
     audio_too_big: "⚠️ Arquivo grande demais (máximo {kb} KB). Escolha um áudio mais curto.",
     audio_bad_file: "⚠️ Não deu para usar este arquivo. Escolha um arquivo de áudio.",
@@ -2941,6 +2960,15 @@ const I18N = {
     goal_day_done: "You did it! 🎉",
     goal_week_done: "Weekly goal! 🏆",
     goal_end_title: "Today: {n} {icon}",
+    map_title: "🗺️ Today's path",
+    map_btn: "🗺️ Map",
+    map_back: "↩ Back to the task",
+    jump_one: "+1 {icon} Well done!",
+    jump_early: "+2 {icon} Finished early!",
+    jump_none: "The next task brings {icon}!",
+    rest_title: "Well done, {name}! 🎉",
+    rest_next: "starts at {time}",
+    rest_tomorrow: "More tomorrow! 🌙",
     audio_full: "Limit of {n} audios. Delete one to record another.",
     audio_too_big: "⚠️ File too big (at most {kb} KB). Pick a shorter audio.",
     audio_bad_file: "⚠️ This file can't be used. Pick an audio file.",
@@ -3375,6 +3403,15 @@ const I18N = {
     goal_day_done: "Geschafft! 🎉",
     goal_week_done: "Wochenziel! 🏆",
     goal_end_title: "Heute: {n} {icon}",
+    map_title: "🗺️ Der Weg von heute",
+    map_btn: "🗺️ Karte",
+    map_back: "↩ Zurück zur Aufgabe",
+    jump_one: "+1 {icon} Super!",
+    jump_early: "+2 {icon} Früher fertig!",
+    jump_none: "Die nächste Aufgabe bringt {icon}!",
+    rest_title: "Super, {name}! 🎉",
+    rest_next: "beginnt um {time}",
+    rest_tomorrow: "Morgen geht es weiter! 🌙",
     audio_full: "Höchstens {n} Audios. Lösche eins, um ein neues aufzunehmen.",
     audio_too_big: "⚠️ Datei zu groß (höchstens {kb} KB). Wähle ein kürzeres Audio.",
     audio_bad_file: "⚠️ Diese Datei lässt sich nicht verwenden. Wähle eine Audiodatei.",
@@ -4281,7 +4318,7 @@ function applyRemoteProgress(progress){
   if(done.length > doneBefore){
     const last = done[done.length - 1];
     try{ if(last.outcome === 'onTime') celebrate(last.early); else encourage(); }catch(e){}
-    try{ checkGoalReached(starsBefore); }catch(e){}
+    try{ if(starsOn()) showGoalCard('jump', { before: starsBefore }); checkGoalReached(starsBefore); }catch(e){}
   }
   if(pointer !== pointerBefore && !awaitingStart && pointer < tasks.length){
     try{ playForTask(tasks[pointer]); }catch(e){}
@@ -4984,7 +5021,7 @@ function applyTimelineFocus(){
   if(titleEl){
     const label = `${dayPrefix}${r ? `${r.icon} ${r.name}` : `📋 ${tr('routine_fallback')}`}`;
     const goal = dayTarget();
-    const pill = day === 0 && starsOn() ? `${ONTIME_ICON} ${goal ? tr('stars_of', { n: dayStars(), goal }) : dayStars()}` : '';
+    const pill = day === 0 && starsOn() ? `${ONTIME_ICON} ${goal ? tr('stars_of', { n: dayStars(), goal }) : dayStars()} 🗺️` : '';
     const html = escHtml(label) + (pill ? ` <span class="goal-pill">${pill}</span>` : '');
     if(titleEl.dataset.html !== html){ titleEl.innerHTML = html; titleEl.dataset.html = html; }
     titleEl.style.display = '';
@@ -5251,11 +5288,6 @@ function celebrateRoutine(){
     setTimeout(() => piece.remove(), 3000);
   }
   playFamilyAudio(childAudio(activeChild(), 'done'), fanfare);
-  // The day's last routine: the day's stars and goals, after the celebration.
-  if(starsOn() && pointer >= tasks.length){
-    const slot = currentSlot;
-    setTimeout(() => { if(SLOTS.includes(slot)) withChild(slot, () => showGoalCard('end')); }, 3500);
-  }
 }
 function fanfare(){
   [[523, 0.15, 0], [659, 0.15, 0.16], [784, 0.15, 0.32], [1046, 0.5, 0.5]].forEach(([f, d, t]) => beep(f, d, t));
@@ -5617,32 +5649,46 @@ function checkGoalReached(dayBefore){
   const week = goalWeek && weekBase + dayBefore < goalWeek && weekBase + after >= goalWeek;
   if(!day && !week) return;
   const slot = currentSlot;
-  setTimeout(() => { if(SLOTS.includes(slot)) withChild(slot, () => showGoalCard(week ? 'week' : 'day')); }, 2600);
+  setTimeout(() => { if(SLOTS.includes(slot)) withChild(slot, () => showGoalCard(week ? 'week' : 'day')); }, 4800); // after the hop
 }
 // The map (a path of stops, one per star of the day's goal, at most 10, the child's
 // picture on the last one reached and 🏆 at the end) and the week's bar, over the hero.
-function goalCardHtml(kind){
+// The map's stops: one per star of the day's target (at most 10), along a zigzag to the 🏆.
+function mapStops(n){
+  const pts = [];
+  for(let i = 0; i < n; i++) pts.push([6 + i * (80 / Math.max(1, n - 1)), i % 2 ? 38 : 70]);
+  return pts;
+}
+function stopsReached(stars, goal, n){ return Math.min(n, Math.floor(stars * n / goal)); }
+// kind: 'start' (a routine begins), 'rest' (no task running: stays on the hero), 'view' (opened by hand),
+// 'jump' (a task just done: the child's picture hops to its new stop), 'day' / 'week' (a goal reached).
+function goalCardHtml(kind, opts){
+  opts = opts || {};
   const c = activeChild();
   const stars = dayStars();
   const hour = new Date().getHours();
   const name = c.name ? `, ${escHtml(c.name)}` : '';
+  const greeting = `${tr(hour < 12 ? 'hello_morning' : hour < 18 ? 'hello_afternoon' : 'hello_evening')}${name}!`;
+  const gained = stars - (opts.before || 0);
   const title = kind === 'day' ? tr('goal_day_done') : kind === 'week' ? tr('goal_week_done')
-    : kind === 'end' ? tr('goal_end_title', { n: stars, icon: ONTIME_ICON })
-    : `${tr(hour < 12 ? 'hello_morning' : hour < 18 ? 'hello_afternoon' : 'hello_evening')}${name}!`;
+    : kind === 'view' ? tr('map_title')
+    : kind === 'jump' ? (gained >= 2 ? tr('jump_early', { icon: ONTIME_ICON }) : gained === 1 ? tr('jump_one', { icon: ONTIME_ICON }) : tr('jump_none', { icon: ONTIME_ICON }))
+    : kind === 'rest' ? (pointer >= tasks.length ? tr('goal_end_title', { n: stars, icon: ONTIME_ICON }) : stars ? tr('rest_title', { name: c.name || '' }).replace(/, !/, '!') : greeting)
+    : greeting;
   let html = `<div class="goal-title">${title}</div>`;
   const goalDay = dayTarget(), goalWeek = weekTarget();
   if(goalDay){
     const goal = goalDay, n = Math.min(goal, 10);
-    const reached = Math.min(n, Math.floor(stars * n / goal));
+    const reached = stopsReached(stars, goal, n);
+    const from = kind === 'jump' ? stopsReached(Math.min(opts.before || 0, stars), goal, n) : reached;
     const left = Math.max(0, goal - stars);
     html += `<div class="goal-sub">${left ? tr('goal_left', { n: left, icon: ONTIME_ICON }) : tr('goal_reached')}</div>`;
-    const pts = [];
-    for(let i = 0; i < n; i++) pts.push([6 + i * (80 / Math.max(1, n - 1)), i % 2 ? 38 : 70]);
+    const pts = mapStops(n);
     const path = 'M ' + pts.map(([x, y]) => `${x} ${y}`).join(' L ') + ' L 94 24';
-    const at = reached ? pts[reached - 1] : [1, 82];
+    const at = from ? pts[from - 1] : [1, 82], to = reached ? pts[reached - 1] : [1, 82];
     html += `<div class="goal-map"><svg viewBox="0 0 100 100" preserveAspectRatio="none"><path d="${path}" /></svg>`
-      + pts.map(([x, y], i) => `<div class="goal-node${i < reached ? ' on' : ''}" style="left:${x}%; top:${y}%">${i < reached ? ONTIME_ICON : i + 1}</div>`).join('')
-      + `<div class="goal-me" style="left:${at[0]}%; top:${at[1]}%">${c.icon || '🙂'}</div><div class="goal-end${left ? '' : ' won'}" style="left:94%; top:24%">🏆</div></div>`;
+      + pts.map(([x, y], i) => `<div class="goal-node${i < from ? ' on' : ''}${i >= from && i < reached ? ' new' : ''}" style="left:${x}%; top:${y}%">${i < reached ? ONTIME_ICON : i + 1}</div>`).join('')
+      + `<div class="goal-me" style="left:${at[0]}%; top:${at[1]}%" data-to="${to[0]},${to[1]}">${c.icon || '🙂'}</div><div class="goal-end${left ? '' : ' won'}" style="left:94%; top:24%">🏆</div></div>`;
   } else {
     html += `<div class="goal-big">${ONTIME_ICON} ${stars}</div><div class="goal-sub">${tr('goal_today_count')}</div>`;
   }
@@ -5651,23 +5697,64 @@ function goalCardHtml(kind){
     html += `<div class="goal-week"><span>${tr('goal_week_label')}</span><div class="goal-bar"><i style="width:${Math.min(100, Math.round(w * 100 / goalWeek))}%"></i></div><b>${w} / ${goalWeek} ${ONTIME_ICON}</b></div>`;
   }
   if(kind === 'start') html += `<div class="goal-rule">${tr(c.bonus === false ? 'goal_rule_nobonus' : 'goal_rule', { icon: ONTIME_ICON })}</div>`;
+  if(kind === 'rest'){
+    const next = tasks[pointer];
+    const r = next && ROUTINES.find(r => r.id === next.routineId);
+    html += `<div class="goal-next">${next ? `${r ? r.icon : '📋'} ${escHtml(r ? r.name : tr('routine_fallback'))} <small>${tr('rest_next', { time: fmtMin(next.startMin) })}</small>` : tr('rest_tomorrow')}</div>`;
+  }
+  if(kind === 'view') html += `<button type="button" class="goal-back">${tr('map_back')}</button>`;
   return html;
 }
-function showGoalCard(kind, seconds){
+// A card over the hero for a few seconds (the 'rest' one is kept by updateRestMap instead).
+const GOAL_SECONDS = { start: 15, view: 20, jump: 4.5, day: 12, week: 12 };
+function goalCardFontSize(hero){ return Math.max(8, Math.min(hero.clientWidth / 42, hero.clientHeight / 27)) + 'px'; } // fits a short column too
+function showGoalCard(kind, opts){
   if(!starsOn()) return;
   const hero = heroEl;
-  const old = hero.querySelector('.goal-card');
-  if(old) old.remove();
+  hero.querySelectorAll('.goal-card:not(.rest)').forEach(el => el.remove());
   const card = document.createElement('div');
   card.className = 'goal-card' + (kind === 'day' || kind === 'week' ? ' won' : '');
-  card.style.fontSize = Math.max(8, Math.min(hero.clientWidth / 42, hero.clientHeight / 27)) + 'px'; // fits a short column too
-  card.innerHTML = goalCardHtml(kind);
+  card.style.fontSize = goalCardFontSize(hero);
+  card.innerHTML = goalCardHtml(kind, opts);
   card.addEventListener('click', () => card.remove());
   hero.appendChild(card);
-  setTimeout(() => card.remove(), (seconds || (kind === 'start' ? 10 : 12)) * 1000);
+  setTimeout(() => card.remove(), GOAL_SECONDS[kind] * 1000);
+  if(kind === 'jump'){ // the child's picture hops to its new stop, and the stops won light up
+    const me = card.querySelector('.goal-me');
+    setTimeout(() => {
+      const to = me && (me.dataset.to || '').split(',');
+      if(to && to.length === 2 && (me.style.left !== to[0] + '%' || me.style.top !== to[1] + '%')){ me.classList.add('hop'); me.style.left = to[0] + '%'; me.style.top = to[1] + '%'; }
+      card.querySelectorAll('.goal-node.new').forEach(n => n.classList.add('on'));
+    }, 500);
+  }
   if(kind === 'day' || kind === 'week'){
     playFamilyAudio(childAudio(activeChild(), 'goal'), fanfare);
     spawnBalloons(panelEl ? panelEl.getBoundingClientRect() : null);
+  }
+}
+// No task running (between routines, or the day is over): the map stays on the hero, kept up to date.
+// A tap hides it for a minute (to reach "Começar agora" or the arrows to see other days).
+const restHiddenUntil = {};
+function updateRestMap(){
+  const hero = heroEl;
+  const old = hero.querySelector('.goal-card.rest');
+  const idle = (pointer >= tasks.length) || (!awaitingStart && tasks[pointer] && nowInMinutes() < tasks[pointer].startMin);
+  const show = starsOn() && idle && browseDay === null && tasks.length > 0 && !((restHiddenUntil[ACTIVE_CHILD_ID] || 0) > Date.now());
+  if(!show){ if(old) old.remove(); return; }
+  const html = goalCardHtml('rest');
+  if(old && old.dataset.html === html) return;
+  const card = old || document.createElement('div');
+  card.className = 'goal-card rest';
+  card.style.fontSize = goalCardFontSize(hero);
+  card.innerHTML = html;
+  card.dataset.html = html;
+  if(!old){
+    const child = ACTIVE_CHILD_ID;
+    card.tabIndex = 0;
+    const hide = () => { restHiddenUntil[child] = Date.now() + 60000; card.remove(); };
+    card.addEventListener('click', hide);
+    card.addEventListener('keydown', e => { if(e.key === 'Enter' || e.key === ' '){ e.preventDefault(); hide(); } });
+    hero.appendChild(card);
   }
 }
 // At the start of each routine (its first task running for less than 2 minutes), once.
@@ -5680,6 +5767,13 @@ function maybeShowRoutineIntro(){
   goalIntroShown[key] = true;
   if(nowInMinutes() - t.startMin < 2) showGoalCard('start');
 }
+// "🗺️ Mapa" next to the task's buttons, or the "🐆 4 de 8" next to the routine's name, opens the map.
+document.addEventListener('click', (e) => {
+  const b = e.target.closest('.map-btn, .goal-pill');
+  if(!b) return;
+  const slot = SLOTS.find(s => { const v = s.view || MAIN_VIEW; return v.heroEl.contains(b) || v.timelineEl.contains(b); });
+  if(slot) withChild(slot, () => { restHiddenUntil[ACTIVE_CHILD_ID] = 0; showGoalCard('view'); });
+});
 // A family audio, or a surprise one drawn from the pool (never the same twice in a row).
 const lastSurprise = {};
 function childAudio(c, kind){
@@ -5705,6 +5799,7 @@ function markTaskDone(actualEndMin){
   if(t.outcome !== 'onTime') t.early = false;
   if(tasks[pointer].outcome === 'onTime') celebrate(t.early);
   else encourage();
+  if(starsOn()) showGoalCard('jump', { before: starsBefore });
   checkGoalReached(starsBefore);
   const finishedRoutine = tasks[pointer].routineId;
   setTimeout(() => sendStats(), 1000); // throttled; counts the day's tasks
@@ -5963,7 +6058,13 @@ function render(){
   renderMain();
   updateTaskMenu();
   applyTimelineFocus();
-  try{ maybeShowRoutineIntro(); }catch(e){}
+  try{ maybeShowRoutineIntro(); updateRestMap(); }catch(e){}
+  const mapBtn = extrasEl.querySelector('.map-btn');
+  if(mapBtn){
+    const idle = (pointer >= tasks.length) || (!awaitingStart && tasks[pointer] && nowInMinutes() < tasks[pointer].startMin);
+    mapBtn.style.display = starsOn() && !idle ? 'inline-block' : 'none';
+    if(mapBtn.textContent !== tr('map_btn')) mapBtn.textContent = tr('map_btn');
+  }
 }
 // "⋯ Opções": shown when its menu has a choice; each section's title only with
 // choices under it (this task: next, end, restart, skip; the routine: restart).
@@ -8966,7 +9067,7 @@ function buildPanels(){
             <button type="button" class="kid-finish"><span class="kid-box"></span><span class="kid-finish-label"></span></button>
           </div>
           <button type="button" class="kid-start"></button>
-          <div class="task-extra-btns"><button type="button" class="kid-start-now"></button><button type="button" class="kid-delay"></button><button type="button" class="kid-undo-delay"></button><button type="button" class="pause-btn kid-pause"></button><button type="button" class="menu-btn kid-menu" aria-expanded="false"></button><div class="task-menu" hidden><div class="menu-head menu-task-head"></div><button type="button" class="postpone-next-btn"></button><button type="button" class="kid-postpone"></button><button type="button" class="restart-task-btn"></button><button type="button" class="kid-skip"></button><div class="menu-head menu-routine-head"></div><button type="button" class="kid-reset-routine"></button></div></div>
+          <div class="task-extra-btns"><button type="button" class="kid-start-now"></button><button type="button" class="kid-delay"></button><button type="button" class="kid-undo-delay"></button><button type="button" class="pause-btn kid-pause"></button><button type="button" class="map-btn"></button><button type="button" class="menu-btn kid-menu" aria-expanded="false"></button><div class="task-menu" hidden><div class="menu-head menu-task-head"></div><button type="button" class="postpone-next-btn"></button><button type="button" class="kid-postpone"></button><button type="button" class="restart-task-btn"></button><button type="button" class="kid-skip"></button><div class="menu-head menu-routine-head"></div><button type="button" class="kid-reset-routine"></button></div></div>
           <div class="kid-browse">
             <button type="button" class="kid-prev">◀</button>
             <button type="button" class="kid-next">▶</button>
