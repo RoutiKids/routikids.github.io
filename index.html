@@ -45,7 +45,7 @@
 <meta name="color-scheme" content="light dark">
 <title>Routikids</title>
 <!-- The code version lives here (read by the app and by the update check); bump it on every change, with the number of the PR that brings it. -->
-<meta name="app-version" content="Versão do código: 2026-10-16 20:31 · PR #53">
+<meta name="app-version" content="Versão do código: 2026-10-16 20:35 · PR #54">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <!-- Icon and manifest: "Add to home screen" on Android (and iOS) gets the Routikids icon. -->
 <link rel="manifest" href="manifest.webmanifest">
@@ -3949,6 +3949,8 @@ function visibleChildren(){ return CHILDREN.filter(c => !c.hidden); }
 let ACTIVE_CHILD_ID = visibleChildren()[0].id;
 // "Test now" is part of the config (when it started), so it reaches every paired device.
 let TEST_STARTED_AT = (stored && stored.testStartedAt) || null;
+// The routine each child had on screen when "Test now" was pressed ({ childId: routineId }): the test runs that one.
+let TEST_ROUTINES = (stored && stored.testRoutines) || null;
 
 function toMinutes([h,m]){ return h*60+m; }
 
@@ -4177,8 +4179,11 @@ function catchUpToNow(){
 // one after the other, from the moment "Test now" was pressed on any device.
 function initSchedule(cfg, opts){
   const testStart = activeTestStartMin();
-  // A test on a day with no routines (e.g. a weekend) runs the next day that has some.
-  if(testStart !== null && !cfg.length) cfg = TASKS = nextRoutineDayTasks(cfg);
+  // A test runs the routine that was on screen (also one of another day); without one, today's
+  // routines, or on a day with none (e.g. a weekend) the next day that has some.
+  const testRoutine = testStart !== null && TEST_ROUTINES && childRoutines().find(r => r.id === TEST_ROUTINES[ACTIVE_CHILD_ID] && r.tasks.length);
+  if(testRoutine) cfg = TASKS = testRoutine.tasks.map(t => ({ ...t, routineId: testRoutine.id })).sort((a, b) => toMinutes(a.start) - toMinutes(b.start));
+  else if(testStart !== null && !cfg.length) cfg = TASKS = nextRoutineDayTasks(cfg);
   const given = opts && opts.progress;
   const prev = given || ((opts && opts.fresh) ? null : previousDayProgress(testStart));
   const build = () => {
@@ -6510,6 +6515,15 @@ else setSoundEnabled(false); // initial state: off, 🔇 icon
 // 2 hours passing) brings back the real day with its progress.
 function setSharedTest(startedAt){
   TEST_STARTED_AT = startedAt;
+  TEST_ROUTINES = null;
+  if(startedAt){
+    TEST_ROUTINES = {};
+    forEachChild(() => {
+      const focus = focusedRoutineBlock();
+      if(focus) TEST_ROUTINES[ACTIVE_CHILD_ID] = focus.block.routineId;
+      browseDay = null; browseRoutineIdx = null; // the test shows on the day's screen
+    });
+  }
   const cfg = getCurrentConfigObject();
   saveStoredConfig(cfg);
   pendingRemoteHouse = null;
@@ -7592,7 +7606,8 @@ function saveSettings(){
     routines: newRoutines,
     weekSchedule: draftWeekSchedule,
     audios: AUDIOS, // saved on their own as soon as they change
-    testStartedAt: TEST_STARTED_AT || undefined // a running test goes on
+    testStartedAt: TEST_STARTED_AT || undefined, // a running test goes on
+    testRoutines: TEST_STARTED_AT && TEST_ROUTINES || undefined
   };
   saveStoredConfig(savedConfig);
   pendingRemoteHouse = null; // this save wins over any remote change received while editing
@@ -7619,7 +7634,8 @@ function getCurrentConfigObject(){
     routines: ROUTINES,
     weekSchedule: WEEK_SCHEDULE,
     audios: AUDIOS,
-    testStartedAt: TEST_STARTED_AT || undefined
+    testStartedAt: TEST_STARTED_AT || undefined,
+    testRoutines: TEST_STARTED_AT && TEST_ROUTINES || undefined
   };
 }
 
@@ -7631,6 +7647,7 @@ function applyImportedConfig(cfg){
   CHILDREN = cfg.children;
   if(!visibleChildren().some(c => c.id === ACTIVE_CHILD_ID)) ACTIVE_CHILD_ID = visibleChildren()[0].id;
   TEST_STARTED_AT = cfg.testStartedAt || null;
+  TEST_ROUTINES = cfg.testRoutines || null;
   CHILD_NAME = cfg.childName || '';
   ONTIME_ICON = cfg.onTimeIcon || DEFAULT_ONTIME_ICON;
   LATE_ICON = cfg.lateIcon || DEFAULT_LATE_ICON;
@@ -7651,7 +7668,7 @@ function backupFileName(){
   return `routikids-backup-${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}.json`;
 }
 function saveBackup(){
-  const config = Object.assign({}, getCurrentConfigObject(), { testStartedAt: undefined });
+  const config = Object.assign({}, getCurrentConfigObject(), { testStartedAt: undefined, testRoutines: undefined });
   const audioData = {};
   AUDIOS.forEach(a => { const rec = getAudioRecord(a.id); if(rec) audioData[a.id] = { data: rec.data, mime: rec.mime }; });
   const json = JSON.stringify({ app: APP_NAME, kind: 'backup', version: 1, savedAt: Date.now(), config, audioData }, null, 1);
@@ -7684,7 +7701,7 @@ function restoreBackupText(text){
   let data = null;
   try{ data = JSON.parse(text); }catch(e){}
   const cfg = data && data.config;
-  if(cfg) delete cfg.testStartedAt;
+  if(cfg){ delete cfg.testStartedAt; delete cfg.testRoutines; }
   if(!data || data.kind !== 'backup' || !cfg || !Array.isArray(cfg.routines) || !cfg.routines.length){
     return appAlert(tr('backup_invalid')).then(() => false);
   }
