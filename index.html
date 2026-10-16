@@ -45,7 +45,7 @@
 <meta name="color-scheme" content="light dark">
 <title>Routikids</title>
 <!-- The code version lives here (read by the app and by the update check); bump it on every change, with the number of the PR that brings it. -->
-<meta name="app-version" content="Versão do código: 2026-10-16 08:57 · PR #50">
+<meta name="app-version" content="Versão do código: 2026-10-16 19:48 · PR #52">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <!-- Icon and manifest: "Add to home screen" on Android (and iOS) gets the Routikids icon. -->
 <link rel="manifest" href="manifest.webmanifest">
@@ -552,6 +552,7 @@
     background:white; box-shadow:0 0.25em 0 #c9bdf0; color:#b9aee0; font-family:'Baloo 2', sans-serif; font-weight:800; }
   .goal-node.on{ background:linear-gradient(#fff3c4, #ffd76b); box-shadow:0 0.25em 0 #e0a800; }
   .goal-me{ position:absolute; font-size:2.6em; margin:-1.75em 0 0 -0.5em; filter:drop-shadow(0 0.1em 0.15em rgba(0,0,0,0.25)); animation:goal-hop 1s ease-in-out infinite alternate; }
+  .goal-seg{ position:absolute; font-size:1.8em; margin:-0.6em 0 0 -0.5em; }
   .goal-end{ position:absolute; font-size:3em; margin:-0.6em 0 0 -0.5em; filter:drop-shadow(0 0 0.2em rgba(255,193,69,0.9)); }
   .goal-end.won{ animation:goal-hop 0.6s ease-in-out infinite alternate; }
   @keyframes goal-hop{ to{ transform:translateY(-0.2em); } }
@@ -5536,9 +5537,26 @@ function finishedEarly(t, endMin){
 // skipped for the day), rounded up. Today from the day on screen; the week adds the other
 // days' tasks from the routines (Monday to Sunday).
 function countedTasks(list){ return list.filter(t => !t.userSkipped).length; }
-function dayTarget(){
+// The day's target adds up each routine's share (rounded up per routine), so the map can show
+// one stretch per routine with exactly that routine's stops.
+function daySegments(){
   const pct = activeChild().goalDayPct;
-  return pct ? Math.max(1, Math.ceil(countedTasks(tasks) * pct / 100)) : 0;
+  if(!pct) return [];
+  const segs = [];
+  tasks.forEach(t => {
+    if(t.userSkipped) return;
+    let s = segs.find(s => s.id === (t.routineId || null));
+    if(!s) segs.push(s = { id: t.routineId || null, count: 0 });
+    s.count++;
+  });
+  return segs.map(s => {
+    const r = ROUTINES.find(r => r.id === s.id);
+    return { icon: r ? r.icon : '📋', n: Math.ceil(s.count * pct / 100) };
+  });
+}
+function dayTarget(){
+  if(!activeChild().goalDayPct) return 0;
+  return Math.max(1, daySegments().reduce((n, s) => n + s.n, 0));
 }
 function weekTarget(){
   const pct = activeChild().goalWeekPct;
@@ -5661,23 +5679,32 @@ function checkGoalReached(dayBefore){
 // The map's stops: one per 🐆 of the day's target, so every 🐆 won moves the child one stop
 // (with fixed stops a 🐆 sometimes didn't move it, which made no sense to the child). Up to 10
 // stops make one zigzag line; more wind like a board game, 10 a row, left to right, then back.
+// Each routine of the day starts a new row, so its stretch has exactly its own stops.
 // A target above 40 (rare) shares the stops out instead.
 const MAP_MAX_STOPS = 40;
-function mapRows(n){ return Math.max(1, Math.ceil(n / 10)); }
-function mapStops(n){
-  const rows = mapRows(n), per = Math.ceil(n / rows), pts = [];
-  for(let i = 0; i < n; i++){
-    const r = Math.floor(i / per), k = i % per;
-    const x = 6 + k * (80 / Math.max(1, per - 1));
-    const base = rows === 1 ? 54 : 18 + r * (64 / (rows - 1));
-    pts.push([r % 2 ? 92 - x : x, base + (k % 2 ? -1 : 1) * (rows === 1 ? 16 : 7)]);
-  }
-  return pts;
-}
-// Where the 🏆 stands: after the last stop, on the side the last row ends.
-function mapEnd(n){
-  const pts = mapStops(n), last = pts[pts.length - 1], rows = mapRows(n);
-  return rows % 2 ? [94, last[1] - 8] : [2, last[1] - 8];
+// The map, stretch by stretch (one per routine of the day, each on rows of its own): the stops,
+// where each stretch starts (with the routine's picture) and where the 🏆 stands.
+function mapLayout(){
+  let segs = daySegments().filter(s => s.n > 0);
+  if(!segs.length) segs = [{ icon: '📋', n: 1 }];
+  const total = segs.reduce((n, s) => n + s.n, 0);
+  if(total > MAP_MAX_STOPS) segs = segs.map(s => ({ ...s, n: Math.max(1, Math.round(s.n * MAP_MAX_STOPS / total)) }));
+  const rows = segs.reduce((n, s) => n + Math.ceil(s.n / 10), 0);
+  const pts = [], labels = [];
+  let row = 0;
+  segs.forEach(seg => {
+    const segRows = Math.ceil(seg.n / 10), per = Math.ceil(seg.n / segRows);
+    for(let i = 0; i < seg.n; i++){
+      const r = row + Math.floor(i / per), k = i % per;
+      const x = 12 + k * (72 / Math.max(1, per - 1));
+      const base = rows === 1 ? 54 : 18 + r * (64 / (rows - 1));
+      if(i === 0 && segs.length > 1) labels.push({ icon: seg.icon, at: [r % 2 ? 93 : 3, base - 9] });
+      pts.push([r % 2 ? 96 - x : x, base + (k % 2 ? -1 : 1) * (rows === 1 ? 16 : 7)]);
+    }
+    row += segRows;
+  });
+  const last = pts[pts.length - 1];
+  return { pts, rows, labels, end: [(rows - 1) % 2 ? 3 : 93, last[1] - 8] };
 }
 function stopsReached(stars, goal, n){ return Math.min(n, n === goal ? stars : Math.floor(stars * n / goal)); }
 // kind: 'start' (a routine begins), 'rest' (no task running: stays on the hero), 'view' (opened by hand),
@@ -5700,18 +5727,19 @@ function goalCardHtml(kind, opts){
   let html = quiet ? '' : `<div class="goal-title">${title}</div>`;
   const goalDay = dayTarget(), goalWeek = weekTarget();
   if(goalDay){
-    const goal = goalDay, n = Math.min(goal, MAP_MAX_STOPS), rows = mapRows(n);
+    const goal = goalDay, map = mapLayout(), pts = map.pts, end = map.end, n = pts.length, rows = map.rows;
     const reached = stopsReached(stars, goal, n);
     const from = kind === 'jump' ? stopsReached(Math.min(opts.before || 0, stars), goal, n) : reached;
     const left = Math.max(0, goal - stars), extra = Math.max(0, stars - goal);
     html += `<div class="goal-sub${quiet ? ' big' : ''}">${left ? tr('goal_left', { n: `<b class="goal-num">${left}</b>`, icon: ONTIME_ICON }) : tr('goal_reached')}</div>`;
-    const pts = mapStops(n), end = mapEnd(n), start = [pts[0][0] - 5, pts[0][1] + 12];
+    const start = [pts[0][0] - 5, pts[0][1] + 12];
     const path = 'M ' + pts.map(([x, y]) => `${x} ${y}`).join(' L ') + ` L ${end[0]} ${end[1]}`;
     const at = from ? pts[from - 1] : start;
     const hops = []; // one hop per stop won, in order
     for(let k = from; k < reached; k++) hops.push(pts[k].join(','));
     html += `<div class="goal-map rows-${Math.min(rows, 4)}"><svg viewBox="0 0 100 100" preserveAspectRatio="none"><path d="${path}" /></svg>`
       + pts.map(([x, y], i) => `<div class="goal-node${i < from ? ' on' : ''}${i >= from && i < reached ? ' new' : ''}" style="left:${x}%; top:${y}%">${i < reached ? ONTIME_ICON : i + 1}</div>`).join('')
+      + map.labels.map(l => `<div class="goal-seg" style="left:${l.at[0]}%; top:${l.at[1]}%">${l.icon}</div>`).join('')
       + `<div class="goal-me" style="left:${at[0]}%; top:${at[1]}%" data-hops="${hops.join(';')}">${c.icon || '🙂'}</div>`
       + `<div class="goal-end${left ? '' : ' won'}" style="left:${end[0]}%; top:${end[1]}%">🏆${extra ? `<span class="goal-extra">+${extra} ${ONTIME_ICON}</span>` : ''}</div></div>`;
   } else {
@@ -5734,7 +5762,7 @@ function goalCardHtml(kind, opts){
 const GOAL_SECONDS = { start: 15, view: 20, jump: 4.5, day: 12, week: 12 };
 // Fits a short column too; a map of several rows is taller, so everything gets a bit smaller.
 function goalCardFontSize(hero){
-  const t = dayTarget(), rows = t ? mapRows(Math.min(t, MAP_MAX_STOPS)) : 1;
+  const rows = dayTarget() ? mapLayout().rows : 1;
   return Math.max(8, Math.min(hero.clientWidth / 42, hero.clientHeight / (27 + 5 * (Math.min(rows, 4) - 1)))) + 'px';
 }
 function showGoalCard(kind, opts){
