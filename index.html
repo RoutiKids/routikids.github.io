@@ -45,7 +45,7 @@
 <meta name="color-scheme" content="light dark">
 <title>Routikids</title>
 <!-- The code version lives here (read by the app and by the update check); bump it on every change, with the number of the PR that brings it. -->
-<meta name="app-version" content="Versão do código: 2026-10-16 06:27 · PR #48">
+<meta name="app-version" content="Versão do código: 2026-10-16 07:00 · PR #49">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <!-- Icon and manifest: "Add to home screen" on Android (and iOS) gets the Routikids icon. -->
 <link rel="manifest" href="manifest.webmanifest">
@@ -561,7 +561,10 @@
   .goal-me{ transition:left 0.9s ease-in-out, top 0.9s ease-in-out; }
   .goal-me.hop{ animation:goal-leap 0.9s ease-in-out; }
   @keyframes goal-leap{ 50%{ transform:translateY(-1.4em) scale(1.15); } }
-  .goal-node.new.on{ animation:star-pop 0.5s ease 0.6s both; }
+  .goal-node.new.on{ animation:star-pop 0.5s ease both; }
+  .goal-map.rows-2{ height:17em; } .goal-map.rows-3{ height:21em; } .goal-map.rows-4{ height:24em; }
+  .goal-map.rows-2 .goal-node, .goal-map.rows-3 .goal-node, .goal-map.rows-4 .goal-node{ width:2.1em; height:2.1em; margin:-1.05em 0 0 -1.05em; font-size:1.15em; }
+  .goal-extra{ position:absolute; left:50%; top:100%; transform:translateX(-50%); white-space:nowrap; font-family:'Baloo 2', sans-serif; font-weight:800; font-size:0.4em; color:#b07800; background:white; border-radius:99px; padding:0 0.4em; }
   .goal-next{ display:flex; align-items:center; gap:0.5em; background:white; border-radius:99px; padding:0.45em 1.2em; font-family:'Baloo 2', sans-serif; font-weight:800; font-size:1.3em; box-shadow:0 0.2em 0.6em rgba(29,53,87,0.12); }
   .goal-next small{ font-family:'Nunito', sans-serif; font-weight:700; color:#5b6b80; font-size:0.8em; }
   .goal-back{ font-family:'Baloo 2', sans-serif; font-weight:800; font-size:1.2em; background:#ffe7a8; color:var(--navy); border:none; border-radius:99px; padding:0.4em 1.2em; cursor:pointer; }
@@ -5653,13 +5656,28 @@ function checkGoalReached(dayBefore){
 }
 // The map (a path of stops, one per star of the day's goal, at most 10, the child's
 // picture on the last one reached and 🏆 at the end) and the week's bar, over the hero.
-// The map's stops: one per star of the day's target (at most 10), along a zigzag to the 🏆.
+// The map's stops: one per 🐆 of the day's target, so every 🐆 won moves the child one stop
+// (with fixed stops a 🐆 sometimes didn't move it, which made no sense to the child). Up to 10
+// stops make one zigzag line; more wind like a board game, 10 a row, left to right, then back.
+// A target above 40 (rare) shares the stops out instead.
+const MAP_MAX_STOPS = 40;
+function mapRows(n){ return Math.max(1, Math.ceil(n / 10)); }
 function mapStops(n){
-  const pts = [];
-  for(let i = 0; i < n; i++) pts.push([6 + i * (80 / Math.max(1, n - 1)), i % 2 ? 38 : 70]);
+  const rows = mapRows(n), per = Math.ceil(n / rows), pts = [];
+  for(let i = 0; i < n; i++){
+    const r = Math.floor(i / per), k = i % per;
+    const x = 6 + k * (80 / Math.max(1, per - 1));
+    const base = rows === 1 ? 54 : 18 + r * (64 / (rows - 1));
+    pts.push([r % 2 ? 92 - x : x, base + (k % 2 ? -1 : 1) * (rows === 1 ? 16 : 7)]);
+  }
   return pts;
 }
-function stopsReached(stars, goal, n){ return Math.min(n, Math.floor(stars * n / goal)); }
+// Where the 🏆 stands: after the last stop, on the side the last row ends.
+function mapEnd(n){
+  const pts = mapStops(n), last = pts[pts.length - 1], rows = mapRows(n);
+  return rows % 2 ? [94, last[1] - 8] : [2, last[1] - 8];
+}
+function stopsReached(stars, goal, n){ return Math.min(n, n === goal ? stars : Math.floor(stars * n / goal)); }
 // kind: 'start' (a routine begins), 'rest' (no task running: stays on the hero), 'view' (opened by hand),
 // 'jump' (a task just done: the child's picture hops to its new stop), 'day' / 'week' (a goal reached).
 function goalCardHtml(kind, opts){
@@ -5678,17 +5696,20 @@ function goalCardHtml(kind, opts){
   let html = `<div class="goal-title">${title}</div>`;
   const goalDay = dayTarget(), goalWeek = weekTarget();
   if(goalDay){
-    const goal = goalDay, n = Math.min(goal, 10);
+    const goal = goalDay, n = Math.min(goal, MAP_MAX_STOPS), rows = mapRows(n);
     const reached = stopsReached(stars, goal, n);
     const from = kind === 'jump' ? stopsReached(Math.min(opts.before || 0, stars), goal, n) : reached;
-    const left = Math.max(0, goal - stars);
+    const left = Math.max(0, goal - stars), extra = Math.max(0, stars - goal);
     html += `<div class="goal-sub">${left ? tr('goal_left', { n: left, icon: ONTIME_ICON }) : tr('goal_reached')}</div>`;
-    const pts = mapStops(n);
-    const path = 'M ' + pts.map(([x, y]) => `${x} ${y}`).join(' L ') + ' L 94 24';
-    const at = from ? pts[from - 1] : [1, 82], to = reached ? pts[reached - 1] : [1, 82];
-    html += `<div class="goal-map"><svg viewBox="0 0 100 100" preserveAspectRatio="none"><path d="${path}" /></svg>`
+    const pts = mapStops(n), end = mapEnd(n), start = [pts[0][0] - 5, pts[0][1] + 12];
+    const path = 'M ' + pts.map(([x, y]) => `${x} ${y}`).join(' L ') + ` L ${end[0]} ${end[1]}`;
+    const at = from ? pts[from - 1] : start;
+    const hops = []; // one hop per stop won, in order
+    for(let k = from; k < reached; k++) hops.push(pts[k].join(','));
+    html += `<div class="goal-map rows-${Math.min(rows, 4)}"><svg viewBox="0 0 100 100" preserveAspectRatio="none"><path d="${path}" /></svg>`
       + pts.map(([x, y], i) => `<div class="goal-node${i < from ? ' on' : ''}${i >= from && i < reached ? ' new' : ''}" style="left:${x}%; top:${y}%">${i < reached ? ONTIME_ICON : i + 1}</div>`).join('')
-      + `<div class="goal-me" style="left:${at[0]}%; top:${at[1]}%" data-to="${to[0]},${to[1]}">${c.icon || '🙂'}</div><div class="goal-end${left ? '' : ' won'}" style="left:94%; top:24%">🏆</div></div>`;
+      + `<div class="goal-me" style="left:${at[0]}%; top:${at[1]}%" data-hops="${hops.join(';')}">${c.icon || '🙂'}</div>`
+      + `<div class="goal-end${left ? '' : ' won'}" style="left:${end[0]}%; top:${end[1]}%">🏆${extra ? `<span class="goal-extra">+${extra} ${ONTIME_ICON}</span>` : ''}</div></div>`;
   } else {
     html += `<div class="goal-big">${ONTIME_ICON} ${stars}</div><div class="goal-sub">${tr('goal_today_count')}</div>`;
   }
@@ -5707,7 +5728,11 @@ function goalCardHtml(kind, opts){
 }
 // A card over the hero for a few seconds (the 'rest' one is kept by updateRestMap instead).
 const GOAL_SECONDS = { start: 15, view: 20, jump: 4.5, day: 12, week: 12 };
-function goalCardFontSize(hero){ return Math.max(8, Math.min(hero.clientWidth / 42, hero.clientHeight / 27)) + 'px'; } // fits a short column too
+// Fits a short column too; a map of several rows is taller, so everything gets a bit smaller.
+function goalCardFontSize(hero){
+  const t = dayTarget(), rows = t ? mapRows(Math.min(t, MAP_MAX_STOPS)) : 1;
+  return Math.max(8, Math.min(hero.clientWidth / 42, hero.clientHeight / (27 + 5 * (Math.min(rows, 4) - 1)))) + 'px';
+}
 function showGoalCard(kind, opts){
   if(!starsOn()) return;
   const hero = heroEl;
@@ -5719,13 +5744,16 @@ function showGoalCard(kind, opts){
   card.addEventListener('click', () => card.remove());
   hero.appendChild(card);
   setTimeout(() => card.remove(), GOAL_SECONDS[kind] * 1000);
-  if(kind === 'jump'){ // the child's picture hops to its new stop, and the stops won light up
+  if(kind === 'jump'){ // the child's picture hops stop by stop (two for finishing early), each lighting up
     const me = card.querySelector('.goal-me');
-    setTimeout(() => {
-      const to = me && (me.dataset.to || '').split(',');
-      if(to && to.length === 2 && (me.style.left !== to[0] + '%' || me.style.top !== to[1] + '%')){ me.classList.add('hop'); me.style.left = to[0] + '%'; me.style.top = to[1] + '%'; }
-      card.querySelectorAll('.goal-node.new').forEach(n => n.classList.add('on'));
-    }, 500);
+    const hops = me && me.dataset.hops ? me.dataset.hops.split(';') : [];
+    const nodes = card.querySelectorAll('.goal-node.new');
+    hops.forEach((h, k) => setTimeout(() => {
+      const [x, y] = h.split(',');
+      me.classList.remove('hop'); void me.offsetWidth; me.classList.add('hop');
+      me.style.left = x + '%'; me.style.top = y + '%';
+      if(nodes[k]) nodes[k].classList.add('on');
+    }, 500 + k * 1000));
   }
   if(kind === 'day' || kind === 'week'){
     playFamilyAudio(childAudio(activeChild(), 'goal'), fanfare);
