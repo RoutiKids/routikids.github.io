@@ -22,7 +22,7 @@
 <meta property="og:video:width" content="1280">
 <meta property="og:video:height" content="720">
 <meta name="twitter:card" content="summary_large_image">
-<!-- Demo page: the narrated demo video (English or Portuguese: ?lang=, else the
+<!-- Demo page: the narrated demo video (English, Portuguese or German: ?lang=, else the
      browser's language) and a way into the app. Plain on purpose:
      no web fonts or scripts from other sites. The video is made by recording the
      real app (see CLAUDE.md, "Demo video"). Visits and how much of the video is
@@ -48,7 +48,7 @@
 </head>
 <body>
 <main>
-  <p class="langs"><a href="?lang=en" data-lang="en">English</a> · <a href="?lang=pt" data-lang="pt">Português</a></p>
+  <p class="langs"><a href="?lang=en" data-lang="en">English</a> · <a href="?lang=pt" data-lang="pt">Português</a> · <a href="?lang=de" data-lang="de">Deutsch</a></p>
   <h1>📺 Routikids</h1>
   <p class="lead" data-t="lead">Your TV as a picture routine chart for kids. Here is how it works, in about a minute.</p>
   <video controls playsinline preload="metadata" poster="poster.jpg" src="routikids-demo-en.mp4"></video>
@@ -64,16 +64,19 @@
             video: 'routikids-demo-en.mp4', poster: 'poster.jpg', title: 'Routikids · 1 minute demo' },
       pt: { lead: 'Sua TV como um quadro de rotina com figuras para as crianças. Veja como funciona em cerca de um minuto.', cta: 'Experimentar o Routikids ▶',
             free: 'Grátis · sem cadastro · Português, English, Deutsch', questions: 'Dúvidas ou ideias:', privacy: 'Privacidade',
-            video: 'routikids-demo-pt.mp4', poster: 'poster-pt.jpg', title: 'Routikids · demonstração de 1 minuto' }
+            video: 'routikids-demo-pt.mp4', poster: 'poster-pt.jpg', title: 'Routikids · demonstração de 1 minuto' },
+      de: { lead: 'Euer Fernseher als Bilder-Routineplan für Kinder. So funktioniert es, in etwa einer Minute.', cta: 'Routikids ausprobieren ▶',
+            free: 'Kostenlos · ohne Anmeldung · Deutsch, English, Português', questions: 'Fragen oder Ideen:', privacy: 'Datenschutz',
+            video: 'routikids-demo-de.mp4', poster: 'poster-de.jpg', title: 'Routikids · Demo in 1 Minute' }
     };
     var lang = new URLSearchParams(location.search).get('lang');
     if(!T[lang]){
       var prefs = (navigator.languages && navigator.languages.length) ? navigator.languages : [navigator.language || 'en'];
       lang = 'en';
-      for(var i = 0; i < prefs.length; i++){ if(String(prefs[i]).slice(0, 2).toLowerCase() === 'pt'){ lang = 'pt'; break; } if(String(prefs[i]).slice(0, 2).toLowerCase() === 'en') break; }
+      for(var i = 0; i < prefs.length; i++){ var p = String(prefs[i]).slice(0, 2).toLowerCase(); if(T[p]){ lang = p; break; } }
     }
     var t = T[lang];
-    document.documentElement.lang = lang === 'pt' ? 'pt-BR' : 'en';
+    document.documentElement.lang = { pt: 'pt-BR', de: 'de', en: 'en' }[lang];
     document.title = t.title;
     document.querySelectorAll('[data-t]').forEach(function(el){ el.textContent = t[el.getAttribute('data-t')]; });
     var v = document.querySelector('video');
