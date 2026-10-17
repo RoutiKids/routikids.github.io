@@ -45,7 +45,7 @@
 <meta name="color-scheme" content="light dark">
 <title>Routikids</title>
 <!-- The code version lives here (read by the app and by the update check); bump it on every change, with the number of the PR that brings it. -->
-<meta name="app-version" content="Versão do código: 2026-10-16 20:35 · PR #54">
+<meta name="app-version" content="Versão do código: 2026-10-17 20:15 · PR #55">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <!-- Icon and manifest: "Add to home screen" on Android (and iOS) gets the Routikids icon. -->
 <link rel="manifest" href="manifest.webmanifest">
@@ -1673,6 +1673,9 @@
     border:none; border-radius:999px; background:rgba(29,53,87,0.08); color:var(--navy); padding:0.5vh 0.8vw; cursor:pointer;
   }
   .task-row .row-actions button[hidden]{ display:none; }
+  .insert-task-btn{ display:block; margin:-0.3vh auto; padding:0.2vh 1vw; border:1px dashed rgba(29,53,87,0.25); border-radius:999px; background:transparent;
+    color:rgba(29,53,87,0.6); font-family:'Nunito', sans-serif; font-weight:700; font-size:clamp(12px, 0.8vw, 16px); cursor:pointer; }
+  .insert-task-btn:hover, .insert-task-btn:focus{ background:rgba(29,53,87,0.06); color:var(--navy); }
   .settings-add-btn{
     font-family:'Baloo 2', sans-serif;
     font-weight:700;
@@ -1687,7 +1690,7 @@
   }
   #routine-oneday-row{ margin:0.6vh 0; }
   #routine-oneday-row[hidden], #routine-oneday-note[hidden], #routine-oneday-dates[hidden], #routine-days-field[hidden], #routine-tasks-area[hidden], #routine-delete-btn[hidden]{ display:none; }
-  #routine-oneday-btn{ background:white; color:var(--navy); border:2px solid rgba(29,53,87,0.2); }
+  #routine-oneday-btn, #routine-duplicate-btn{ background:white; color:var(--navy); border:2px solid rgba(29,53,87,0.2); }
   #routine-oneday-dates{ display:flex; flex-wrap:wrap; gap:0.5vw; align-items:center; margin-top:0.8vh; }
   #routine-oneday-dates .settings-hint{ width:100%; margin:0; }
   .oneday-date{ font-family:'Nunito', sans-serif; font-weight:800; border:2px solid rgba(29,53,87,0.15); background:white; color:var(--navy); border-radius:999px; padding:0.6vh 1vw; cursor:pointer; font-size:clamp(14px, 1vw, 20px); }
@@ -1958,6 +1961,7 @@
         <!-- "📅 Mudar só um dia": a version of this routine for one date (the other weeks stay) -->
         <div id="routine-oneday-row">
           <button type="button" id="routine-oneday-btn" class="util-btn" data-i18n="oneday_btn"></button>
+          <button type="button" id="routine-duplicate-btn" class="util-btn" data-i18n="duplicate_routine"></button>
           <div id="routine-oneday-dates" hidden></div>
         </div>
         <div id="routine-oneday-note" hidden>
@@ -2381,6 +2385,9 @@ const I18N = {
     add_template: "✔ Criar",
     routine_name_ph: "Nome da rotina",
     delete_routine: "🗑 Excluir esta rotina",
+    duplicate_routine: "📑 Duplicar rotina",
+    routine_copy_name: "{name} (cópia)",
+    insert_task: "＋ Inserir tarefa aqui",
     tasks_heading: "Tarefas: {routine}",
     copy_task: "📋 Copiar tarefa existente",
     copy_task_head: "Toque numa tarefa para copiar para esta rotina:",
@@ -2824,6 +2831,9 @@ const I18N = {
     add_template: "✔ Create",
     routine_name_ph: "Routine name",
     delete_routine: "🗑 Delete this routine",
+    duplicate_routine: "📑 Duplicate routine",
+    routine_copy_name: "{name} (copy)",
+    insert_task: "＋ Insert a task here",
     tasks_heading: "Tasks: {routine}",
     copy_task: "📋 Copy an existing task",
     copy_task_head: "Tap a task to copy it into this routine:",
@@ -3267,6 +3277,9 @@ const I18N = {
     add_template: "✔ Erstellen",
     routine_name_ph: "Name der Routine",
     delete_routine: "🗑 Diese Routine löschen",
+    duplicate_routine: "📑 Routine duplizieren",
+    routine_copy_name: "{name} (Kopie)",
+    insert_task: "＋ Aufgabe hier einfügen",
     tasks_heading: "Aufgaben: {routine}",
     copy_task: "📋 Vorhandene Aufgabe kopieren",
     copy_task_head: "Tippe auf eine Aufgabe, um sie in diese Routine zu kopieren:",
@@ -7236,6 +7249,21 @@ document.getElementById('routine-icon-picker').addEventListener('click', (e) => 
   renderRoutineTabs();
   renderWeekMatrix();
 });
+// "📑 Duplicar rotina": a copy with the same tasks and settings, on no day yet, to edit as a base.
+document.getElementById('routine-duplicate-btn').addEventListener('click', () => {
+  const src = draftRoutines[selectedRoutineIndex];
+  if(!src) return;
+  const copy = JSON.parse(JSON.stringify(src));
+  copy.id = 'r_' + Date.now();
+  copy.name = tr('routine_copy_name', { name: src.name || tr('routine_fallback') });
+  delete copy.onDate; delete copy.baseId; delete copy.off;
+  draftRoutines.push(copy);
+  selectRoutine(draftRoutines.length - 1);
+  document.getElementById('routine-details').open = true; // name and days first
+  const input = document.getElementById('routine-name-input');
+  if(input){ input.focus(); input.select(); }
+  renderWeekMatrix();
+});
 document.getElementById('routine-delete-btn').addEventListener('click', () => {
   if(childRoutineIndexes().filter(i => !draftRoutines[i].onDate).length <= 1){
     appAlert(tr('need_one_routine'));
@@ -7325,6 +7353,7 @@ document.getElementById('routine-days').addEventListener('click', (e) => {
 let openPickerIdx = null;
 function renderSettingsRows(){
   settingsTasksList.innerHTML = draftTasks.map((t, i) => `
+    ${i ? `<button type="button" class="insert-task-btn" data-at="${i}">${tr('insert_task')}</button>` : ''}
     <div class="task-row" data-index="${i}">
       <button type="button" class="emoji-preview" data-index="${i}" title="${tr('change_picture')}">${t.emoji}</button>
       <input type="text" class="settings-text-input task-name-input" data-field="name" data-index="${i}" value="${t.name.replace(/"/g,'&quot;')}" placeholder="${tr('task_name_ph')}">
@@ -7467,6 +7496,20 @@ settingsTasksList.addEventListener('click', (e) => {
     renderSettingsRows();
     return;
   }
+  // "＋ Inserir tarefa aqui" between two tasks: a new 10-minute task right there (the later ones move along)
+  const insertBtn = e.target.closest('.insert-task-btn');
+  if(insertBtn){
+    const at = parseInt(insertBtn.dataset.at, 10);
+    const start = draftMinutes(draftTasks[0].start);
+    const task = newDraftTask(draftMinutes(draftTasks[at - 1].end));
+    draftTasks.splice(at, 0, task);
+    chainDraftTasks(start);
+    openPickerIdx = at; // a new task needs a picture
+    renderSettingsRows();
+    const input = settingsTasksList.querySelector(`.task-name-input[data-index="${at}"]`);
+    if(input){ input.focus(); input.select(); }
+    return;
+  }
   const upBtn = e.target.closest('.row-up');
   if(upBtn && !upBtn.hidden){
     const i = parseInt(upBtn.dataset.index,10);
@@ -7536,17 +7579,20 @@ document.getElementById('copy-task-list').addEventListener('click', (e) => {
   openPickerIdx = null;
   renderSettingsRows();
 });
-document.getElementById('settings-add-task').addEventListener('click', () => {
-  const last = draftTasks[draftTasks.length-1];
-  const lastEndMin = last ? toMinutes(hhmmToArr(last.end)) : (8*60);
-  draftTasks.push({
+function newDraftTask(startMin){
+  const end = (startMin + 10) % 1440;
+  return {
     name: tr('new_task'),
     emoji: '⭐',
-    start: arrToHHMM([Math.floor(lastEndMin/60), lastEndMin%60]),
-    end: arrToHHMM([Math.floor((lastEndMin+10)/60), (lastEndMin+10)%60]),
+    start: arrToHHMM([Math.floor(startMin/60) % 24, startMin%60]),
+    end: arrToHHMM([Math.floor(end/60), end%60]),
     soundType: 'chime',
     soundUrl: ''
-  });
+  };
+}
+document.getElementById('settings-add-task').addEventListener('click', () => {
+  const last = draftTasks[draftTasks.length-1];
+  draftTasks.push(newDraftTask(last ? toMinutes(hhmmToArr(last.end)) : (8*60)));
   openPickerIdx = draftTasks.length - 1; // a new task needs a picture
   renderSettingsRows();
 });
