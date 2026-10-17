@@ -45,7 +45,7 @@
 <meta name="color-scheme" content="light dark">
 <title>Routikids</title>
 <!-- The code version lives here (read by the app and by the update check); bump it on every change, with the number of the PR that brings it. -->
-<meta name="app-version" content="Versão do código: 2026-10-17 20:15 · PR #55">
+<meta name="app-version" content="Versão do código: 2026-10-17 22:09 · PR #56">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <!-- Icon and manifest: "Add to home screen" on Android (and iOS) gets the Routikids icon. -->
 <link rel="manifest" href="manifest.webmanifest">
@@ -1673,9 +1673,10 @@
     border:none; border-radius:999px; background:rgba(29,53,87,0.08); color:var(--navy); padding:0.5vh 0.8vw; cursor:pointer;
   }
   .task-row .row-actions button[hidden]{ display:none; }
-  .insert-task-btn{ display:block; margin:-0.3vh auto; padding:0.2vh 1vw; border:1px dashed rgba(29,53,87,0.25); border-radius:999px; background:transparent;
-    color:rgba(29,53,87,0.6); font-family:'Nunito', sans-serif; font-weight:700; font-size:clamp(12px, 0.8vw, 16px); cursor:pointer; }
-  .insert-task-btn:hover, .insert-task-btn:focus{ background:rgba(29,53,87,0.06); color:var(--navy); }
+  .insert-row{ display:flex; justify-content:center; gap:0.6vw; margin:-0.3vh 0; }
+  .insert-task-btn, .insert-copy-btn{ display:block; padding:0.2vh 1vw; border:1px dashed rgba(29,53,87,0.25); border-radius:999px; background:transparent;
+    color:rgba(29,53,87,0.6); font-family:'Nunito', sans-serif; font-weight:700; font-size:clamp(12px, 0.8vw, 16px); cursor:pointer; margin:0; }
+  .insert-task-btn:hover, .insert-task-btn:focus, .insert-copy-btn:hover, .insert-copy-btn:focus{ background:rgba(29,53,87,0.06); color:var(--navy); }
   .settings-add-btn{
     font-family:'Baloo 2', sans-serif;
     font-weight:700;
@@ -1962,6 +1963,7 @@
         <div id="routine-oneday-row">
           <button type="button" id="routine-oneday-btn" class="util-btn" data-i18n="oneday_btn"></button>
           <button type="button" id="routine-duplicate-btn" class="util-btn" data-i18n="duplicate_routine"></button>
+          <button type="button" id="routine-delete-btn" class="util-btn" data-i18n="delete_routine"></button>
           <div id="routine-oneday-dates" hidden></div>
         </div>
         <div id="routine-oneday-note" hidden>
@@ -1988,7 +1990,6 @@
             <span class="settings-label" data-i18n="deadline_colon"></span>
             <input type="time" id="routine-limit-input" class="settings-time-input">
           </div>
-          <button type="button" id="routine-delete-btn" data-i18n="delete_routine"></button>
         </details>
         <div id="conflict-warning"></div>
 
@@ -2387,7 +2388,13 @@ const I18N = {
     delete_routine: "🗑 Excluir esta rotina",
     duplicate_routine: "📑 Duplicar rotina",
     routine_copy_name: "{name} (cópia)",
-    insert_task: "＋ Inserir tarefa aqui",
+    insert_task: "＋ Nova tarefa aqui",
+    insert_copy: "📋 Copiar tarefa aqui",
+    copy_task_head_at: "Copiar para depois de {task}:",
+    duplicate_confirm: "Duplicar a rotina \"{name}\"? A cópia fica sem dias marcados até você escolher.",
+    duplicate_yes: "📑 Duplicar",
+    delete_confirm: "Excluir a rotina \"{name}\" com todas as tarefas dela? Isso vale depois de Salvar.",
+    delete_yes: "🗑 Excluir",
     tasks_heading: "Tarefas: {routine}",
     copy_task: "📋 Copiar tarefa existente",
     copy_task_head: "Toque numa tarefa para copiar para esta rotina:",
@@ -2833,7 +2840,13 @@ const I18N = {
     delete_routine: "🗑 Delete this routine",
     duplicate_routine: "📑 Duplicate routine",
     routine_copy_name: "{name} (copy)",
-    insert_task: "＋ Insert a task here",
+    insert_task: "＋ New task here",
+    insert_copy: "📋 Copy a task here",
+    copy_task_head_at: "Copy to after {task}:",
+    duplicate_confirm: "Duplicate the routine \"{name}\"? The copy has no days until you pick them.",
+    duplicate_yes: "📑 Duplicate",
+    delete_confirm: "Delete the routine \"{name}\" with all its tasks? It takes effect when you save.",
+    delete_yes: "🗑 Delete",
     tasks_heading: "Tasks: {routine}",
     copy_task: "📋 Copy an existing task",
     copy_task_head: "Tap a task to copy it into this routine:",
@@ -3279,7 +3292,13 @@ const I18N = {
     delete_routine: "🗑 Diese Routine löschen",
     duplicate_routine: "📑 Routine duplizieren",
     routine_copy_name: "{name} (Kopie)",
-    insert_task: "＋ Aufgabe hier einfügen",
+    insert_task: "＋ Neue Aufgabe hier",
+    insert_copy: "📋 Aufgabe hierher kopieren",
+    copy_task_head_at: "Kopieren nach {task}:",
+    duplicate_confirm: "Die Routine \"{name}\" duplizieren? Die Kopie hat keine Tage, bis du sie auswählst.",
+    duplicate_yes: "📑 Duplizieren",
+    delete_confirm: "Die Routine \"{name}\" mit allen Aufgaben löschen? Das gilt nach dem Speichern.",
+    delete_yes: "🗑 Löschen",
     tasks_heading: "Aufgaben: {routine}",
     copy_task: "📋 Vorhandene Aufgabe kopieren",
     copy_task_head: "Tippe auf eine Aufgabe, um sie in diese Routine zu kopieren:",
@@ -7091,6 +7110,7 @@ function selectRoutine(idx){
   openPickerIdx = null;
   document.getElementById('routine-oneday-dates').hidden = true;
   document.getElementById('copy-task-list').hidden = true;
+  copyInsertAt = null;
   document.getElementById('routine-details').open = false;
   selectedRoutineIndex = idx;
   draftTasks = draftRoutines[idx].tasks;
@@ -7250,9 +7270,10 @@ document.getElementById('routine-icon-picker').addEventListener('click', (e) => 
   renderWeekMatrix();
 });
 // "📑 Duplicar rotina": a copy with the same tasks and settings, on no day yet, to edit as a base.
-document.getElementById('routine-duplicate-btn').addEventListener('click', () => {
+document.getElementById('routine-duplicate-btn').addEventListener('click', async () => {
   const src = draftRoutines[selectedRoutineIndex];
   if(!src) return;
+  if(!(await appConfirm(tr('duplicate_confirm', { name: src.name || tr('routine_fallback') }), tr('duplicate_yes')))) return;
   const copy = JSON.parse(JSON.stringify(src));
   copy.id = 'r_' + Date.now();
   copy.name = tr('routine_copy_name', { name: src.name || tr('routine_fallback') });
@@ -7264,11 +7285,13 @@ document.getElementById('routine-duplicate-btn').addEventListener('click', () =>
   if(input){ input.focus(); input.select(); }
   renderWeekMatrix();
 });
-document.getElementById('routine-delete-btn').addEventListener('click', () => {
+document.getElementById('routine-delete-btn').addEventListener('click', async () => {
   if(childRoutineIndexes().filter(i => !draftRoutines[i].onDate).length <= 1){
     appAlert(tr('need_one_routine'));
     return;
   }
+  const r = draftRoutines[selectedRoutineIndex];
+  if(!(await appConfirm(tr('delete_confirm', { name: r.name || tr('routine_fallback') }), tr('delete_yes')))) return;
   const removedId = draftRoutines[selectedRoutineIndex].id;
   draftRoutines.splice(selectedRoutineIndex, 1);
   draftRoutines = draftRoutines.filter(x => x.baseId !== removedId); // its one-day versions go too
@@ -7353,7 +7376,7 @@ document.getElementById('routine-days').addEventListener('click', (e) => {
 let openPickerIdx = null;
 function renderSettingsRows(){
   settingsTasksList.innerHTML = draftTasks.map((t, i) => `
-    ${i ? `<button type="button" class="insert-task-btn" data-at="${i}">${tr('insert_task')}</button>` : ''}
+    ${i ? `<div class="insert-row"><button type="button" class="insert-task-btn" data-at="${i}">${tr('insert_task')}</button><button type="button" class="insert-copy-btn" data-at="${i}">${tr('insert_copy')}</button></div>` : ''}
     <div class="task-row" data-index="${i}">
       <button type="button" class="emoji-preview" data-index="${i}" title="${tr('change_picture')}">${t.emoji}</button>
       <input type="text" class="settings-text-input task-name-input" data-field="name" data-index="${i}" value="${t.name.replace(/"/g,'&quot;')}" placeholder="${tr('task_name_ph')}">
@@ -7510,6 +7533,12 @@ settingsTasksList.addEventListener('click', (e) => {
     if(input){ input.focus(); input.select(); }
     return;
   }
+  // "📋 Copiar tarefa aqui": the list of tasks to copy, for this place
+  const insertCopyBtn = e.target.closest('.insert-copy-btn');
+  if(insertCopyBtn){
+    openCopyTaskList(parseInt(insertCopyBtn.dataset.at, 10));
+    return;
+  }
   const upBtn = e.target.closest('.row-up');
   if(upBtn && !upBtn.hidden){
     const i = parseInt(upBtn.dataset.index,10);
@@ -7533,13 +7562,17 @@ settingsTasksList.addEventListener('click', (e) => {
 // "📋 Copiar tarefa existente": the family's tasks from the other routines (one of each
 // picture and name, not those already in this routine). A tap adds an independent copy
 // at the end of this routine, with the same picture, name, duration, sound and "✂️".
+// Where "📋 Copiar" puts the copy: null = at the end (the button under the list), or the place
+// of a "📋 Copiar tarefa aqui" between two tasks (then this routine's own tasks are offered too).
+let copyInsertAt = null;
 function copyableTasks(){
-  const here = new Set(draftTasks.map(t => `${t.emoji}|${t.name.trim().toLowerCase()}`));
+  const here = new Set(copyInsertAt === null ? draftTasks.map(t => `${t.emoji}|${t.name.trim().toLowerCase()}`) : []);
   const seen = new Set();
   const out = [];
   const order = draftRoutines.map((r, i) => i).sort((a, b) => (draftRoutines[a].childId === selectedChildId ? 0 : 1) - (draftRoutines[b].childId === selectedChildId ? 0 : 1));
+  if(copyInsertAt !== null) order.unshift(order.splice(order.indexOf(selectedRoutineIndex), 1)[0]); // this routine's first
   order.forEach(i => {
-    if(i === selectedRoutineIndex) return;
+    if(i === selectedRoutineIndex && copyInsertAt === null) return;
     const r = draftRoutines[i];
     (r.tasks || []).forEach(t => {
       const key = `${t.emoji}|${(t.name || '').trim().toLowerCase()}`;
@@ -7553,31 +7586,47 @@ function copyableTasks(){
 function renderCopyTaskList(){
   const box = document.getElementById('copy-task-list');
   const items = copyableTasks();
-  box.innerHTML = `<div class="copy-task-head">${tr('copy_task_head')}</div>` + (items.length
+  const head = copyInsertAt !== null && draftTasks[copyInsertAt - 1]
+    ? tr('copy_task_head_at', { task: `${escHtml(draftTasks[copyInsertAt - 1].emoji)} ${escHtml(draftTasks[copyInsertAt - 1].name)}` }) : tr('copy_task_head');
+  box.innerHTML = `<div class="copy-task-head">${head}</div>` + (items.length
     ? items.map(({ t, r }, k) => `<button type="button" class="copy-task-item" data-k="${k}">${escHtml(t.emoji)} <b>${escHtml(t.name)}</b> <span>${tr('n_min', { n: draftDuration(t) })} · ${escHtml(r.icon)} ${escHtml(r.name)}</span></button>`).join('')
     : `<p class="settings-hint">${tr('copy_task_none')}</p>`);
   box._items = items;
 }
+function openCopyTaskList(at){
+  const box = document.getElementById('copy-task-list');
+  copyInsertAt = at;
+  box.hidden = false;
+  renderCopyTaskList();
+  const first = box.querySelector('button');
+  if(first) first.focus({ preventScroll: true });
+  if(at !== null) box.scrollIntoView({ block: 'center', behavior: 'smooth' }); // the list is under the tasks
+}
 document.getElementById('settings-copy-task').addEventListener('click', () => {
   const box = document.getElementById('copy-task-list');
-  box.hidden = !box.hidden;
-  if(!box.hidden){ renderCopyTaskList(); const first = box.querySelector('button'); if(first) first.focus({ preventScroll: true }); }
+  if(!box.hidden && copyInsertAt === null){ box.hidden = true; return; }
+  openCopyTaskList(null);
 });
 document.getElementById('copy-task-list').addEventListener('click', (e) => {
   const btn = e.target.closest('.copy-task-item');
   const box = document.getElementById('copy-task-list');
   if(!btn || !box._items) return;
   const { t } = box._items[parseInt(btn.dataset.k, 10)];
-  const last = draftTasks[draftTasks.length - 1];
-  const startMin = last ? draftMinutes(last.end) : 8 * 60;
+  const at = copyInsertAt !== null && copyInsertAt <= draftTasks.length ? copyInsertAt : draftTasks.length;
+  const routineStart = draftTasks.length ? draftMinutes(draftTasks[0].start) : undefined;
+  const before = draftTasks[at - 1];
+  const startMin = before ? draftMinutes(before.end) : 8 * 60;
   const copy = JSON.parse(JSON.stringify(t));
   copy.start = arrToHHMM([Math.floor(startMin / 60) % 24, startMin % 60]);
   setDraftDuration(copy, draftDuration(t));
-  draftTasks.push(copy);
-  chainDraftTasks();
+  draftTasks.splice(at, 0, copy);
+  chainDraftTasks(routineStart);
   box.hidden = true;
+  copyInsertAt = null;
   openPickerIdx = null;
   renderSettingsRows();
+  const row = settingsTasksList.querySelector(`.task-row[data-index="${at}"]`);
+  if(row) row.scrollIntoView({ block: 'center' });
 });
 function newDraftTask(startMin){
   const end = (startMin + 10) % 1440;
