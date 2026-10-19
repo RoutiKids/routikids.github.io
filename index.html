@@ -45,7 +45,7 @@
 <meta name="color-scheme" content="light dark">
 <title>Routikids</title>
 <!-- The code version lives here (read by the app and by the update check); bump it on every change, with the number of the PR that brings it. -->
-<meta name="app-version" content="Versão do código: 2026-10-17 22:09 · PR #56">
+<meta name="app-version" content="Versão do código: 2026-10-19 14:04 · PR #57">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <!-- Icon and manifest: "Add to home screen" on Android (and iOS) gets the Routikids icon. -->
 <link rel="manifest" href="manifest.webmanifest">
@@ -1271,6 +1271,40 @@
   #routine-child-switch[hidden], #sound-child-switch[hidden], .sound-row[hidden]{ display:none; }
   #sound-child-switch{ display:flex; flex-wrap:wrap; align-items:center; gap:0.6vw; margin-bottom:1.2vh; }
   #sound-child-switch .settings-label{ margin:0; }
+  /* 📊 Progresso: tiles, the last 14 days as bars (on time, late striped, skipped), weekdays, tasks */
+  #progress-child-switch{ display:flex; flex-wrap:wrap; align-items:center; gap:0.6vw; margin-bottom:1.2vh; }
+  #progress-child-switch[hidden]{ display:none; }
+  #progress-child-switch .settings-label{ margin:0; }
+  #progress-body h3{ margin:2.2vh 0 0.8vh; }
+  #progress-body .settings-hint{ margin-top:1vh; }
+  .progress-tiles{ display:flex; flex-wrap:wrap; gap:10px; }
+  .progress-tile{ flex:1 1 120px; background:white; border-radius:14px; padding:10px 14px; box-shadow:0 1px 0 rgba(29,53,87,0.08); }
+  .progress-tile b{ display:block; font-family:'Baloo 2', sans-serif; font-size:30px; line-height:1.1; color:var(--navy); }
+  .progress-tile span{ font-size:13px; color:#5c6b7a; }
+  .progress-week{ margin:1.2vh 0 0; font-weight:700; color:var(--navy); }
+  .progress-legend{ display:flex; flex-wrap:wrap; gap:14px; font-size:13px; color:#5c6b7a; margin-bottom:8px; }
+  .progress-legend i{ display:inline-block; width:12px; height:12px; border-radius:3px; margin-right:5px; vertical-align:-1px; }
+  .pb-on{ background:#2f8f5f; }
+  .pb-late{ background:#d9822b repeating-linear-gradient(135deg, rgba(255,255,255,0.45) 0 2px, transparent 2px 6px); }
+  .pb-skip{ background:#c9ced6; }
+  .progress-bars{ display:flex; gap:4px; align-items:flex-end; height:150px; background:white; border-radius:14px; padding:10px 10px 4px; }
+  .progress-day{ flex:1; height:100%; display:flex; flex-direction:column; align-items:center; min-width:0; }
+  .progress-day span{ font-size:11px; color:#5c6b7a; text-align:center; line-height:1.15; margin-top:3px; }
+  .progress-stack{ flex:1; width:100%; max-width:26px; display:flex; flex-direction:column; justify-content:flex-end; gap:2px; }
+  .progress-stack i{ display:block; width:100%; border-radius:2px; }
+  .progress-stack i:first-child{ border-radius:4px 4px 2px 2px; }
+  .progress-day:hover .progress-stack{ filter:brightness(1.08); }
+  .progress-weekdays{ display:grid; gap:6px; }
+  .progress-wd{ display:grid; grid-template-columns:3.5em 1fr 3em; align-items:center; gap:8px; }
+  .progress-wd span{ font-weight:700; color:var(--navy); }
+  .progress-wd b{ text-align:right; color:var(--navy); }
+  .progress-wd.worst span, .progress-wd.worst b{ color:#a85a12; }
+  .progress-meter{ height:10px; background:#e9ecf1; border-radius:5px; overflow:hidden; }
+  .progress-meter i{ display:block; height:100%; background:#2f8f5f; border-radius:0 4px 4px 0; }
+  .progress-tasks{ list-style:none; padding:0; margin:0; display:grid; gap:6px; }
+  .progress-tasks li{ display:flex; flex-wrap:wrap; justify-content:space-between; gap:4px 12px; background:white; border-radius:12px; padding:8px 12px; }
+  .pt-name{ font-weight:700; color:var(--navy); }
+  .pt-num{ font-size:14px; color:#5c6b7a; }
   .sound-row{ flex-wrap:wrap; }
   .sound-try{ font-size:clamp(16px, 1.2vw, 24px); background:white; border:2px solid rgba(29,53,87,0.15); border-radius:12px; padding:4px 10px; cursor:pointer; }
   .audio-pool .pool-summary{ font-weight:800; color:var(--navy); }
@@ -1934,6 +1968,7 @@
       <button type="button" class="settings-tab" data-tab="routines" role="tab" data-i18n="tab_routines"></button>
       <button type="button" class="settings-tab" data-tab="children" role="tab" data-i18n="tab_children"></button>
       <button type="button" class="settings-tab" data-tab="sounds" role="tab" data-i18n="tab_sounds"></button>
+      <button type="button" class="settings-tab" data-tab="progress" role="tab" data-i18n="tab_progress"></button>
       <button type="button" class="settings-tab" data-tab="devices" role="tab" data-i18n="tab_devices"></button>
       <button type="button" class="settings-tab" data-tab="general" role="tab" data-i18n="tab_general"></button>
     </div>
@@ -2106,6 +2141,13 @@
       </div>
       <p class="settings-hint" id="sound-now"></p>
     </div>
+    </div>
+    <div class="settings-pane" data-pane="progress" role="tabpanel">
+      <div id="progress-child-switch" class="child-switch-row">
+        <span class="settings-label" data-i18n="progress_of"></span>
+        <div id="progress-child-tabs"></div>
+      </div>
+      <div id="progress-body"></div>
     </div>
     <div class="settings-pane" data-pane="devices" role="tabpanel">
     <div class="sync-buttons">
@@ -2379,6 +2421,29 @@ const I18N = {
     tab_sounds: "🔊\nSons",
     tab_devices: "📱\nAparelhos",
     tab_general: "⚙️\nGeral",
+    tab_progress: "📊\nProgresso",
+    progress_of: "Progresso de:",
+    progress_none: "Ainda sem dias registrados. O progresso aparece depois do primeiro dia com tarefas feitas.",
+    progress_ontime: "no horário (30 dias)",
+    progress_days: "dias com rotina (30 dias)",
+    progress_stars: "{icon} ganhos (30 dias)",
+    progress_week: "Esta semana: {a}% no horário · semana passada: {b}%",
+    progress_week_one: "Esta semana: {a}% no horário",
+    progress_last: "Últimos 14 dias",
+    legend_ontime: "No horário",
+    legend_late: "Atrasada",
+    legend_skipped: "Pulada / não feita",
+    progress_day_tip: "{date}: {o} no horário, {l} atrasadas, {k} puladas",
+    progress_no_day: "{date}: sem rotina registrada",
+    progress_weekday: "Por dia da semana (últimas 8 semanas)",
+    progress_best: "Dia mais fácil: {day}",
+    progress_worst: "Dia mais difícil: {day}",
+    progress_tasks_late: "Tarefas que mais atrasam",
+    progress_tasks_good: "Tarefas mais no horário",
+    progress_task_line: "{pct}% no horário em {n} vezes",
+    progress_task_late: "atraso médio de {m} min",
+    progress_tasks_soon: "Os resultados por tarefa começam a ser guardados agora. Depois de umas 2 semanas aparecem aqui as tarefas que mais atrasam e as mais pontuais.",
+    progress_hint: "“No horário” conta as tarefas feitas no horário entre as feitas (as puladas ficam de fora). Os dados vêm de todos os aparelhos pareados.",
     routines_of: "Rotinas de:",
     edit_child: "Editar o perfil da criança",
     week_title: "📋 Rotinas",
@@ -2831,6 +2896,29 @@ const I18N = {
     tab_sounds: "🔊\nSounds",
     tab_devices: "📱\nDevices",
     tab_general: "⚙️\nGeneral",
+    tab_progress: "📊\nProgress",
+    progress_of: "Progress of:",
+    progress_none: "No days recorded yet. Progress shows after the first day with tasks done.",
+    progress_ontime: "on time (30 days)",
+    progress_days: "days with a routine (30 days)",
+    progress_stars: "{icon} earned (30 days)",
+    progress_week: "This week: {a}% on time · last week: {b}%",
+    progress_week_one: "This week: {a}% on time",
+    progress_last: "Last 14 days",
+    legend_ontime: "On time",
+    legend_late: "Late",
+    legend_skipped: "Skipped / not done",
+    progress_day_tip: "{date}: {o} on time, {l} late, {k} skipped",
+    progress_no_day: "{date}: no routine recorded",
+    progress_weekday: "By day of the week (last 8 weeks)",
+    progress_best: "Easiest day: {day}",
+    progress_worst: "Hardest day: {day}",
+    progress_tasks_late: "Tasks most often late",
+    progress_tasks_good: "Tasks most often on time",
+    progress_task_line: "{pct}% on time in {n} times",
+    progress_task_late: "{m} min late on average",
+    progress_tasks_soon: "Results per task are saved from now on. After about 2 weeks, the tasks most often late and on time show here.",
+    progress_hint: "“On time” counts the tasks done on time among the tasks done (skipped ones are left out). The data comes from all paired devices.",
     routines_of: "Routines of:",
     edit_child: "Edit the child's profile",
     week_title: "📋 Routines",
@@ -3283,6 +3371,29 @@ const I18N = {
     tab_sounds: "🔊\nTöne",
     tab_devices: "📱\nGeräte",
     tab_general: "⚙️\nAllgemein",
+    tab_progress: "📊\nFortschritt",
+    progress_of: "Fortschritt von:",
+    progress_none: "Noch keine Tage gespeichert. Der Fortschritt erscheint nach dem ersten Tag mit erledigten Aufgaben.",
+    progress_ontime: "pünktlich (30 Tage)",
+    progress_days: "Tage mit Routine (30 Tage)",
+    progress_stars: "{icon} verdient (30 Tage)",
+    progress_week: "Diese Woche: {a}% pünktlich · letzte Woche: {b}%",
+    progress_week_one: "Diese Woche: {a}% pünktlich",
+    progress_last: "Letzte 14 Tage",
+    legend_ontime: "Pünktlich",
+    legend_late: "Zu spät",
+    legend_skipped: "Übersprungen / nicht gemacht",
+    progress_day_tip: "{date}: {o} pünktlich, {l} zu spät, {k} übersprungen",
+    progress_no_day: "{date}: keine Routine gespeichert",
+    progress_weekday: "Nach Wochentag (letzte 8 Wochen)",
+    progress_best: "Leichtester Tag: {day}",
+    progress_worst: "Schwierigster Tag: {day}",
+    progress_tasks_late: "Aufgaben, die am häufigsten zu spät sind",
+    progress_tasks_good: "Aufgaben, die am häufigsten pünktlich sind",
+    progress_task_line: "{pct}% pünktlich bei {n} Mal",
+    progress_task_late: "im Schnitt {m} Min. zu spät",
+    progress_tasks_soon: "Die Ergebnisse pro Aufgabe werden ab jetzt gespeichert. Nach etwa 2 Wochen erscheinen hier die Aufgaben, die am häufigsten zu spät oder pünktlich sind.",
+    progress_hint: "„Pünktlich“ zählt die pünktlich erledigten Aufgaben unter den erledigten (übersprungene zählen nicht). Die Daten kommen von allen gekoppelten Geräten.",
     routines_of: "Routinen von:",
     edit_child: "Profil des Kindes bearbeiten",
     week_title: "📋 Routinen",
@@ -5613,7 +5724,7 @@ function starsOf(t){ return t.outcome === 'onTime' ? (t.early ? 2 : 1) : 0; }
 // The unit is the on-time picture (🐆 by default): children get attached to it. Finishing early: a second, smaller one.
 function starBadge(t){ return ONTIME_ICON + (t.early ? `<span class="badge-extra">${ONTIME_ICON}</span>` : ''); }
 function dayStars(){ return tasks.reduce((n, t) => n + starsOf(t), 0); }
-const HISTORY_KEY = 'rotinaHistory_v1'; // { childId: { 'YYYY-MM-DD': { s, o, e, l, k, u, up } } }
+const HISTORY_KEY = 'rotinaHistory_v1'; // { childId: { 'YYYY-MM-DD': { s, o, e, l, k, t, u, up } } }
 const HISTORY_DAYS = 120;
 function readHistory(){ try{ return JSON.parse(lsGet(HISTORY_KEY)) || {}; }catch(e){ return {}; } }
 function writeHistory(all){ lsSet(HISTORY_KEY, JSON.stringify(all)); }
@@ -5629,6 +5740,11 @@ function daySummary(){
     else if(t.outcome === 'skipped') sum.k++;
   });
   sum.s = sum.o + sum.e;
+  // t: each task's result, for the progress tab: JSON [[emoji, name, 'o'|'e'|'l'|'k', late minutes], ...]
+  const each = tasks.filter(t => ['onTime', 'late', 'skipped'].includes(t.outcome)).map(t =>
+    [String(t.emoji || '').slice(0, 16), String(t.name || '').slice(0, 40), t.outcome === 'late' ? 'l' : t.outcome === 'skipped' ? 'k' : t.early ? 'e' : 'o', t.outcome === 'late' ? Math.round(t.redMin || 0) : 0]);
+  sum.t = JSON.stringify(each);
+  if(sum.t.length > 7000) sum.t = '[]';
   return sum;
 }
 // Today's summary of the active child, after each change of the day (from saveDayState).
@@ -5639,7 +5755,7 @@ function recordDaySummary(){
   const all = readHistory();
   const mine = all[ACTIVE_CHILD_ID] = all[ACTIVE_CHILD_ID] || {};
   const old = mine[date];
-  if(old ? ['s', 'o', 'e', 'l', 'k'].every(k => old[k] === sum[k]) : !(sum.o || sum.l)) return;
+  if(old ? ['s', 'o', 'e', 'l', 'k', 't'].every(k => old[k] === sum[k]) : !(sum.o || sum.l)) return;
   mine[date] = Object.assign(sum, { u: Date.now() });
   const oldest = dateKey(dateInDays(-HISTORY_DAYS));
   Object.keys(mine).forEach(d => { if(d < oldest) delete mine[d]; });
@@ -5657,6 +5773,7 @@ function uploadHistory(childId, date){
   const rec = (readHistory()[childId] || {})[date];
   if(!cloudEnabled() || !houseId || !rec) return Promise.resolve(false);
   const body = { s: rec.s, o: rec.o, e: rec.e, l: rec.l, k: rec.k, u: rec.u };
+  if(typeof rec.t === 'string') body.t = rec.t;
   return cloudFetch(`history/${houseId}/${encodeURIComponent(childId)}/${date}`, { method: 'PUT', body: JSON.stringify(body) }).then(() => {
     const all = readHistory();
     const r = all[childId] && all[childId][date];
@@ -5669,12 +5786,12 @@ function uploadHistory(childId, date){
 let historySyncedAt = 0, historySyncedDay = '';
 function syncHistory(force){
   const houseId = getHouseId();
-  if(!cloudEnabled() || !houseId) return;
+  if(!cloudEnabled() || !houseId) return Promise.resolve();
   const today = dateKey(new Date());
-  if(!force && historySyncedDay === today && Date.now() - historySyncedAt < 30 * 60000) return;
+  if(!force && historySyncedDay === today && Date.now() - historySyncedAt < 30 * 60000) return Promise.resolve();
   historySyncedAt = Date.now(); historySyncedDay = today;
-  CHILDREN.forEach(c => {
-    cloudFetch(`history/${houseId}/${encodeURIComponent(c.id)}`).then(remote => {
+  return Promise.all(CHILDREN.map(c => {
+    return cloudFetch(`history/${houseId}/${encodeURIComponent(c.id)}`).then(remote => {
       const all = readHistory();
       const mine = all[c.id] = all[c.id] || {};
       const oldest = dateKey(dateInDays(-HISTORY_DAYS));
@@ -5687,7 +5804,7 @@ function syncHistory(force){
       if(changed) writeHistory(all);
       Object.keys(mine).forEach(d => { if(!mine[d].up && d >= oldest) uploadHistory(c.id, d); });
     }).catch(() => {});
-  });
+  }));
 }
 function mondayOffset(){ return (new Date().getDay() + 6) % 7; } // days since Monday
 // The week's stars: the days before today from the history, plus today live.
@@ -6692,6 +6809,7 @@ function showSettingsTab(name){
   });
   document.querySelectorAll('#settings-overlay .settings-pane').forEach(p => { p.hidden = p.dataset.pane !== name; });
   settingsOverlay.querySelector('.settings-card').scrollTop = 0;
+  if(name === 'progress'){ renderProgress(); syncHistory(true).then(renderProgress, () => {}); } // the other devices' latest days
 }
 document.getElementById('settings-tabs').addEventListener('click', (e) => {
   const b = e.target.closest('.settings-tab');
@@ -6930,6 +7048,7 @@ function renderChildEditor(){
   document.getElementById('child-goal-row').hidden = !c.stars;
   document.getElementById('child-goal-pool').hidden = document.getElementById('child-goal-pool').hidden || !c.stars;
   renderSoundChildSwitch();
+  renderProgress();
   document.getElementById('child-stars').checked = !!c.stars;
   document.getElementById('child-stars-box').hidden = !c.stars;
   const pcts = [[0, tr('goal_none')]].concat([50, 60, 70, 80, 90, 100].map(n => [n, tr('goal_pct', { n })]));
@@ -6958,6 +7077,83 @@ function renderAudioPool(kind){
     + AUDIOS.map(a => `<button type="button" data-kind="${kind}" data-id="${a.id}" class="${pool.includes(a.id) ? 'selected' : ''}">${pool.includes(a.id) ? '✅' : '🎙️'} ${escHtml(a.name)}</button>`).join('')
     + `<p class="settings-hint pool-summary">${chosen.length ? tr('pool_draws', { list: chosen.map(a => escHtml(a.name)).join(', ') }) : tr('pool_empty')}</p>`;
 }
+// ---------- 📊 Progresso: the child's history (days, weekdays, tasks) ----------
+// From the day summaries (readHistory, shared by syncHistory): the last 30 days in numbers, the last
+// 14 as bars, the share on time per weekday over 8 weeks and, from the per-task results (t), the
+// tasks most often late and on time. "On time" = on time among the tasks done (skipped left out).
+function onTimePct(o, l){ return o + l ? Math.round(o * 100 / (o + l)) : null; }
+function progressTaskStats(mine, days){
+  const by = {};
+  for(let k = 0; k < days; k++){
+    const r = mine[dateKey(dateInDays(-k))];
+    if(!r || typeof r.t !== 'string') continue;
+    let list = [];
+    try{ list = JSON.parse(r.t) || []; }catch(e){}
+    list.forEach(([emoji, name, code, lateMin]) => {
+      const key = emoji + '|' + String(name || '').trim().toLowerCase();
+      const x = by[key] = by[key] || { emoji, name, o: 0, l: 0, late: 0 };
+      if(code === 'o' || code === 'e') x.o++;
+      else if(code === 'l'){ x.l++; x.late += lateMin || 0; }
+    });
+  }
+  return Object.values(by).filter(x => x.o + x.l >= 3).map(x => Object.assign(x, { pct: onTimePct(x.o, x.l), avg: x.l ? Math.round(x.late / x.l) : 0 }));
+}
+function renderProgress(){
+  const body = document.getElementById('progress-body');
+  if(!body || document.querySelector('#settings-overlay .settings-pane[data-pane="progress"]').hidden) return;
+  document.getElementById('progress-child-switch').hidden = draftChildren.length < 2;
+  document.getElementById('progress-child-tabs').innerHTML = draftChildren.map((c, i) =>
+    `<button type="button" class="routine-child-tab${c.id === selectedChildId ? ' selected' : ''}" data-child="${c.id}" style="--c:var(--${c.color})">${escHtml(childLabel(c, i))}</button>`).join('');
+  const mine = readHistory()[selectedChildId] || {};
+  const fmtDate = d => d.toLocaleDateString(LANG_LOCALES[LANG], { day: 'numeric', month: 'numeric' });
+  let o30 = 0, l30 = 0, s30 = 0, d30 = 0;
+  for(let k = 0; k < 30; k++){ const r = mine[dateKey(dateInDays(-k))]; if(r){ o30 += r.o || 0; l30 += r.l || 0; s30 += r.s || 0; d30++; } }
+  if(!d30){ body.innerHTML = `<p class="settings-hint">${tr('progress_none')}</p>`; return; }
+  const week = from => { let o = 0, l = 0, any = false; for(let k = from; k < from + 7; k++){ const r = mine[dateKey(dateInDays(-k))]; if(r){ o += r.o || 0; l += r.l || 0; any = true; } } return any ? onTimePct(o, l) : null; };
+  const thisWeek = week(0), lastWeek = week(7);
+  let html = `<div class="progress-tiles">
+    <div class="progress-tile"><b>${onTimePct(o30, l30) === null ? '–' : onTimePct(o30, l30) + '%'}</b><span>${tr('progress_ontime')}</span></div>
+    <div class="progress-tile"><b>${d30}</b><span>${tr('progress_days')}</span></div>
+    ${CHILDREN.some(c => c.id === selectedChildId && c.stars) || draftChild().stars ? `<div class="progress-tile"><b>${s30}</b><span>${tr('progress_stars', { icon: ONTIME_ICON })}</span></div>` : ''}
+  </div>`;
+  if(thisWeek !== null) html += `<p class="progress-week">${lastWeek !== null ? tr('progress_week', { a: thisWeek, b: lastWeek }) : tr('progress_week_one', { a: thisWeek })}</p>`;
+  // the last 14 days, oldest on the left: on time (with early), late (striped), skipped
+  const days = [];
+  for(let k = 13; k >= 0; k--){ const d = dateInDays(-k); days.push({ d, r: mine[dateKey(d)] }); }
+  const max = Math.max(1, ...days.map(x => x.r ? (x.r.o || 0) + (x.r.l || 0) + (x.r.k || 0) : 0));
+  html += `<h3>${tr('progress_last')}</h3>
+    <div class="progress-legend"><span><i class="pb-on"></i>${tr('legend_ontime')}</span><span><i class="pb-late"></i>${tr('legend_late')}</span><span><i class="pb-skip"></i>${tr('legend_skipped')}</span></div>
+    <div class="progress-bars">${days.map(({ d, r }) => {
+      const tip = r ? tr('progress_day_tip', { date: fmtDate(d), o: r.o || 0, l: r.l || 0, k: r.k || 0 }) : tr('progress_no_day', { date: fmtDate(d) });
+      const seg = (n, cls) => n ? `<i class="${cls}" style="height:${n * 100 / max}%"></i>` : '';
+      return `<div class="progress-day" title="${escHtml(tip)}" aria-label="${escHtml(tip)}"><div class="progress-stack">${r ? seg(r.k || 0, 'pb-skip') + seg(r.l || 0, 'pb-late') + seg(r.o || 0, 'pb-on') : ''}</div><span>${tr('days_short')[d.getDay()]}<br>${d.getDate()}</span></div>`;
+    }).join('')}</div>`;
+  // by weekday, Monday first
+  const wd = [0, 0, 0, 0, 0, 0, 0].map(() => ({ o: 0, l: 0 }));
+  for(let k = 0; k < 56; k++){ const d = dateInDays(-k), r = mine[dateKey(d)]; if(r){ wd[d.getDay()].o += r.o || 0; wd[d.getDay()].l += r.l || 0; } }
+  const order = [1, 2, 3, 4, 5, 6, 0].filter(i => wd[i].o + wd[i].l);
+  if(order.length){
+    const pcts = order.map(i => onTimePct(wd[i].o, wd[i].l));
+    const best = order[pcts.indexOf(Math.max(...pcts))], worst = order[pcts.indexOf(Math.min(...pcts))];
+    html += `<h3>${tr('progress_weekday')}</h3><div class="progress-weekdays">${order.map((i, n) =>
+      `<div class="progress-wd${i === worst && order.length > 1 ? ' worst' : ''}"><span>${tr('days_short')[i]}</span><div class="progress-meter"><i style="width:${pcts[n]}%"></i></div><b>${pcts[n]}%</b></div>`).join('')}</div>`;
+    if(order.length > 1 && best !== worst) html += `<p class="settings-hint">${tr('progress_best', { day: tr('days_full')[best] })} · ${tr('progress_worst', { day: tr('days_full')[worst] })}</p>`;
+  }
+  // tasks
+  const stats = progressTaskStats(mine, 30);
+  const line = x => `<li><span class="pt-name">${escHtml(x.emoji)} ${escHtml(x.name)}</span><span class="pt-num">${tr('progress_task_line', { pct: x.pct, n: x.o + x.l })}${x.l ? ' · ' + tr('progress_task_late', { m: x.avg }) : ''}</span></li>`;
+  const late = stats.filter(x => x.l && x.pct < 85).sort((a, b) => a.pct - b.pct || b.avg - a.avg).slice(0, 5);
+  const good = stats.filter(x => x.pct >= 50 && !late.includes(x)).sort((a, b) => b.pct - a.pct || (b.o + b.l) - (a.o + a.l)).slice(0, 5);
+  if(late.length) html += `<h3>${tr('progress_tasks_late')}</h3><ul class="progress-tasks">${late.map(line).join('')}</ul>`;
+  if(good.length) html += `<h3>${tr('progress_tasks_good')}</h3><ul class="progress-tasks">${good.map(line).join('')}</ul>`;
+  if(!stats.length) html += `<p class="settings-hint">${tr('progress_tasks_soon')}</p>`;
+  html += `<p class="settings-hint">${tr('progress_hint')}</p>`;
+  body.innerHTML = html;
+}
+document.getElementById('progress-child-tabs').addEventListener('click', (e) => {
+  const b = e.target.closest('.routine-child-tab');
+  if(b) selectChild(b.dataset.child);
+});
 // Sons tab: with more than one child, whose sounds are shown (same choice as the other tabs).
 function renderSoundChildSwitch(){
   const box = document.getElementById('sound-child-switch');
@@ -8299,7 +8495,7 @@ let settingsDirty = false;
   const card = settingsOverlay.querySelector('.settings-card');
   const markDirty = (e) => {
     if(!card.contains(e.target)) return; // redrawn by its own handler (e.g. a renamed audio)
-    if(e.target.closest('.emoji-preview, #stats-row, #sync-section, #backup-section, #backup-file-input, #audio-section, #audio-file-input, #cloud-banner, #settings-cancel, #settings-save, #settings-guide-btn, #routine-tabs button[data-index], #settings-tabs, #routine-child-switch, #sound-child-switch, .sound-try, .child-tab, #routine-add-btn, #template-cancel-btn, #settings-copy-task, #routine-oneday-btn')) return;
+    if(e.target.closest('.emoji-preview, #stats-row, #sync-section, #backup-section, #backup-file-input, #audio-section, #audio-file-input, #cloud-banner, #settings-cancel, #settings-save, #settings-guide-btn, #routine-tabs button[data-index], #settings-tabs, #routine-child-switch, #sound-child-switch, #progress-child-switch, .sound-try, .child-tab, #routine-add-btn, #template-cancel-btn, #settings-copy-task, #routine-oneday-btn')) return;
     settingsDirty = true;
   };
   ['input', 'change'].forEach(ev => card.addEventListener(ev, markDirty));

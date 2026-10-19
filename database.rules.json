@@ -65,6 +65,7 @@
             "l": { ".validate": "newData.isNumber() && newData.val() >= 0 && newData.val() <= 250" },
             "k": { ".validate": "newData.isNumber() && newData.val() >= 0 && newData.val() <= 250" },
             "u": { ".validate": "newData.isNumber()" },
+            "t": { ".validate": "newData.isString() && newData.val().length <= 8000" },
             "$other": { ".validate": false }
           }
         }
