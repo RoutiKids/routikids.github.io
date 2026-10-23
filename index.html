@@ -45,7 +45,7 @@
 <meta name="color-scheme" content="light dark">
 <title>Routikids</title>
 <!-- The code version lives here (read by the app and by the update check); bump it on every change, with the number of the PR that brings it. -->
-<meta name="app-version" content="Versão do código: 2026-10-19 14:04 · PR #57">
+<meta name="app-version" content="Versão do código: 2026-10-23 08:47 · PR #59">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <!-- Icon and manifest: "Add to home screen" on Android (and iOS) gets the Routikids icon. -->
 <link rel="manifest" href="manifest.webmanifest">
@@ -5894,9 +5894,13 @@ function goalCardHtml(kind, opts){
     html += `<div class="goal-sub${quiet ? ' big' : ''}">${left ? tr('goal_left', { n: `<b class="goal-num">${left}</b>`, icon: ONTIME_ICON }) : tr('goal_reached')}</div>`;
     const start = [pts[0][0] - 5, pts[0][1] + 12];
     const path = 'M ' + pts.map(([x, y]) => `${x} ${y}`).join(' L ') + ` L ${end[0]} ${end[1]}`;
-    const at = from ? pts[from - 1] : start;
+    // With the goal reached the child's picture stands on the 🏆 (on the last stop it looked unfinished):
+    // a jump that reaches the goal ends with one more hop, onto the 🏆.
+    const wasWon = (kind === 'jump' ? Math.min(opts.before || 0, stars) : stars) >= goal;
+    const at = wasWon ? end : from ? pts[from - 1] : start;
     const hops = []; // one hop per stop won, in order
     for(let k = from; k < reached; k++) hops.push(pts[k].join(','));
+    if(!left && !wasWon) hops.push(end.join(','));
     html += `<div class="goal-map rows-${Math.min(rows, 4)}"><svg viewBox="0 0 100 100" preserveAspectRatio="none"><path d="${path}" /></svg>`
       + pts.map(([x, y], i) => `<div class="goal-node${i < from ? ' on' : ''}${i >= from && i < reached ? ' new' : ''}" style="left:${x}%; top:${y}%; --i:${i}">${i < reached ? ONTIME_ICON : i + 1}</div>`).join('')
       + map.labels.map(l => `<div class="goal-seg" style="left:${l.at[0]}%; top:${l.at[1]}%">${l.icon}</div>`).join('')
