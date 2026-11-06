@@ -45,7 +45,7 @@
 <meta name="color-scheme" content="light dark">
 <title>Routikids</title>
 <!-- The code version lives here (read by the app and by the update check); bump it on every change, with the number of the PR that brings it. -->
-<meta name="app-version" content="Versão do código: 2026-10-23 08:47 · PR #59">
+<meta name="app-version" content="Versão do código: 2026-11-06 19:57 · PR #60">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <!-- Icon and manifest: "Add to home screen" on Android (and iOS) gets the Routikids icon. -->
 <link rel="manifest" href="manifest.webmanifest">
@@ -4264,15 +4264,11 @@ function keepBlockMark(mark){
 }
 function isBlockFirst(i){ return i >= 0 && i < tasks.length && (i === 0 || tasks[i - 1].routineId !== tasks[i].routineId); }
 function blockShift(i){ const b = routineBlockAt(i); return b ? (tasks[b.startIdx].startShift || 0) : 0; }
-// The shift the plan is compared with: while a routine waits for its start past
-// its time, the plan moves on with now (as starting it will), so waiting shows no delay.
+// The shift the plan is compared with: the routine's moved start. Waiting past the time
+// counts as delay (a late start is not hidden; it used to move the plan along with now).
 function shownShift(i){
   const b = routineBlockAt(i);
-  if(!b) return 0;
-  const first = tasks[b.startIdx];
-  const shift = first.startShift || 0;
-  if(b.startIdx !== pointer || !awaitingStart || first.started) return shift;
-  return Math.max(shift, nowInMinutes() - first.plannedStartMin);
+  return b ? (tasks[b.startIdx].startShift || 0) : 0;
 }
 // "Início da rotina": 'fixed' (starts by itself at its time) or 'button' (waits for "Começar").
 // A test ("Testar agora") runs every routine back to back, so none waits for "Começar".
@@ -4532,6 +4528,9 @@ function mergeDayProgress(prev, force){
     if(i < 0) return;
     const t = tasks[i];
     Object.assign(t, { startMin: o.startMin, endMin: o.endMin, outcome: o.outcome, redMin: o.redMin, baseDurationMin: o.baseDurationMin, userSkipped: !!o.userSkipped, early: !!o.early });
+    // the routine's start mark lives on its first task, often already done: without it the other
+    // device compared the rest with another plan (one showed the routine late, the other on time)
+    t.startShift = o.startShift || 0; t.started = !!o.started;
     done.push(t);
   });
   const rest = [];
@@ -6145,11 +6144,14 @@ mainFinishBtn.addEventListener('click', () => {
 
 // ---------- "Start" button (starts the next task and moves the rest earlier) ----------
 let startNextBtn = document.getElementById('start-next-btn');
+// Starting a routine: before its time the plan moves earlier; after its time it does not move
+// (past an "⏰ Adiar"), so a late start shows as delay, the same on every device (the owner's choice).
+function startShiftFrom(t, nowMin){ return Math.min(nowMin - t.plannedStartMin, Math.max(0, t.startShift || 0)); }
 function startNextTask(){
   if(!awaitingStart){ if(canStartNow()) startRoutineNow(); return; }
   const now = new Date();
   const nowMin = now.getHours()*60 + now.getMinutes() + now.getSeconds()/60;
-  if(isBlockFirst(pointer)){ tasks[pointer].started = true; tasks[pointer].startShift = nowMin - tasks[pointer].plannedStartMin; }
+  if(isBlockFirst(pointer)){ tasks[pointer].started = true; tasks[pointer].startShift = startShiftFrom(tasks[pointer], nowMin); }
   awaitingStart = false;
   recomputeUpcoming(nowMin); // anchor the next task (and the following ones) from now
   fitFlexibleTasks(true);
@@ -6169,7 +6171,7 @@ function startRoutineNow(){
   if(!canStartNow()) return;
   const nowMin = nowInMinutes();
   const t = tasks[pointer];
-  Object.assign(t, { started: true, startShift: nowMin - t.plannedStartMin, redMin: 0, baseDurationMin: t.plannedDurationMin, autoExtended: false, closedLate: false, pausedAt: undefined });
+  Object.assign(t, { started: true, startShift: startShiftFrom(t, nowMin), redMin: 0, baseDurationMin: t.plannedDurationMin, autoExtended: false, closedLate: false, pausedAt: undefined });
   awaitingStart = false;
   recomputeUpcoming(nowMin);
   fitFlexibleTasks(true);
@@ -6218,7 +6220,7 @@ function resetRoutine(){
   const nowMin = nowInMinutes();
   const first = tasks[pointer];
   if(routineStartMode(first) === 'fixed' && nowMin >= first.plannedStartMin){
-    first.startShift = nowMin - first.plannedStartMin;
+    first.startShift = startShiftFrom(first, nowMin);
     recomputeUpcoming(nowMin);
     fitFlexibleTasks(true);
     playForTask(first);
